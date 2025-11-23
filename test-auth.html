@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Auth Test</title>
+</head>
+<body>
+    <h1>Authentication Test</h1>
+    <p>Check console for cookie info</p>
+    
+    <script>
+        // Log all cookies
+        console.log('All cookies:', document.cookie);
+        
+        // Check for specific cookies
+        const cookies = document.cookie.split(';');
+        cookies.forEach(cookie => {
+            const [name, value] = cookie.trim().split('=');
+            console.log(`Cookie ${name}:`, value);
+        });
+        
+        // Check localStorage
+        console.log('localStorage synapse-user:', localStorage.getItem('synapse-user'));
+    </script>
+</body>
+</html>

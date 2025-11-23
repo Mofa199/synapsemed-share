@@ -1,0 +1,1302 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User Management
+model User {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  name              String
+  password          String
+  role              UserRole @default(STUDENT)
+  field             UserField
+  avatarUrl         String?
+  level             Int      @default(1)
+  points            Int      @default(0)
+  streak            Int      @default(0)
+  isActive          Boolean  @default(true)
+  lastLoginAt       DateTime?
+  resetToken        String?
+  resetTokenExpiry  DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  userBadges     UserBadge[]
+  userChallenges UserChallenge[]
+  bookmarks      Bookmark[]
+  highlights     Highlight[]
+  ratings        Rating[]
+  progress       Progress[]
+  chatMessages   ChatMessage[]
+  createdContent Article[] @relation("ArticleAuthor")
+  notes          Note[] @relation("UserNotes")
+  questionOfTheDayAnswers QuestionOfTheDayAnswer[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  LECTURER
+  EDITOR
+  STUDENT
+}
+
+enum UserField {
+  MEDICAL
+  NURSING
+  PHARMACY
+}
+
+// Curriculum Structure
+model Curriculum {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  field       UserField
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  modules Module[]
+  topics  Topic[]
+  books   Book[]
+  videos  Video[]
+
+  @@map("curricula")
+}
+
+model Module {
+  id           String     @id @default(cuid())
+  name         String
+  description  String?
+  curriculumId String
+  order        Int        @default(0)
+  isActive     Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  // Relations
+  curriculum Curriculum @relation(fields: [curriculumId], references: [id], onDelete: Cascade)
+  topics     Topic[]
+  books      Book[]
+  videos     Video[]
+
+  @@map("modules")
+}
+
+// Content Management
+model Topic {
+  id               String       @id @default(cuid())
+  title            String
+  description      String
+  content          String
+  type             ContentType  @default(ARTICLE)
+  difficulty       Difficulty   @default(BEGINNER)
+  duration         String?
+  category         String?
+  tags             String       // Changed from String[] to String (JSON)
+  isPublished      Boolean      @default(false)
+  views            Int          @default(0)
+  curriculumId     String?
+  moduleId         String?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  // Relations
+  curriculum Curriculum? @relation(fields: [curriculumId], references: [id])
+  module     Module?     @relation(fields: [moduleId], references: [id])
+  bookmarks  Bookmark[]
+  highlights Highlight[]
+  ratings    Rating[]
+  progress   Progress[]
+  videos     Video[]
+
+  @@map("topics")
+}
+
+model Article {
+  id             String     @id @default(cuid())
+  title          String
+  author         String
+  authorId       String?
+  authorBio      String?
+  journal        String?
+  category       String?
+  abstract       String?
+  content        String
+  keywords       String     // Changed from String[] to String (JSON)
+  references     String     // Changed from String[] to String (JSON)
+  readTime       String?
+  difficulty     Difficulty @default(BEGINNER)
+  views          Int        @default(0)
+  isPublished    Boolean    @default(false)
+  publishedAt    DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  // Relations
+  authorUser User?      @relation("ArticleAuthor", fields: [authorId], references: [id])
+  bookmarks  Bookmark[]
+  highlights Highlight[]
+  ratings    Rating[]
+
+  @@map("articles")
+}
+
+model Book {
+  id              String      @id @default(cuid())
+  title           String
+  author          String
+  isbn            String?
+  publisher       String?
+  publicationYear Int?
+  edition         String?
+  pages           Int?
+  language        String      @default("English")
+  format          BookFormat  @default(PDF)
+  description     String?
+  coverUrl        String?
+  fileUrl         String?
+  category        String?
+  tags            String      // Changed from String[] to String (JSON)
+  isPublished     Boolean     @default(false)
+  views           Int         @default(0)
+  curriculumId    String?
+  moduleId        String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  // Relations
+  curriculum Curriculum? @relation(fields: [curriculumId], references: [id])
+  module     Module?     @relation(fields: [moduleId], references: [id])
+  bookmarks  Bookmark[]
+  ratings    Rating[]
+
+  @@map("books")
+}
+
+// Drug Management
+model DrugClass {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  category    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  drugs Drug[]
+
+  @@map("drug_classes")
+}
+
+model Drug {
+  id                         String    @id @default(cuid())
+  name                       String
+  genericName                String?
+  brandNames                 String    // Changed from String[] to String (JSON)
+  drugClassId                String
+  description                String?
+  mechanism                  String?
+  indications                String    // Changed from String[] to String (JSON)
+  dosageAdult                String?
+  dosagePediatric            String?
+  dosageElderly              String?
+  administrationRoute        String?
+  administrationTiming       String?
+  administrationInstructions String?
+  contraindications          String    // Changed from String[] to String (JSON)
+  warnings                   String    // Changed from String[] to String (JSON)
+  sideEffectsCommon          String    // Changed from String[] to String (JSON)
+  sideEffectsSerious         String    // Changed from String[] to String (JSON)
+  sideEffectsRare            String    // Changed from String[] to String (JSON)
+  interactions               String    // Changed from String[] to String (JSON)
+  monitoring                 String    // Changed from String[] to String (JSON)
+  storage                    String?
+  pregnancy                  String?
+  absorption                 String?
+  distribution               String?
+  metabolism                 String?
+  elimination                String?
+  halfLife                   String?
+  isActive                   Boolean   @default(true)
+  createdAt                  DateTime  @default(now())
+  updatedAt                  DateTime  @updatedAt
+
+  // Relations
+  drugClass  DrugClass  @relation(fields: [drugClassId], references: [id], onDelete: Cascade)
+  bookmarks  Bookmark[]
+  ratings    Rating[]
+
+  @@map("drugs")
+}
+
+// Question Banks and Study Guides
+model QuestionBank {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  category    String
+  difficulty  Difficulty @default(BEGINNER)
+  totalQuestions Int     @default(0)
+  estimatedTime  String?
+  tags           String     // Changed from String[] to String (JSON)
+  isPublished    Boolean @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  questions Question[]
+  bookmarks Bookmark[]
+  ratings   Rating[]
+  progress  Progress[]
+
+  @@map("question_banks")
+}
+
+model Question {
+  id              String       @id @default(cuid())
+  questionBankId  String
+  question        String
+  options         String       // Changed from String[] to String (JSON)
+  correctAnswer   Int
+  explanation     String?
+  difficulty      Difficulty   @default(BEGINNER)
+  tags            String       // Changed from String[] to String (JSON)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  // Relations
+  questionBank QuestionBank @relation(fields: [questionBankId], references: [id], onDelete: Cascade)
+
+  @@map("questions")
+}
+
+model StudyGuide {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  content     String
+  category    String
+  difficulty  Difficulty @default(BEGINNER)
+  estimatedTime String?
+  tags          String     // Changed from String[] to String (JSON)
+  isPublished   Boolean    @default(false)
+  views         Int        @default(0)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  // Relations
+  bookmarks Bookmark[]
+  highlights Highlight[]
+  ratings   Rating[]
+  progress  Progress[]
+
+  @@map("study_guides")
+}
+
+// Gamification
+model Badge {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  icon        String?
+  color       String?
+  category    String?
+  criteria    String?
+  pointsRequired Int?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userBadges UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  id       String   @id @default(cuid())
+  userId   String
+  badgeId  String
+  earnedAt DateTime @default(now())
+
+  // Relations
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badge Badge @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@map("user_badges")
+}
+
+// User Interactions
+model Bookmark {
+  id               String         @id @default(cuid())
+  userId           String
+  resourceType     ResourceType
+  topicId          String?
+  articleId        String?
+  bookId           String?
+  drugId           String?
+  questionBankId   String?
+  studyGuideId     String?
+  magazineId       String?
+  videoId          String?
+  flashcardSetId   String?
+  simulationId     String?
+  conceptId        String?
+  createdAt        DateTime       @default(now())
+
+  // Relations
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic        Topic?        @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  article      Article?      @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  book         Book?         @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  drug         Drug?         @relation(fields: [drugId], references: [id], onDelete: Cascade)
+  questionBank QuestionBank? @relation(fields: [questionBankId], references: [id], onDelete: Cascade)
+  studyGuide   StudyGuide?   @relation(fields: [studyGuideId], references: [id], onDelete: Cascade)
+  magazine     Magazine?     @relation(fields: [magazineId], references: [id], onDelete: Cascade)
+  video        Video?        @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  flashcardSet FlashcardSet? @relation(fields: [flashcardSetId], references: [id], onDelete: Cascade)
+  simulation   Simulation?   @relation(fields: [simulationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, resourceType, topicId, articleId, bookId, drugId, questionBankId, studyGuideId, magazineId, videoId, flashcardSetId, simulationId, conceptId])
+  @@map("bookmarks")
+}
+
+model Highlight {
+  id           String      @id @default(cuid())
+  userId       String
+  resourceType ResourceType
+  topicId      String?
+  articleId    String?
+  studyGuideId String?
+  text         String
+  color        String      @default("yellow")
+  note         String?
+  createdAt    DateTime    @default(now())
+
+  // Relations
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic      Topic?      @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  article    Article?    @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  studyGuide StudyGuide? @relation(fields: [studyGuideId], references: [id], onDelete: Cascade)
+
+  @@map("highlights")
+}
+
+model Rating {
+  id               String         @id @default(cuid())
+  userId           String
+  resourceType     ResourceType
+  topicId          String?
+  articleId        String?
+  bookId           String?
+  drugId           String?
+  questionBankId   String?
+  studyGuideId     String?
+  magazineId       String?
+  videoId          String?
+  flashcardSetId   String?
+  simulationId     String?
+  rating           Int            // 1-5 stars
+  review           String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  // Relations
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic        Topic?        @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  article      Article?      @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  book         Book?         @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  drug         Drug?         @relation(fields: [drugId], references: [id], onDelete: Cascade)
+  questionBank QuestionBank? @relation(fields: [questionBankId], references: [id], onDelete: Cascade)
+  studyGuide   StudyGuide?   @relation(fields: [studyGuideId], references: [id], onDelete: Cascade)
+  magazine     Magazine?     @relation(fields: [magazineId], references: [id], onDelete: Cascade)
+  video        Video?        @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  flashcardSet FlashcardSet? @relation(fields: [flashcardSetId], references: [id], onDelete: Cascade)
+  simulation   Simulation?   @relation(fields: [simulationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, resourceType, topicId, articleId, bookId, drugId, questionBankId, studyGuideId, magazineId, videoId, flashcardSetId, simulationId])
+  @@map("ratings")
+}
+
+model Progress {
+  id               String         @id @default(cuid())
+  userId           String
+  resourceType     ResourceType
+  topicId          String?
+  questionBankId   String?
+  studyGuideId     String?
+  flashcardSetId   String?
+  simulationId     String?
+  status           ProgressStatus @default(NOT_STARTED)
+  completionPercentage Int        @default(0)
+  timeSpent        Int            @default(0) // in minutes
+  lastAccessedAt   DateTime       @default(now())
+  completedAt      DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  // Relations
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic        Topic?        @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  questionBank QuestionBank? @relation(fields: [questionBankId], references: [id], onDelete: Cascade)
+  studyGuide   StudyGuide?   @relation(fields: [studyGuideId], references: [id], onDelete: Cascade)
+  flashcardSet FlashcardSet? @relation(fields: [flashcardSetId], references: [id], onDelete: Cascade)
+  simulation   Simulation?   @relation(fields: [simulationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, resourceType, topicId, questionBankId, studyGuideId, flashcardSetId, simulationId])
+  @@map("progress")
+}
+
+// Enums
+enum ContentType {
+  ARTICLE
+  VIDEO
+  INTERACTIVE
+  QUIZ
+}
+
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum BookFormat {
+  PDF
+  EPUB
+  PHYSICAL
+}
+
+enum ResourceType {
+  TOPIC
+  ARTICLE
+  BOOK
+  DRUG
+  QUESTION_BANK
+  STUDY_GUIDE
+  MAGAZINE
+  VIDEO
+  FLASHCARD_SET
+  SIMULATION
+  CONCEPT
+}
+
+enum ProgressStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+}
+
+// AI Chat
+model ChatMessage {
+  id        String      @id @default(cuid())
+  userId    String
+  channelId String?
+  message   String
+  response  String?
+  role      MessageRole
+  createdAt DateTime    @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("chat_messages")
+}
+
+enum PartnerType {
+  UNIVERSITY
+  HOSPITAL
+  PHARMACEUTICAL
+  ORGANIZATION
+}
+
+enum PartnerStatus {
+  ACTIVE
+  PENDING
+  INACTIVE
+}
+
+enum TeamMemberStatus {
+  ACTIVE
+  ON_LEAVE
+  INACTIVE
+}
+
+enum TeamDepartment {
+  MEDICAL_EDUCATION
+  CONTENT_DEVELOPMENT
+  NURSING
+  PHARMACY
+  ENGINEERING
+  DESIGN
+  ADMINISTRATION
+}
+
+enum StepType {
+  HISTORY
+  PHYSICAL_EXAM
+  DIAGNOSIS
+  TREATMENT
+  FOLLOWUP
+}
+
+enum ChallengeType {
+  DAILY_QUIZ
+  WEEKLY_CHALLENGE
+  MONTHLY_GOAL
+  STREAK_CHALLENGE
+  TOPIC_MASTERY
+}
+
+enum ChallengeStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+// Partner Management
+model Partner {
+  id                String        @id @default(cuid())
+  name              String
+  description       String
+  type              PartnerType
+  status            PartnerStatus @default(ACTIVE)
+  website           String?
+  contactName       String
+  contactEmail      String
+  contactPhone      String?
+  logo              String?
+  studentsCount     Int           @default(0)
+  partnershipType   String?
+  joinDate          DateTime      @default(now())
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@map("partners")
+}
+
+// Team Management
+model TeamMember {
+  id           String             @id @default(cuid())
+  name         String
+  email        String             @unique
+  phone        String?
+  position     String
+  department   TeamDepartment
+  status       TeamMemberStatus   @default(ACTIVE)
+  bio          String?
+  avatar       String?
+  linkedin     String?
+  expertise    String?
+  specialties  String             // Changed from String[] to String (JSON)
+  rating       Float?             @default(0)
+  joinDate     DateTime           @default(now())
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@map("team_members")
+}
+
+// Word of the Day
+model WordOfTheDay {
+  id           String   @id @default(cuid())
+  word         String
+  definition   String
+  pronunciation String?
+  etymology    String?
+  category     String?
+  difficulty   Difficulty @default(BEGINNER)
+  example      String?
+  dateScheduled DateTime
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([dateScheduled])
+  @@map("word_of_the_day")
+}
+
+// Magazine Management
+model Magazine {
+  id          String   @id @default(cuid())
+  title       String
+  issue       String?
+  volume      String?
+  description String?
+  coverUrl    String?
+  publishedAt DateTime?
+  category    String?
+  tags        String   // JSON
+  isPublished Boolean  @default(false)
+  views       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  articles    MagazineArticle[]
+  bookmarks   Bookmark[]
+  ratings     Rating[]
+
+  @@map("magazines")
+}
+
+model MagazineArticle {
+  id          String   @id @default(cuid())
+  magazineId  String
+  title       String
+  author      String
+  content     String
+  pageNumber  Int?
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  magazine Magazine @relation(fields: [magazineId], references: [id], onDelete: Cascade)
+
+  @@map("magazine_articles")
+}
+
+// Video Management
+model Video {
+  id           String     @id @default(cuid())
+  title        String
+  description  String?
+  url          String
+  thumbnail    String?
+  duration     String?
+  category     String?
+  difficulty   Difficulty @default(BEGINNER)
+  tags         String     // JSON
+  curriculumId String?
+  moduleId     String?
+  topicId      String?
+  isPublished  Boolean    @default(false)
+  views        Int        @default(0)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  // Relations
+  curriculum Curriculum? @relation(fields: [curriculumId], references: [id])
+  module     Module?     @relation(fields: [moduleId], references: [id])
+  topic      Topic?      @relation(fields: [topicId], references: [id])
+  bookmarks  Bookmark[]
+  ratings    Rating[]
+
+  @@map("videos")
+}
+
+// Flashcard Management
+model FlashcardSet {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  category    String?
+  difficulty  Difficulty @default(BEGINNER)
+  tags        String     // JSON
+  isPublished Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relations
+  flashcards Flashcard[]
+  bookmarks  Bookmark[]
+  ratings    Rating[]
+  progress   Progress[]
+
+  @@map("flashcard_sets")
+}
+
+model Flashcard {
+  id            String       @id @default(cuid())
+  flashcardSetId String
+  front         String
+  back          String
+  category      String?      // Add category field to match frontend expectations
+  hint          String?
+  order         Int          @default(0)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  // Relations
+  flashcardSet FlashcardSet @relation(fields: [flashcardSetId], references: [id], onDelete: Cascade)
+
+  @@map("flashcards")
+}
+
+// Simulation Management
+model Simulation {
+  id           String           @id @default(cuid())
+  title        String
+  description  String?
+  patientAge   Int?
+  patientGender String?
+  chiefComplaint String
+  scenario     String
+  difficulty   Difficulty       @default(BEGINNER)
+  category     String?
+  tags         String           // JSON
+  estimatedTime String?
+  isPublished  Boolean          @default(false)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  // Relations
+  steps        SimulationStep[]
+  bookmarks    Bookmark[]
+  ratings      Rating[]
+  progress     Progress[]
+
+  @@map("simulations")
+}
+
+model SimulationStep {
+  id           String     @id @default(cuid())
+  simulationId String
+  title        String
+  description  String
+  stepType     StepType
+  order        Int
+  data         String     // JSON for step-specific data
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  // Relations
+  simulation Simulation @relation(fields: [simulationId], references: [id], onDelete: Cascade)
+
+  @@map("simulation_steps")
+}
+
+// Challenge Management
+model Challenge {
+  id           String        @id @default(cuid())
+  title        String
+  description  String
+  type         ChallengeType
+  difficulty   Difficulty    @default(BEGINNER)
+  category     String?
+  pointsReward Int           @default(0)
+  badgeReward  String?       // Badge ID
+  startDate    DateTime
+  endDate      DateTime
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  // Relations
+  userChallenges UserChallenge[]
+
+  @@map("challenges")
+}
+
+model UserChallenge {
+  id          String          @id @default(cuid())
+  userId      String
+  challengeId String
+  status      ChallengeStatus @default(NOT_STARTED)
+  progress    Int             @default(0)
+  completedAt DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  // Relations
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, challengeId])
+  @@map("user_challenges")
+}
+
+// Note Management
+model Note {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  content   String
+  category  String   @default("General")
+  tags      String   // JSON
+  isPinned  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user User @relation("UserNotes", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notes")
+}
+
+// Spaced Repetition System
+model SpacedRepetitionCard {
+  id              String   @id @default(cuid())
+  userId          String
+  front           String
+  back            String
+  category        String?
+  tags            String   // JSON
+  difficulty      Difficulty @default(BEGINNER)
+  easeFactor      Float    @default(2.5)
+  interval        Int      @default(1) // days
+  repetitions     Int      @default(0)
+  nextReviewDate  DateTime @default(now())
+  lastReviewedAt  DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([userId, nextReviewDate])
+  @@map("spaced_repetition_cards")
+}
+
+// Question of the Day
+model QuestionOfTheDay {
+  id              String   @id @default(cuid())
+  question        String
+  options         String   // JSON array
+  correctAnswer   Int
+  explanation     String
+  difficulty      Difficulty @default(INTERMEDIATE)
+  category        String?
+  tags            String   // JSON
+  dateScheduled   DateTime
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  userAnswers QuestionOfTheDayAnswer[]
+
+  @@unique([dateScheduled])
+  @@map("question_of_the_day")
+}
+
+model QuestionOfTheDayAnswer {
+  id         String   @id @default(cuid())
+  userId     String
+  questionId String
+  answer     Int
+  isCorrect  Boolean
+  createdAt  DateTime @default(now())
+
+  // Relations
+  question QuestionOfTheDay @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, questionId])
+  @@map("question_of_the_day_answers")
+}
+
+// Study Planner
+model StudyGoal {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  description String?
+  progress    Int      @default(0) // 0-100
+  dueDate     DateTime?
+  priority    Priority @default(MEDIUM)
+  category    String?
+  tags        String   // JSON
+  completed   Boolean  @default(false)
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("study_goals")
+}
+
+model StudySession {
+  id          String      @id @default(cuid())
+  userId      String
+  title       String
+  description String?
+  sessionType SessionType
+  date        DateTime
+  startTime   String      // HH:MM format
+  duration    Int         // minutes
+  status      SessionStatus @default(SCHEDULED)
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@map("study_sessions")
+}
+
+model StudyPlan {
+  id          String   @id @default(cuid())
+  userId      String
+  title       String
+  description String?
+  startDate   DateTime
+  endDate     DateTime
+  goals       String   // JSON array of goal IDs
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("study_plans")
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum SessionType {
+  VIDEO
+  READING
+  QUESTIONS
+  PRACTICE
+  REVIEW
+  EXAM_PREP
+}
+
+enum SessionStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+// Video Favorites
+model VideoFavorite {
+  id        String   @id @default(cuid())
+  userId    String
+  videoId   String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, videoId])
+  @@map("video_favorites")
+}
+
+// Video Comments/Discussion
+model VideoComment {
+  id        String   @id @default(cuid())
+  userId    String
+  videoId   String
+  userName  String
+  userAvatar String?
+  comment   String
+  likes     Int      @default(0)
+  parentId  String?  // For replies
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("video_comments")
+}
+
+// Video Quiz
+model VideoQuiz {
+  id          String   @id @default(cuid())
+  videoId     String
+  title       String
+  description String?
+  passingScore Int     @default(70)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  questions VideoQuizQuestion[]
+  attempts  VideoQuizAttempt[]
+
+  @@map("video_quizzes")
+}
+
+model VideoQuizQuestion {
+  id            String   @id @default(cuid())
+  videoQuizId   String
+  question      String
+  options       String   // JSON array
+  correctAnswer Int
+  explanation   String?
+  order         Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  videoQuiz VideoQuiz @relation(fields: [videoQuizId], references: [id], onDelete: Cascade)
+
+  @@map("video_quiz_questions")
+}
+
+model VideoQuizAttempt {
+  id          String   @id @default(cuid())
+  userId      String
+  videoQuizId String
+  score       Int
+  totalQuestions Int
+  answers     String   // JSON
+  passed      Boolean
+  createdAt   DateTime @default(now())
+
+  // Relations
+  videoQuiz VideoQuiz @relation(fields: [videoQuizId], references: [id], onDelete: Cascade)
+
+  @@map("video_quiz_attempts")
+}
+
+// Video Progress Tracking
+model VideoProgress {
+  id              String   @id @default(cuid())
+  userId          String
+  videoId         String
+  watchTime       Int      @default(0) // seconds
+  totalDuration   Int      // seconds
+  completed       Boolean  @default(false)
+  lastPosition    Int      @default(0) // seconds
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, videoId])
+  @@map("video_progress")
+}
+
+// Concepts Management
+model Concept {
+  id          String     @id @default(cuid())
+  title       String
+  description String
+  content     String     // Rich text content
+  category    String
+  difficulty  Difficulty @default(INTERMEDIATE)
+  readTime    String?    // e.g., "8 min"
+  tags        String     // JSON array
+  summary     String?    // Brief summary
+  keyPoints   String?    // JSON array of key points
+  isPublished Boolean    @default(false)
+  views       Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relations
+  mnemonics Mnemonic[]
+
+  @@map("concepts")
+}
+
+// Mnemonics for Concepts
+model Mnemonic {
+  id          String   @id @default(cuid())
+  conceptId   String
+  title       String
+  mnemonic    String   // The actual mnemonic phrase
+  explanation String   // What each letter/word stands for
+  example     String?  // Example usage
+  category    String?  // e.g., "Acronym", "Rhyme", "Visual"
+  upvotes     Int      @default(0)
+  downvotes   Int      @default(0)
+  createdBy   String?  // User ID who created it
+  isVerified  Boolean  @default(false) // Admin-verified
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  concept Concept @relation(fields: [conceptId], references: [id], onDelete: Cascade)
+
+  @@map("mnemonics")
+}
+
+// Concept Favorites
+model ConceptFavorite {
+  id        String   @id @default(cuid())
+  userId    String
+  conceptId String
+  createdAt DateTime @default(now())
+
+  @@unique([userId, conceptId])
+  @@map("concept_favorites")
+}
+
+// Exam Simulations
+model ExamSimulation {
+  id               String   @id @default(cuid())
+  title            String
+  description      String
+  field            UserField
+  duration         Int      // duration in seconds
+  totalQuestions   Int
+  passingScore     Int      @default(70)
+  difficulty       Difficulty @default(INTERMEDIATE)
+  category         String?  // e.g., "USMLE Step 1", "NCLEX-RN"
+  isActive         Boolean  @default(true)
+  isPublic         Boolean  @default(true) // If false, only assigned users can access
+  createdById      String?  // Lecturer who created it
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  questions      ExamQuestion[]
+  attempts       ExamAttempt[]
+  assignments    ExamAssignment[]
+
+  @@map("exam_simulations")
+}
+
+model ExamQuestion {
+  id               String   @id @default(cuid())
+  examId           String
+  question         String
+  options          String   // JSON array of options
+  correctAnswer    Int      // Index of correct option
+  explanation      String?
+  category         String   // e.g., "Cardiology", "Pharmacology"
+  difficulty       Difficulty @default(INTERMEDIATE)
+  order            Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  exam ExamSimulation @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@map("exam_questions")
+}
+
+model ExamAttempt {
+  id                String   @id @default(cuid())
+  userId            String
+  examId            String
+  answers           String   // JSON object mapping question index to answer index
+  score             Int
+  totalQuestions    Int
+  correctAnswers    Int
+  timeUsed          Int      // seconds
+  completed         Boolean  @default(false)
+  xpEarned          Int      @default(0)
+  achievementsEarned String? // JSON array of achievement IDs
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  exam ExamSimulation @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@map("exam_attempts")
+}
+
+// Exam Assignments (Lecturer assigns exams to specific users)
+model ExamAssignment {
+  id          String   @id @default(cuid())
+  examId      String
+  userId      String
+  assignedBy  String   // Lecturer ID
+  dueDate     DateTime?
+  notified    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  exam ExamSimulation @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@unique([examId, userId])
+  @@map("exam_assignments")
+}
+
+// Achievement System
+model Achievement {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  title       String
+  description String
+  icon        String   // Icon name or URL
+  category    AchievementCategory
+  xpReward    Int      @default(0)
+  condition   String   // JSON object describing unlock condition
+  tier        AchievementTier @default(BRONZE)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userAchievements UserAchievement[]
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  id            String   @id @default(cuid())
+  userId        String
+  achievementId String
+  unlockedAt    DateTime @default(now())
+  progress      Int      @default(100) // For progressive achievements
+
+  // Relations
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementId])
+  @@map("user_achievements")
+}
+
+enum AchievementCategory {
+  EXAM
+  STUDY
+  SOCIAL
+  STREAK
+  MASTERY
+}
+
+enum AchievementTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+  DIAMOND
+}
+
+
+
+// XP and Leveling System
+model XPTransaction {
+  id          String   @id @default(cuid())
+  userId      String
+  amount      Int      // Can be positive or negative
+  source      XPSource
+  sourceId    String?  // ID of the related entity (exam, quiz, etc.)
+  description String?
+  createdAt   DateTime @default(now())
+
+  @@map("xp_transactions")
+}
+
+enum XPSource {
+  EXAM_COMPLETION
+  QUIZ_COMPLETION
+  DAILY_LOGIN
+  STREAK_BONUS
+  ACHIEVEMENT_UNLOCK
+  VIDEO_COMPLETION
+  CONCEPT_MASTERY
+  QUESTION_PRACTICE
+  BONUS
+}
+
+// Email Subscription Model
+model EmailSubscription {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  isActive  Boolean  @default(true)
+  source    String?  // e.g., "footer", "newsletter", "signup"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("email_subscriptions")
+}
