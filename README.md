@@ -1,10 +1,5 @@
 # Synapse Med Project
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
-
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/mohamedfaisal199-3777s-projects/v0-synapse-med-project)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/projects/02wZ7Lfiv6o)
-
 ## Overview
 
 Synapse Med is a comprehensive medical education platform designed for medical, nursing, and pharmacy students. It features interactive learning modules, 3D anatomical models, AI-powered assistance, and gamified progress tracking.
@@ -40,8 +35,8 @@ Synapse Med is a comprehensive medical education platform designed for medical, 
    
    Update the environment variables with your values:
    ```env
-   # Database (Neon PostgreSQL)
-   DATABASE_URL="your-neon-database-url"
+   # Database
+   DATABASE_URL="your-database-url"
    POSTGRES_URL="your-postgres-url"
    
    # AI Integration
@@ -333,23 +328,5 @@ Refer to `DEPLOYMENT_INSTRUCTIONS.md` for detailed deployment steps.
 - [shadcn/ui Components](https://ui.shadcn.com/)
 - [Neon Database](https://neon.tech/docs)
 
-## 🌐 Live Deployment
-
-Your project is live at:
-**[https://vercel.com/mohamedfaisal199-3777s-projects/v0-synapse-med-project](https://vercel.com/mohamedfaisal199-3777s-projects/v0-synapse-med-project)**
-
-## 🔗 Continue Building
-
-Continue building your app on:
-**[https://v0.app/chat/projects/02wZ7Lfiv6o](https://v0.app/chat/projects/02wZ7Lfiv6o)**
-
----
-
-## 📞 Support
-
-For questions or issues:
-- Check the troubleshooting section above
-- Review the backend implementation guide
-- Contact the development team
 
 **Happy coding! 🎉**
