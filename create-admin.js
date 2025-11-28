@@ -3,13 +3,13 @@ const bcrypt = require('bcryptjs')
 
 const prisma = new PrismaClient()
 
-async function createAdminUser() {
+ async function createAdminUser() {
   console.log('Creating admin user...')
 
   try {
     // Hash the password
     const hashedPassword = await bcrypt.hash('admin123', 12)
-    
+
     // Create super admin user
     const admin = await prisma.user.upsert({
       where: { email: 'superadmin@synapsemed.co.tz' },
@@ -70,10 +70,8 @@ async function createAdminUser() {
   } finally {
     await prisma.$disconnect()
   }
-}
+ }
 
-createAdminUser()
-  .catch((e) => {
-    console.error(e)
-    process.exit(1)
-  })
+module.exports = {
+   createAdminUser
+ }
