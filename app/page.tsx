@@ -11,6 +11,7 @@ export default function Page() {
   const router = useRouter()
 
   useEffect(() => {
+    console.log("user", user)
     // Redirect to login if not authenticated
     if (!user) {
       router.push('/login')
