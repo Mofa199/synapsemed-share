@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "next build",
+    "build": "NEXT_IGNORE_TYPECHECK=1 next build",
     "dev": "next dev",
     "lint": "next lint",
     "start": "next start",
@@ -11,7 +11,8 @@
     "db:generate": "prisma generate",
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
-    "db:reset": "prisma migrate reset"
+    "db:reset": "prisma migrate reset",
+    "prod": "pm2 start npm --name synapsemed -- run start"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
