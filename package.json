@@ -12,7 +12,8 @@
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset",
-    "prod": "pm2 start npm --name synapsemed -- run start"
+    "prod": "pm2 start npm --name synapsemed -- run start",
+    "pm2-dev": "pm2 start npm --name synapsemed -- run dev"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
