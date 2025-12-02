@@ -79,8 +79,8 @@ export default function ForgotPasswordPage() {
               <p className="text-gray-600 mb-4">
                 Please check your email and follow the instructions to reset your password.
               </p>
-              <Button 
-                onClick={() => router.push("/login")} 
+              <Button
+                onClick={() => router.push("/login")}
                 className="w-full bg-[#213874] hover:bg-[#1a6ac3]"
               >
                 Back to Login

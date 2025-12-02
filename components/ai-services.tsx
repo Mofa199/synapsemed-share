@@ -54,7 +54,7 @@ export function AIServices({ context = 'general', studentLevel }: AIServicesProp
       const result = await response.json()
       setResults(result)
       setCurrentService(service)
-      
+
       toast({
         title: "Success!",
         description: `${service.charAt(0).toUpperCase() + service.slice(1)} completed successfully.`,
@@ -119,9 +119,9 @@ export function AIServices({ context = 'general', studentLevel }: AIServicesProp
           })
           return
         }
-        callAIService('exam-questions', { 
-          topic: examTopic, 
-          count: examQuestions 
+        callAIService('exam-questions', {
+          topic: examTopic,
+          count: examQuestions
         })
       }
     },
@@ -131,9 +131,9 @@ export function AIServices({ context = 'general', studentLevel }: AIServicesProp
       description: 'Get personalized study recommendations and learning paths',
       icon: Star,
       action: () => {
-        callAIService('recommendations', { 
+        callAIService('recommendations', {
           currentContext: context,
-          level: studentLevel 
+          level: studentLevel
         })
       }
     }
@@ -386,8 +386,8 @@ export function AIServices({ context = 'general', studentLevel }: AIServicesProp
                     </div>
                   )}
 
-                  <Button 
-                    onClick={service.action} 
+                  <Button
+                    onClick={service.action}
                     disabled={loading === service.id}
                     className="w-full"
                   >

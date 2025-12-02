@@ -53,10 +53,10 @@ export default function VerifyEmailPage() {
           title: "Success",
           description: "Email verified successfully! You can now log in.",
         })
-        
+
         // Clear pending verification data
         localStorage.removeItem('pendingVerificationEmail')
-        
+
         // Redirect to login after a short delay
         setTimeout(() => {
           router.push('/login')
@@ -86,7 +86,7 @@ export default function VerifyEmailPage() {
     }
 
     setIsLoading(true)
-    
+
     try {
       // In a real implementation, this would send a new verification code
       // For now, we'll just simulate it
@@ -128,7 +128,7 @@ export default function VerifyEmailPage() {
               <p className="text-gray-600 mb-6">
                 Your email has been successfully verified. You will be redirected to the login page shortly.
               </p>
-              <Button 
+              <Button
                 onClick={() => router.push('/login')}
                 className="w-full bg-[#213874] hover:bg-[#1a6ac3]"
               >
@@ -163,7 +163,7 @@ export default function VerifyEmailPage() {
             <p className="text-gray-600 mb-6 text-center">
               Please enter the verification code sent to your email address.
             </p>
-            
+
             <form onSubmit={handleVerify} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email Address</Label>
@@ -177,7 +177,7 @@ export default function VerifyEmailPage() {
                   disabled={!!searchParams.get('email')}
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="verificationCode">Verification Code</Label>
                 <Input
@@ -189,7 +189,7 @@ export default function VerifyEmailPage() {
                   required
                 />
               </div>
-              
+
               <Button
                 type="submit"
                 className="w-full bg-[#213874] hover:bg-[#1a6ac3] flex items-center justify-center"
@@ -205,7 +205,7 @@ export default function VerifyEmailPage() {
                 )}
               </Button>
             </form>
-            
+
             <div className="mt-6 pt-6 border-t border-gray-200">
               <p className="text-sm text-gray-600 mb-4">
                 Didn't receive the code?

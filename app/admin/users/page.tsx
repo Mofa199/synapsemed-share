@@ -9,9 +9,9 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/components/auth-provider"
 import { useToast } from "@/hooks/use-toast"
-import { 
-  Users, 
-  Search, 
+import {
+  Users,
+  Search,
   Plus,
   Edit,
   Trash,
@@ -55,7 +55,7 @@ export default function AdminUsersPage() {
     try {
       const response = await fetch('/api/admin/users')
       const data = await response.json()
-      
+
       if (data.success) {
         setUsersData(data.data)
       } else {
@@ -86,9 +86,9 @@ export default function AdminUsersPage() {
       const response = await fetch(`/api/admin/users/${id}`, {
         method: 'DELETE',
       })
-      
+
       const data = await response.json()
-      
+
       if (data.success) {
         toast({
           title: "Success",
@@ -123,7 +123,7 @@ export default function AdminUsersPage() {
     )
   }
 
-  const filteredUsers = usersData.filter(u => 
+  const filteredUsers = usersData.filter(u =>
     u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     u.email.toLowerCase().includes(searchQuery.toLowerCase())
   )
@@ -139,8 +139,8 @@ export default function AdminUsersPage() {
   }
 
   const getStatusBadge = (isActive: boolean) => {
-    return isActive 
-      ? "bg-green-100 text-green-800" 
+    return isActive
+      ? "bg-green-100 text-green-800"
       : "bg-red-100 text-red-800"
   }
 
@@ -170,7 +170,7 @@ export default function AdminUsersPage() {
             <ChevronRight className="w-4 h-4" />
             <span className="text-[#213874] font-medium">All Users</span>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
@@ -318,7 +318,7 @@ export default function AdminUsersPage() {
                           {new Date(u.createdAt).toLocaleDateString()}
                         </td>
                         <td className="py-4 px-4 text-gray-600">
-                          {u.lastLoginAt 
+                          {u.lastLoginAt
                             ? new Date(u.lastLoginAt).toLocaleDateString()
                             : 'Never'
                           }
@@ -330,9 +330,9 @@ export default function AdminUsersPage() {
                                 <Edit className="w-3 h-3" />
                               </Link>
                             </Button>
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
+                            <Button
+                              size="sm"
+                              variant="outline"
                               className="text-red-600 hover:text-red-700"
                               onClick={() => handleDeleteUser(u.id)}
                             >

@@ -187,9 +187,9 @@ export default function AboutPage() {
                 <div className="md:w-1/3 flex items-center justify-center p-8 bg-gray-50">
                   {/* Founder image without frame/border */}
                   <div className="relative">
-                    <img 
-                      src="/placeholder.svg?height=300&width=300&text=MF" 
-                      alt="Mohamed Faisal MD" 
+                    <img
+                      src="/placeholder.svg?height=300&width=300&text=MF"
+                      alt="Mohamed Faisal MD"
                       className="w-64 h-64 object-cover"
                     />
                   </div>

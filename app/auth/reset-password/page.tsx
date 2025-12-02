@@ -116,8 +116,8 @@ export default function ResetPasswordPage() {
               <p className="text-gray-600 mb-4">
                 You can now log in with your new password.
               </p>
-              <Button 
-                onClick={() => router.push("/login")} 
+              <Button
+                onClick={() => router.push("/login")}
                 className="w-full bg-[#213874] hover:bg-[#1a6ac3]"
               >
                 Go to Login
