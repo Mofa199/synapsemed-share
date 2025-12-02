@@ -143,14 +143,9 @@ export default function ProfilePage() {
   const [userBadges, setUserBadges] = useState<any[]>([])
 
   useEffect(() => {
-    if (!user) {
-      router.push("/")
-      return
-    }
-    
     // Fetch real profile data
     fetchProfileData()
-  }, [user, router])
+  }, [])
 
   const fetchProfileData = async () => {
     try {
@@ -159,7 +154,7 @@ export default function ProfilePage() {
         const result = await response.json()
         if (result.success) {
           const { data } = result
-          
+
           // Update profile data
           setProfileData({
             name: data.user.name,
@@ -177,7 +172,7 @@ export default function ProfilePage() {
             phoneCode: "+255",
             phoneNumber: "",
           })
-          
+
           // Update stats
           setStats({
             totalPoints: data.gamification.points,
@@ -189,17 +184,17 @@ export default function ProfilePage() {
             averageScore: data.gamification.completionRate,
             rank: 0, // We'll need to calculate this
           })
-          
+
           // Update achievements
           setRecentAchievements(data.recentBadges.map((badge: any) => ({
             name: badge.name,
             date: new Date(badge.earnedAt).toLocaleDateString(),
             icon: badge.icon || "🏆"
           })))
-          
+
           // Update badges
           setUserBadges(data.badges)
-          
+
           // Fetch study progress
           fetchStudyProgress(data.user.id)
         }
@@ -222,7 +217,7 @@ export default function ProfilePage() {
         if (result.success) {
           // Group progress by subject/module
           const progressBySubject: any = {}
-          
+
           result.data.forEach((progress: any) => {
             // For now, we'll create mock subjects since we don't have the full curriculum structure
             const subject = progress.resourceType || "General"
@@ -239,13 +234,13 @@ export default function ProfilePage() {
               progressBySubject[subject].completed += 1
             }
           })
-          
+
           // Calculate progress percentages
           Object.keys(progressBySubject).forEach(key => {
             const subject = progressBySubject[key]
             subject.progress = subject.total > 0 ? Math.round((subject.completed / subject.total) * 100) : 0
           })
-          
+
           setStudyProgress(Object.values(progressBySubject))
         }
       }
@@ -282,7 +277,7 @@ export default function ProfilePage() {
           // Add other fields as needed
         }),
       })
-      
+
       if (response.ok) {
         const result = await response.json()
         if (result.success) {

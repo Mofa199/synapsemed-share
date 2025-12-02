@@ -19,14 +19,9 @@ export default function TopicPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!user) {
-      window.location.href = "/auth"
-      return
-    }
-
     // Fetch topic data
     fetchTopic()
-  }, [user, topicId])
+  }, [topicId])
 
   const fetchTopic = async () => {
     try {

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
+
   const { pathname } = request.nextUrl
 
   // Public routes that don't require authentication
@@ -19,44 +20,6 @@ export function middleware(request: NextRequest) {
     '/images',
     '/public'
   ]
-
-  // Check if the route is public
-  const isPublicRoute = publicRoutes.some(route => 
-    pathname === route || pathname.startsWith(route)
-  )
-
-  // If it's a public route, allow access
-  if (isPublicRoute) {
-    return NextResponse.next()
-  }
-
-  // Get user info from cookies
-  const token = request.cookies.get('auth-token')
-  const user = request.cookies.get('synapse-user')
-
-  // Debug logging for admin routes
-  if (pathname.startsWith('/admin')) {
-    console.log('=== MIDDLEWARE ADMIN ACCESS DEBUG ===')
-    console.log('Path:', pathname)
-    console.log('Has auth-token cookie:', !!token)
-    console.log('Has synapse-user cookie:', !!user)
-    
-    if (token) {
-      console.log('Token value:', token.value)
-    }
-    
-    if (user) {
-      try {
-        const userData = JSON.parse(decodeURIComponent(user.value))
-        console.log('User data:', userData)
-        console.log('User role:', userData.role)
-        console.log('Is admin role?', ['SUPER_ADMIN', 'LECTURER', 'EDITOR'].includes(userData.role))
-      } catch (e) {
-        console.log('Failed to parse user cookie:', e)
-      }
-    }
-    console.log('=======================================')
-  }
 
   // Protected routes that require authentication
   const protectedRoutes = [
@@ -77,35 +40,64 @@ export function middleware(request: NextRequest) {
     '/3d-models'
   ]
 
+  // Check if the route is public
+  const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route))
+
+  // If it's a public route, allow access
+  if (isPublicRoute && !protectedRoutes.includes(pathname)) {
+    return NextResponse.next()
+  }
+
+  // Get user info from cookies
+  const token = request.cookies.get('auth-token')
+  const user = request.cookies.get('synapse-user')
+
+  // Debug logging for admin routes
+  if (pathname.startsWith('/admin')) {
+    console.log('=== MIDDLEWARE ADMIN ACCESS DEBUG ===')
+    console.log('Path:', pathname)
+    console.log('Has auth-token cookie:', !!token)
+    console.log('Has synapse-user cookie:', !!user)
+
+    if (token) {
+      console.log('Token value:', token.value)
+    }
+
+    if (user) {
+      try {
+        const userData = JSON.parse(decodeURIComponent(user.value))
+        console.log('User data:', userData)
+        console.log('User role:', userData.role)
+        console.log('Is admin role?', ['SUPER_ADMIN', 'LECTURER', 'EDITOR'].includes(userData.role))
+      } catch (e) {
+        console.log('Failed to parse user cookie:', e)
+      }
+    }
+    console.log('=======================================')
+  }
+
   // Admin routes that require admin privileges (Super Admin, Lecturer, Editor)
   const adminRoutes = ['/admin']
-  
+
   // Super Admin only routes
   const superAdminRoutes = ['/admin/users', '/admin/analytics', '/admin/team']
-  
+
   // Student routes
   const studentRoutes = ['/student']
 
   // Check if trying to access protected routes
-  const isProtectedRoute = protectedRoutes.some(route => 
-    pathname.startsWith(route)
-  )
+  const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
 
-  const isAdminRoute = adminRoutes.some(route => 
-    pathname.startsWith(route)
-  )
-  
-  const isSuperAdminRoute = superAdminRoutes.some(route => 
-    pathname.startsWith(route)
-  )
-  
-  const isStudentRoute = studentRoutes.some(route => 
-    pathname.startsWith(route)
-  )
+  const isAdminRoute = adminRoutes.some(route => pathname.startsWith(route))
+
+  const isSuperAdminRoute = superAdminRoutes.some(route => pathname.startsWith(route))
+
+  const isStudentRoute = studentRoutes.some(route => pathname.startsWith(route))
 
   // If accessing protected routes without authentication, redirect to login
   if (isProtectedRoute || isAdminRoute || isStudentRoute) {
-    if (!user && !token) {
+
+    if (!user || !token) {
       console.log('Redirecting to login - no auth')
       return NextResponse.redirect(new URL('/login', request.url))
     }
@@ -139,7 +131,7 @@ export function middleware(request: NextRequest) {
         return NextResponse.redirect(new URL('/', request.url))
       }
     }
-    
+
     // Check student access
     if (isStudentRoute && userData) {
       const studentRoles = ['STUDENT', 'MEDICAL', 'NURSING', 'PHARMACY']
