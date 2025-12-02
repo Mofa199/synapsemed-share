@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs')
 
 const prisma = new PrismaClient()
 
- async function createAdminUser() {
+ export async function createAdminUser() {
   console.log('Creating admin user...')
 
   try {
@@ -70,8 +70,4 @@ const prisma = new PrismaClient()
   } finally {
     await prisma.$disconnect()
   }
- }
-
-module.exports = {
-   createAdminUser
  }

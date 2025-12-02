@@ -11,16 +11,16 @@ import { useToast } from "@/hooks/use-toast"
 import { Logo } from "@/components/logo"
 import Link from "next/link"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { 
-  User, 
-  Lock, 
-  Mail, 
-  Phone, 
-  Building, 
-  Calendar,
+import {
+  User,
+  Lock,
+  Mail,
+  Phone,
+  Building,
   Eye,
   EyeOff
 } from "lucide-react"
+import { useAuth } from "./auth-provider-nextauth"
 
 interface FormData {
   name: string
@@ -31,6 +31,9 @@ interface FormData {
 }
 
 export function AuthPage() {
+
+  const { login } = useAuth()
+
   const [isLogin, setIsLogin] = useState(true)
   const [isFlipping, setIsFlipping] = useState(false)
   const [formData, setFormData] = useState<FormData>({
@@ -54,7 +57,7 @@ export function AuthPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (isLogin) {
       // Login logic
       try {
@@ -71,28 +74,22 @@ export function AuthPage() {
         })
 
         const result = await response.json()
-      
+
         if (result.success) {
-          toast({
-            title: "Success",
-            description: "Welcome back!",
-          })
-          
-          // Redirect based on user role after short delay
-          setTimeout(() => {
-            // Check user role from auth provider
-            const storedUser = localStorage.getItem("synapse-user")
-            if (storedUser) {
-              const user = JSON.parse(storedUser)
-              if (['SUPER_ADMIN', 'LECTURER', 'EDITOR'].includes(user.role)) {
-                window.location.href = '/admin'
-              } else {
-                window.location.href = '/dashboard'
-              }
-            } else {
-              window.location.href = '/'
-            }
-          }, 500)
+
+          const { user } = result
+          login(user.email, user.password)
+
+          localStorage.setItem("synapse-user", JSON.stringify(user))
+
+          if (['SUPER_ADMIN', 'LECTURER', 'EDITOR'].includes(user.role)) {
+            window.location.href = '/admin'
+          } else {
+            window.location.href = '/dashboard'
+          }
+
+          toast({ title: "Success", description: "Welcome back!" })
+
         } else {
           toast({
             title: "Error",
@@ -125,13 +122,13 @@ export function AuthPage() {
         })
 
         const result = await response.json()
-      
+
         if (result.success) {
           toast({
             title: "Success",
             description: "Account created successfully!",
           })
-          
+
           // Redirect to profile page to complete profile if indicated
           setTimeout(() => {
             if (result.redirectToProfile) {
@@ -163,7 +160,7 @@ export function AuthPage() {
         title: "OAuth Login",
         description: `Redirecting to ${provider} login...`,
       })
-      
+
       // Redirect to NextAuth OAuth provider
       window.location.href = `/api/auth/signin/${provider}`
     } catch (error) {

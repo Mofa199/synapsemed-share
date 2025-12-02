@@ -12,7 +12,7 @@ import { SessionProvider } from "next-auth/react"
 function LayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { user } = useAuth()
-  
+
   // Hide footer on auth pages or when user is not logged in on main page
   const isAuthPage = pathname === "/auth" || pathname === "/login" || pathname === "/signup"
   const isMainPageWithoutUser = pathname === "/" && !user
@@ -37,7 +37,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       <main className="flex-1">{children}</main>
       {!shouldHideFooter && <Footer />}
       {shouldShowAI && (
-        <FloatingAIAssistant 
+        <FloatingAIAssistant
           context={getAIContext()}
           studentLevel={user?.level?.toString()}
         />

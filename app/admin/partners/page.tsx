@@ -9,9 +9,9 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/components/auth-provider"
 import { useToast } from "@/hooks/use-toast"
-import { 
-  Heart, 
-  Search, 
+import {
+  Heart,
+  Search,
   Plus,
   Edit,
   Trash,
@@ -59,7 +59,7 @@ export default function AdminPartnersPage() {
     try {
       const response = await fetch('/api/admin/partners')
       const data = await response.json()
-      
+
       if (data.success) {
         setPartnersData(data.data)
       } else {
@@ -92,7 +92,7 @@ export default function AdminPartnersPage() {
     )
   }
 
-  const filteredPartners = partnersData.filter(p => 
+  const filteredPartners = partnersData.filter(p =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.contactName.toLowerCase().includes(searchQuery.toLowerCase())
   )
@@ -132,9 +132,9 @@ export default function AdminPartnersPage() {
       const response = await fetch(`/api/admin/partners/${id}`, {
         method: 'DELETE',
       })
-      
+
       const data = await response.json()
-      
+
       if (data.success) {
         toast({
           title: "Success",
@@ -184,7 +184,7 @@ export default function AdminPartnersPage() {
             <ChevronRight className="w-4 h-4" />
             <span className="text-[#213874] font-medium">Partners</span>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-lg bg-red-100 flex items-center justify-center">
@@ -344,9 +344,9 @@ export default function AdminPartnersPage() {
                           Edit
                         </Link>
                       </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         className="text-red-600 hover:text-red-700"
                         onClick={() => handleDeletePartner(partner.id)}
                       >

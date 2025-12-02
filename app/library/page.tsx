@@ -168,7 +168,7 @@ export default function LibraryPage() {
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
-  
+
   // Content state
   const [articles, setArticles] = useState<Article[]>([])
   const [books, setBooks] = useState<Book[]>([])
@@ -182,29 +182,25 @@ export default function LibraryPage() {
   const [stats, setStats] = useState<LibraryStats | null>(null)
 
   useEffect(() => {
-    if (!user) {
-      router.push("/")
-      return
+    if (user) {
+      // Check if user has admin privileges
+      setIsAdmin(['SUPER_ADMIN', 'LECTURER', 'EDITOR'].includes(user.role))
     }
-    
-    // Check if user has admin privileges
-    setIsAdmin(['SUPER_ADMIN', 'LECTURER', 'EDITOR'].includes(user.role))
-    
     // Fetch library content
     fetchLibraryContent()
-  }, [user, router])
+  }, [user, setIsAdmin])
 
   const fetchLibraryContent = async () => {
     try {
       setLoading(true)
-      
+
       // Fetch all content types from API
       const [
-        articlesRes, 
-        booksRes, 
-        videosRes, 
-        studyGuidesRes, 
-        questionBanksRes, 
+        articlesRes,
+        booksRes,
+        videosRes,
+        studyGuidesRes,
+        questionBanksRes,
         flashcardsRes
       ] = await Promise.all([
         fetch('/api/articles'),
@@ -308,11 +304,11 @@ export default function LibraryPage() {
       setStudyGuides(transformedStudyGuides)
       setQuestionBanks(transformedQuestionBanks)
       setFlashcardSets(transformedFlashcardSets)
-      
+
       // Set transformed data for popular items section
       setTransformedArticles(transformedArticles)
       setTransformedBooks(transformedBooks)
-      
+
       // Calculate stats
       const libraryStats: LibraryStats = {
         totalBooks: transformedBooks.length,
@@ -329,7 +325,7 @@ export default function LibraryPage() {
             return itemDate === today
           }).length
       }
-      
+
       setStats(libraryStats)
     } catch (error) {
       console.error('Error fetching library content:', error)
@@ -339,7 +335,7 @@ export default function LibraryPage() {
   }
 
   const categories = [
-    "Anatomy", "Physiology", "Pathology", "Pharmacology", 
+    "Anatomy", "Physiology", "Pathology", "Pharmacology",
     "Cardiology", "Respiratory", "Neurology", "Orthopedics",
     "Pediatrics", "Surgery", "Emergency Medicine", "Nursing",
     "Critical Care", "Mental Health", "Community Health"
@@ -355,11 +351,11 @@ export default function LibraryPage() {
     return content.filter(item => {
       const matchesCategory = selectedFilter === "all" || item.category?.toLowerCase() === selectedFilter
       const matchesCurriculum = selectedCurriculum === "all" || item.curriculum === selectedCurriculum
-      const matchesSearch = !searchQuery || 
+      const matchesSearch = !searchQuery ||
         item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         item.author?.toLowerCase().includes(searchQuery.toLowerCase())
-      
+
       return matchesCategory && matchesCurriculum && matchesSearch && item.isPublished
     })
   }
@@ -421,7 +417,7 @@ export default function LibraryPage() {
               <h1 className="text-3xl font-bold text-[#213874] mb-2">Medical Library</h1>
               <p className="text-gray-600">Access comprehensive medical resources organized by curriculum</p>
             </div>
-            
+
             {isAdmin && (
               <div className="flex gap-2">
                 <Button asChild variant="outline" size="sm">
@@ -523,10 +519,10 @@ export default function LibraryPage() {
                     <h3 className="text-xl font-semibold text-[#213874] mb-4">Featured Content</h3>
                     <div className="grid md:grid-cols-2 gap-4">
                       {[...articles, ...books].slice(0, 4).map((item) => (
-                        <ContentCard 
-                          key={item.id} 
-                          item={item} 
-                          type={books.some(b => b.id === item.id) ? 'book' : 'article'} 
+                        <ContentCard
+                          key={item.id}
+                          item={item}
+                          type={books.some(b => b.id === item.id) ? 'book' : 'article'}
                           isAdmin={isAdmin}
                         />
                       ))}
@@ -718,11 +714,11 @@ export default function LibraryPage() {
 }
 
 // Content Card Component
-function ContentCard({ 
-  item, 
-  type, 
-  isAdmin 
-}: { 
+function ContentCard({
+  item,
+  type,
+  isAdmin
+}: {
   item: ContentItem
   type: 'article' | 'book' | 'video' | 'study-guide' | 'question-bank' | 'flashcard'
   isAdmin: boolean
@@ -813,7 +809,7 @@ function ContentCard({
           </CardContent>
         </Card>
       </Link>
-      
+
       {/* Admin Controls */}
       {isAdmin && (
         <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

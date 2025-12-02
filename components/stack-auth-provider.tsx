@@ -127,11 +127,11 @@ function SynapseAuthProviderContent({ children }: { children: React.ReactNode })
   }
 
   return (
-    <SynapseAuthContext.Provider value={{ 
-      user: synapseUser, 
-      login, 
-      logout, 
-      updateUserProfile 
+    <SynapseAuthContext.Provider value={{
+      user: synapseUser,
+      login,
+      logout,
+      updateUserProfile
     }}>
       {children}
     </SynapseAuthContext.Provider>
@@ -140,7 +140,7 @@ function SynapseAuthProviderContent({ children }: { children: React.ReactNode })
 
 export function SynapseAuthProvider({ children }: { children: React.ReactNode }) {
   return (
-    <StackProvider config={stackConfig}>
+    <StackProvider app={stackApp}>
       <SynapseAuthProviderContent>
         {children}
       </SynapseAuthProviderContent>

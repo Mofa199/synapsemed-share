@@ -207,7 +207,8 @@ export function Navigation() {
                 >
                   About
                 </Link>
-                {user && (
+                {
+                  user && (
                   <>
                     <Link
                       href="/student/dashboard"
@@ -240,7 +241,8 @@ export function Navigation() {
                       </Link>
                     )}
                   </>
-                )}
+                  )
+                }
               </div>
             </div>
           </div>

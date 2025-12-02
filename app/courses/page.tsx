@@ -110,62 +110,58 @@ export default function CoursesPage() {
   const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
-    if (!user) {
-      router.push("/")
-      return
+    if (user) {
+      // Check if user has admin privileges
+      setIsAdmin(['SUPER_ADMIN', 'LECTURER', 'EDITOR'].includes(user.role))
     }
-    
-    // Check if user has admin privileges
-    setIsAdmin(['SUPER_ADMIN', 'LECTURER', 'EDITOR'].includes(user.role))
-    
     // Fetch all data
     fetchData()
-  }, [user, router])
+  }, [user, setIsAdmin])
 
   const fetchData = async () => {
     try {
       setLoading(true)
-      
+
       // Fetch curriculum data
       const curriculumResponse = await fetch('/api/curricula')
       const curriculumResult = await curriculumResponse.json()
-      
+
       // Filter curriculum by user's field
       const userFieldCurricula = user?.field ? curriculumResult.curricula.filter((c: Curriculum) => c.field === user.field) : [];
-      
+
       // Fetch modules for each curriculum
       const curriculaWithModules = await Promise.all(
         userFieldCurricula.map(async (curriculum: Curriculum) => {
           const modulesResponse = await fetch(`/api/modules`)
           const modulesResult = await modulesResponse.json()
-          
+
           // Filter modules by curriculum
           const curriculumModules = modulesResult.modules.filter((m: Module) => m.curriculumId === curriculum.id)
-          
+
           return {
             ...curriculum,
             modules: curriculumModules
           }
         })
       )
-      
+
       setCurricula(curriculaWithModules)
-      
+
       // Fetch question banks
       const qbResponse = await fetch('/api/question-banks')
       const qbResult = await qbResponse.json()
       setQuestionBanks(qbResult.questionBanks || [])
-      
+
       // Fetch study guides
       const sgResponse = await fetch('/api/study-guides')
       const sgResult = await sgResponse.json()
       setStudyGuides(sgResult.studyGuides || [])
-      
+
       // Fetch drug classes
       const dcResponse = await fetch('/api/drug-classes')
       const dcResult = await dcResponse.json()
       setDrugClasses(dcResult.drugClasses || [])
-      
+
       // Fetch user progress data
       const progressResponse = await fetch('/api/user/profile')
       const progressResult = await progressResponse.json()
@@ -227,7 +223,7 @@ export default function CoursesPage() {
 
   // Filter curriculum by user's field
   const userCurriculum = curricula.find(c => c.field === user.field) || curricula[0]
-  
+
   const getFieldIcon = (field: string) => {
     switch (field) {
       case 'MEDICAL': return Heart
@@ -236,7 +232,7 @@ export default function CoursesPage() {
       default: return BookOpen
     }
   }
-  
+
   const getFieldColor = (field: string) => {
     switch (field) {
       case 'MEDICAL': return 'text-red-600'
@@ -270,7 +266,7 @@ export default function CoursesPage() {
                 </p>
               </div>
             </div>
-            
+
             {isAdmin && (
               <div className="flex gap-2">
                 <Button asChild variant="outline" size="sm">
@@ -347,7 +343,7 @@ export default function CoursesPage() {
                     </CardContent>
                   </Card>
                 </Link>
-                
+
                 {/* Admin Controls */}
                 {isAdmin && (
                   <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -369,8 +365,8 @@ export default function CoursesPage() {
             <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No Modules Available</h3>
             <p className="text-gray-600 mb-4">
-              {isAdmin 
-                ? "Start by adding modules to this curriculum." 
+              {isAdmin
+                ? "Start by adding modules to this curriculum."
                 : "Contact your administrator to add learning modules."
               }
             </p>

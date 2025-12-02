@@ -1,11 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useSynapseAuth } from "@/components/stack-auth-provider"
+import { useAuth } from "@/components/auth-provider-nextauth"
+import { useState } from "react"
 
 export default function StackAuthTest() {
-  const { user, login, logout } = useSynapseAuth()
   const [email, setEmail] = useState("")
+  const { user, login, logout } = useAuth()
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
@@ -29,20 +29,20 @@ export default function StackAuthTest() {
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-4">Stack Auth Test</h1>
-      
+
       {user ? (
         <div className="space-y-4">
           <h2 className="text-lg font-semibold">Welcome, {user.name}!</h2>
           <div className="bg-gray-100 p-4 rounded">
             <pre>{JSON.stringify(user, null, 2)}</pre>
           </div>
-          <button 
+          <button
             onClick={logout}
             className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
           >
             Logout
           </button>
-          <a 
+          <a
             href="/admin"
             className="ml-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 inline-block"
           >
@@ -71,7 +71,7 @@ export default function StackAuthTest() {
               required
             />
           </div>
-          <button 
+          <button
             type="submit"
             disabled={isLoading}
             className="w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600 disabled:opacity-50"
@@ -80,7 +80,7 @@ export default function StackAuthTest() {
           </button>
         </form>
       )}
-      
+
       <div className="mt-8 p-4 bg-yellow-100 rounded">
         <h3 className="font-semibold">Test Credentials:</h3>
         <p>Use any email/password to test Stack Auth integration</p>

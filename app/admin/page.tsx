@@ -10,14 +10,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
-import { 
-  Users, 
-  BookOpen, 
-  Activity, 
-  Award, 
-  Settings, 
-  Database, 
-  TrendingUp, 
+import {
+  Users,
+  BookOpen,
+  Activity,
+  Award,
+  Settings,
+  Database,
+  TrendingUp,
   Shield,
   FileText,
   Video,
@@ -72,26 +72,21 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview")
 
   useEffect(() => {
-    // Check if user is authenticated and has admin role
-    if (!user) {
-      console.log('No user found, redirecting to login')
-      router.push('/login')
-      return
-    }
+    if (user) {
+      const adminRoles = ['SUPER_ADMIN', 'LECTURER', 'EDITOR']
+      if (!adminRoles.includes(user.role)) {
+        console.log('User does not have admin role:', user.role)
+        toast({
+          title: "Access Denied",
+          description: "You don't have permission to access the admin dashboard",
+          variant: "destructive",
+        })
+        router.push('/')
+        return
+      }
 
-    const adminRoles = ['SUPER_ADMIN', 'LECTURER', 'EDITOR']
-    if (!adminRoles.includes(user.role)) {
-      console.log('User does not have admin role:', user.role)
-      toast({
-        title: "Access Denied",
-        description: "You don't have permission to access the admin dashboard",
-        variant: "destructive",
-      })
-      router.push('/')
-      return
-    }
-
-    console.log('Admin access granted for user:', user.email, 'Role:', user.role)
+      console.log('Admin access granted for user:', user.email, 'Role:', user.role)
+   }
     fetchDashboardData()
   }, [user, router])
 
@@ -222,7 +217,7 @@ export default function AdminDashboard() {
               <h1 className="text-3xl font-bold text-[#213874] mb-2">Admin Dashboard</h1>
               <p className="text-gray-600">Manage users, content, and system settings</p>
             </div>
-            
+
             <div className="flex items-center gap-4">
               <Badge className="bg-[#213874] text-white px-4 py-2">
                 <Shield className="h-4 w-4 mr-2" />
@@ -246,7 +241,7 @@ export default function AdminDashboard() {
                 <div className="text-xs text-gray-600">Total Users</div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
@@ -256,7 +251,7 @@ export default function AdminDashboard() {
                 <div className="text-xs text-gray-600">Active Users</div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
@@ -266,7 +261,7 @@ export default function AdminDashboard() {
                 <div className="text-xs text-gray-600">Content Items</div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
@@ -276,7 +271,7 @@ export default function AdminDashboard() {
                 <div className="text-xs text-gray-600">Completion Rate</div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
@@ -286,7 +281,7 @@ export default function AdminDashboard() {
                 <div className="text-xs text-gray-600">New This Week</div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
@@ -352,7 +347,7 @@ export default function AdminDashboard() {
                         <p className="text-xs text-gray-600">john.doe@example.com - 2 hours ago</p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
                       <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
                         <BookOpen className="h-4 w-4 text-green-600" />
@@ -362,7 +357,7 @@ export default function AdminDashboard() {
                         <p className="text-xs text-gray-600">Cardiovascular Physiology - 4 hours ago</p>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-lg">
                       <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
                         <Award className="h-4 w-4 text-purple-600" />
@@ -389,17 +384,17 @@ export default function AdminDashboard() {
                       <span className="text-sm">Database Status</span>
                       <Badge className="bg-green-100 text-green-700">Healthy</Badge>
                     </div>
-                    
+
                     <div className="flex justify-between items-center">
                       <span className="text-sm">API Response Time</span>
                       <Badge variant="outline">~240ms</Badge>
                     </div>
-                    
+
                     <div className="flex justify-between items-center">
                       <span className="text-sm">Active Sessions</span>
                       <Badge variant="outline">{dashboardStats.activeUsers}</Badge>
                     </div>
-                    
+
                     <div className="flex justify-between items-center">
                       <span className="text-sm">Storage Usage</span>
                       <Badge variant="outline">67%</Badge>
@@ -485,8 +480,8 @@ export default function AdminDashboard() {
                                 <Button size="sm" variant="outline">
                                   <Edit className="h-3 w-3" />
                                 </Button>
-                                <Button 
-                                  size="sm" 
+                                <Button
+                                  size="sm"
                                   variant="outline"
                                   onClick={() => handleUserStatusToggle(user.id, user.isActive)}
                                 >
@@ -961,7 +956,7 @@ export default function AdminDashboard() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="mt-4 pt-4 border-t">
                     <div className="flex gap-2">
                       <Button className="flex-1" asChild>
@@ -994,7 +989,7 @@ export default function AdminDashboard() {
                       <h3 className="font-medium text-blue-800">Cases Active</h3>
                       <p className="text-2xl font-bold text-blue-800">12</p>
                     </div>
-                    
+
                     <div className="p-4 bg-green-50 rounded-lg">
                       <h3 className="font-medium text-green-800">Avg Completion</h3>
                       <p className="text-2xl font-bold text-green-800">78.5%</p>

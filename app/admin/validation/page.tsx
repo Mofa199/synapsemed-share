@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { useToast } from "@/hooks/use-toast"
-import { 
-  CheckCircle, 
-  XCircle, 
-  Clock, 
+import {
+  CheckCircle,
+  XCircle,
+  Clock,
   AlertTriangle,
   RefreshCw,
   Server,
@@ -93,7 +93,7 @@ export default function SystemValidationPage() {
       if (response.ok) {
         const result = await response.json()
         setValidationResults(result.data)
-        
+
         if (result.data.failedTests === 0) {
           toast({
             title: "Validation Complete",
@@ -169,7 +169,7 @@ export default function SystemValidationPage() {
               <h1 className="text-3xl font-bold text-[#213874] mb-2">System Validation</h1>
               <p className="text-gray-600">Monitor API health and validate system functionality</p>
             </div>
-            
+
             <div className="flex items-center gap-4">
               <Button
                 onClick={checkSystemHealth}
@@ -180,7 +180,7 @@ export default function SystemValidationPage() {
                 <Activity className="h-4 w-4" />
                 {isCheckingHealth ? 'Checking...' : 'Health Check'}
               </Button>
-              
+
               <Button
                 onClick={runValidation}
                 disabled={isValidating}
@@ -286,8 +286,8 @@ export default function SystemValidationPage() {
                         {validationResults.passedTests}/{validationResults.totalEndpoints}
                       </div>
                       <div className="text-sm text-gray-600">Tests Passed</div>
-                      <Progress 
-                        value={(validationResults.passedTests / validationResults.totalEndpoints) * 100} 
+                      <Progress
+                        value={(validationResults.passedTests / validationResults.totalEndpoints) * 100}
                         className="mt-2"
                       />
                     </div>
@@ -310,31 +310,31 @@ export default function SystemValidationPage() {
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
                         <span className="text-sm">Authentication</span>
-                        <Badge className={validationResults.summary.authenticationWorking ? 
+                        <Badge className={validationResults.summary.authenticationWorking ?
                           'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}>
                           {validationResults.summary.authenticationWorking ? 'Working' : 'Issues'}
                         </Badge>
                       </div>
-                      
+
                       <div className="flex justify-between items-center">
                         <span className="text-sm">Database</span>
-                        <Badge className={validationResults.summary.databaseConnected ? 
+                        <Badge className={validationResults.summary.databaseConnected ?
                           'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}>
                           {validationResults.summary.databaseConnected ? 'Connected' : 'Disconnected'}
                         </Badge>
                       </div>
-                      
+
                       <div className="flex justify-between items-center">
                         <span className="text-sm">Admin APIs</span>
-                        <Badge className={validationResults.summary.adminEndpointsWorking ? 
+                        <Badge className={validationResults.summary.adminEndpointsWorking ?
                           'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}>
                           {validationResults.summary.adminEndpointsWorking ? 'Working' : 'Issues'}
                         </Badge>
                       </div>
-                      
+
                       <div className="flex justify-between items-center">
                         <span className="text-sm">Public APIs</span>
-                        <Badge className={validationResults.summary.publicEndpointsWorking ? 
+                        <Badge className={validationResults.summary.publicEndpointsWorking ?
                           'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}>
                           {validationResults.summary.publicEndpointsWorking ? 'Working' : 'Issues'}
                         </Badge>
@@ -380,25 +380,25 @@ export default function SystemValidationPage() {
                                 {test.statusCode}
                               </Badge>
                             </div>
-                            
+
                             <div className="flex items-center gap-4 text-sm text-gray-600">
                               <span className={`font-medium ${getResponseTimeColor(test.responseTime)}`}>
                                 {test.responseTime}ms
                               </span>
-                              
+
                               {test.requiresAuth && (
                                 <Badge variant="outline" className="text-xs">
                                   Auth Required
                                 </Badge>
                               )}
-                              
+
                               {test.adminOnly && (
                                 <Badge variant="outline" className="text-xs">
                                   Admin Only
                                 </Badge>
                               )}
                             </div>
-                            
+
                             {test.error && (
                               <div className="mt-2 text-sm text-red-600">
                                 {test.error}
