@@ -31,7 +31,7 @@ export default function AddCurriculumPage() {
     coverImage: "",
   })
 
-  if (user?.role !== "admin") {
+  if (user?.role !== "SUPER_ADMIN") {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">

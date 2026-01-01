@@ -22,8 +22,8 @@ export default function CurriculumModulesPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (user?.role !== "admin") {
-      window.location.href = "/admin"
+    if (user?.role !== "SUPER_ADMIN") {
+      window.location.href = "/SUPER_ADMIN"
       return
     }
     fetchCurriculumAndModules()
@@ -59,7 +59,7 @@ export default function CurriculumModulesPage() {
     }
   }
 
-  if (user?.role !== "admin") {
+  if (user?.role !== "SUPER_ADMIN") {
     return null
   }
 
