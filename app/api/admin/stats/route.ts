@@ -1,68 +1,70 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-import { verifyTokenFromRequest } from '@/lib/db-utils'
+import { prisma } from '@/lib/prisma'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
-const prisma = new PrismaClient()
-
-// GET /api/admin/stats - Get dashboard statistics
 export async function GET(request: NextRequest) {
   try {
-    const user = await verifyTokenFromRequest(request)
-    if (!user || !['SUPER_ADMIN', 'LECTURER', 'EDITOR'].includes(user.role as string)) {
+    const session = await getServerSession(authOptions)
+    if (!session || session.user.role !== 'SUPER_ADMIN') {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Get total users count
-    const totalUsers = await prisma.user.count()
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
 
-    // Get active users (logged in within last 30 days)
-    const thirtyDaysAgo = new Date()
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
-    
-    const activeUsers = await prisma.user.count({
-      where: {
-        lastLoginAt: {
-          gte: thirtyDaysAgo
-        },
-        isActive: true
-      }
-    })
-
-    // Get new users this week
-    const oneWeekAgo = new Date()
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7)
-    
-    const newUsersThisWeek = await prisma.user.count({
-      where: {
-        createdAt: {
-          gte: oneWeekAgo
-        }
-      }
-    })
-
-    // Get total content items
-    const [articles, books, topics, questionBanks, studyGuides] = await Promise.all([
-      prisma.article.count(),
+    // Run aggregate queries concurrently where possible
+    const [
+      totalUsers,
+      activeUsers,
+      newUsersThisWeek,
+      totalBooks,
+      totalArticles,
+      totalTopics,
+      totalVideos,
+      totalSimulations,
+      totalQuestionBanks,
+      totalFlashcardSets,
+      totalMagazines,
+      totalDrugs,
+      progressRows,
+      activeChallenges,
+      maxLevelObj,
+      publishedSimulations
+    ] = await Promise.all([
+      prisma.user.count(),
+      prisma.user.count({ where: { isActive: true } }),
+      prisma.user.count({ where: { createdAt: { gte: oneWeekAgo } } }),
       prisma.book.count(),
+      prisma.article.count(),
       prisma.topic.count(),
+      prisma.video.count(),
+      prisma.simulation.count(),
       prisma.questionBank.count(),
-      prisma.studyGuide.count()
-    ])
+      prisma.flashcardSet.count(),
+      prisma.magazine.count(),
+      prisma.drug.count(),
+      prisma.progress.findMany({ select: { completionPercentage: true } }),
+      prisma.challenge.count({ where: { isActive: true } }),
+      prisma.user.aggregate({ _max: { level: true } }),
+      prisma.simulation.count({ where: { isPublished: true } })
+    ]);
 
-    const totalContent = articles + books + topics + questionBanks + studyGuides
+    const totalContent = totalBooks + totalArticles + totalTopics + totalVideos + totalSimulations +
+                         totalQuestionBanks + totalFlashcardSets + totalMagazines + totalDrugs;
 
-    // Calculate completion rate
-    const totalProgress = await prisma.progress.count()
-    const completedProgress = await prisma.progress.count({
-      where: {
-        status: 'COMPLETED'
-      }
-    })
+    const completedProgressRows = progressRows.filter(r => r.completionPercentage === 100);
+    const completionRate = progressRows.length > 0 
+      ? Math.round((completedProgressRows.length / progressRows.length) * 100) 
+      : 0;
     
-    const completionRate = totalProgress > 0 ? Math.round((completedProgress / totalProgress) * 100) : 0
+    // Calculate global average completion for simulations/courses
+    let totalPct = 0;
+    progressRows.forEach(r => totalPct += r.completionPercentage);
+    const avgCompletion = progressRows.length > 0 ? (totalPct / progressRows.length).toFixed(1) : "0.0";
 
-    // Simulate content views (in real app, this would come from analytics)
-    const contentViewsThisWeek = Math.floor(Math.random() * 2000) + 1000
+    // TODO: Determine contentViewsThisWeek (perhaps aggregate over views columns? For now just summing total views)
+    const contentViewsThisWeek = 0; // Not perfectly trackable by week with current schema without a view log
 
     return NextResponse.json({
       success: true,
@@ -72,14 +74,31 @@ export async function GET(request: NextRequest) {
         totalContent,
         completionRate,
         newUsersThisWeek,
-        contentViewsThisWeek
+        contentViewsThisWeek,
+        contentBreakdown: {
+          books: totalBooks,
+          articles: totalArticles,
+          topics: totalTopics,
+          videos: totalVideos,
+          simulations: totalSimulations,
+          questionBanks: totalQuestionBanks,
+          flashcardSets: totalFlashcardSets,
+          magazines: totalMagazines,
+          drugs: totalDrugs
+        },
+        gamification: {
+          badges: 0, // No global Badge model to count
+          levels: maxLevelObj._max.level || 1,
+          challenges: activeChallenges
+        },
+        simulations: {
+          activeCases: publishedSimulations,
+          avgCompletion: parseFloat(avgCompletion)
+        }
       }
-    })
+    });
   } catch (error) {
-    console.error('Error fetching admin stats:', error)
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to fetch admin statistics'
-    }, { status: 500 })
+    console.error('Error fetching admin stats:', error);
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }

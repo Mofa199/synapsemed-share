@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Navigation } from "@/components/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -61,36 +62,22 @@ export default function AboutPage() {
     },
   ]
 
-  const team = [
-    {
-      name: "Dr. Sarah Johnson",
-      role: "Chief Medical Officer",
-      field: "Cardiology",
-      image: "/placeholder.svg?height=100&width=100&text=SJ",
-      bio: "15+ years in medical education and cardiology practice.",
-    },
-    {
-      name: "Prof. Michael Chen",
-      role: "Head of Pharmacy Education",
-      field: "Clinical Pharmacy",
-      image: "/placeholder.svg?height=100&width=100&text=MC",
-      bio: "Leading expert in pharmacology and drug interaction research.",
-    },
-    {
-      name: "Emily Davis, RN",
-      role: "Nursing Education Director",
-      field: "Critical Care Nursing",
-      image: "/placeholder.svg?height=100&width=100&text=ED",
-      bio: "20+ years in nursing practice and education leadership.",
-    },
-    {
-      name: "Dr. James Wilson",
-      role: "Technology Director",
-      field: "Medical Informatics",
-      image: "/placeholder.svg?height=100&width=100&text=JW",
-      bio: "Expert in healthcare technology and digital learning platforms.",
-    },
-  ]
+  const [team, setTeam] = useState<any[]>([])
+
+  useEffect(() => {
+    async function fetchTeam() {
+      try {
+        const response = await fetch('/api/admin/team')
+        const data = await response.json()
+        if (data.success && data.data) {
+          setTeam(data.data.filter((m: any) => m.status === 'ACTIVE'))
+        }
+      } catch (error) {
+        console.error('Error fetching team:', error)
+      }
+    }
+    fetchTeam()
+  }, [])
 
   const stats = [
     { number: "50,000+", label: "Active Students" },
@@ -344,31 +331,36 @@ export default function AboutPage() {
             </p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {team.map((member, index) => (
-              <Card
-                key={index}
-                className="text-center hover:shadow-lg transition-all duration-300 transform hover:scale-105 animate-in slide-in-from-bottom duration-500"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <CardContent className="p-6">
-                  <Avatar className="w-24 h-24 mx-auto mb-4">
-                    <AvatarImage src={member.image || "/placeholder.svg"} alt={member.name} />
-                    <AvatarFallback className="bg-[#213874] text-white text-xl">
-                      {member.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
-                    </AvatarFallback>
-                  </Avatar>
-                  <h3 className="text-xl font-semibold text-[#213874] mb-1">{member.name}</h3>
-                  <p className="text-[#f3ab1b] font-medium mb-1">{member.role}</p>
-                  <Badge variant="outline" className="mb-3">
-                    {member.field}
-                  </Badge>
-                  <p className="text-gray-600 text-sm">{member.bio}</p>
-                </CardContent>
-              </Card>
-            ))}
+            {team.length === 0 ? (
+              <div className="col-span-full text-center text-gray-500 py-8">
+                Loading team members...
+              </div>
+            ) : (
+              team.map((member, index) => (
+                <Card
+                  key={member.id || index}
+                  className="text-center hover:shadow-lg transition-all duration-300 transform hover:scale-105 animate-in slide-in-from-bottom duration-500"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <CardContent className="p-6">
+                    <Avatar className="w-24 h-24 mx-auto mb-4">
+                      <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.name} />
+                      <AvatarFallback className="bg-[#213874] text-white text-xl">
+                        {member.name
+                          ? member.name.split(" ").map((n: string) => n[0]).join("")
+                          : "?"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <h3 className="text-xl font-semibold text-[#213874] mb-1">{member.name}</h3>
+                    <p className="text-[#f3ab1b] font-medium mb-1">{member.position}</p>
+                    <Badge variant="outline" className="mb-3">
+                      {(member.department || 'Unknown').replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                    </Badge>
+                    <p className="text-gray-600 text-sm">{member.bio || ''}</p>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </div>
       </section>

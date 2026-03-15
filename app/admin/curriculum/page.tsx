@@ -6,23 +6,25 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { useAuth } from "@/components/auth-provider"
+import { useRouter } from "next/navigation"
 import { Search, Plus, BookOpen, Users, Clock, Edit, Trash2 } from "lucide-react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
 
 export default function CurriculumManagementPage() {
   const { user } = useAuth()
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [curriculums, setCurriculums] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (user?.role !== "admin") {
-      window.location.href = "/admin"
+    if (!user || !["SUPER_ADMIN", "LECTURER", "EDITOR"].includes(user.role)) {
+      router.push("/admin")
       return
     }
     fetchCurriculums()
-  }, [user])
+  }, [user, router])
 
   const fetchCurriculums = async () => {
     try {
@@ -36,7 +38,7 @@ export default function CurriculumManagementPage() {
     }
   }
 
-  if (user?.role !== "admin") {
+  if (!user || !["SUPER_ADMIN", "LECTURER", "EDITOR"].includes(user.role)) {
     return null
   }
 

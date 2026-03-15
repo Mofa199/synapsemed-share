@@ -8,6 +8,10 @@ export function middleware(request: NextRequest) {
   // Public routes that don't require authentication
   const publicRoutes = [
     '/',
+    '/about',
+    '/courses',
+    '/library',
+    '/pharmacology',
     '/auth',
     '/login',
     '/debug-auth',
@@ -24,12 +28,9 @@ export function middleware(request: NextRequest) {
   // Protected routes that require authentication
   const protectedRoutes = [
     '/profile',
-    '/courses',
     '/topics',
     '/topic',
     '/module',
-    '/pharmacology',
-    '/library',
     '/learning-resources',
     '/question-bank',
     '/study-guide',
@@ -37,7 +38,17 @@ export function middleware(request: NextRequest) {
     '/drug-class',
     '/drugs',
     '/dashboard',
-    '/3d-models'
+    '/3d-models',
+    '/student/dashboard',
+    '/student/ai-tutor',
+    '/student/chat',
+    '/student/concepts',
+    '/student/content',
+    '/student/exam-simulation',
+    '/student/planner',
+    '/student/questions',
+    '/student/simulations',
+    '/student/videos'
   ]
 
   // Check if the route is public

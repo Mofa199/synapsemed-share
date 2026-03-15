@@ -1,27 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getTeamMemberById, updateTeamMember, deleteTeamMember } from '@/lib/db-utils'
+import { prisma } from '@/lib/prisma'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const teamMember = await getTeamMemberById(params.id)
+    const teamMember = await prisma.teamMember.findUnique({
+      where: { id: params.id }
+    });
     
     if (!teamMember) {
-      return NextResponse.json(
-        { success: false, error: 'Team member not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ success: false, error: 'Team member not found' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, data: teamMember })
+    return NextResponse.json({ success: true, data: teamMember });
   } catch (error) {
-    console.error('Error fetching team member:', error)
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch team member' },
-      { status: 500 }
-    )
+    console.error('Error fetching team member:', error);
+    return NextResponse.json({ success: false, error: 'Failed to fetch' }, { status: 500 });
   }
 }
 
@@ -30,49 +28,38 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const formData = await request.formData()
-    const name = formData.get('name') as string
-    const email = formData.get('email') as string
-    const phone = formData.get('phone') as string
-    const position = formData.get('position') as string
-    const department = formData.get('department') as 'MEDICAL_EDUCATION' | 'CONTENT_DEVELOPMENT' | 'NURSING' | 'PHARMACY' | 'ENGINEERING' | 'DESIGN' | 'ADMINISTRATION'
-    const bio = formData.get('bio') as string
-    const linkedin = formData.get('linkedin') as string
-    const expertise = formData.get('expertise') as string
-
-    if (!name || !email || !position || !department) {
-      return NextResponse.json(
-        { success: false, error: 'Missing required fields' },
-        { status: 400 }
-      )
+    const session = await getServerSession(authOptions)
+    if (!session || session.user.role !== 'SUPER_ADMIN') {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    const teamMember = await updateTeamMember(params.id, {
-      name,
-      email,
-      phone,
-      position,
-      department,
-      bio,
-      linkedin,
-      expertise,
-    })
-
-    return NextResponse.json({ success: true, data: teamMember })
-  } catch (error: any) {
-    console.error('Error updating team member:', error)
+    const formData = await request.formData();
     
-    if (error.code === 'P2002' && error.meta?.target?.includes('email')) {
-      return NextResponse.json(
-        { success: false, error: 'A team member with this email already exists' },
-        { status: 409 }
-      )
-    }
+    const updateData: any = {};
+    if (formData.has('name')) updateData.name = formData.get('name') as string;
+    if (formData.has('email')) updateData.email = formData.get('email') as string;
+    if (formData.has('phone')) updateData.phone = formData.get('phone') as string;
+    if (formData.has('position')) updateData.position = formData.get('position') as string;
+    if (formData.has('department')) updateData.department = formData.get('department') as any;
+    if (formData.has('bio')) updateData.bio = formData.get('bio') as string;
+    if (formData.has('linkedin')) updateData.linkedin = formData.get('linkedin') as string;
+    if (formData.has('expertise')) updateData.expertise = formData.get('expertise') as string;
+    if (formData.has('specialties')) updateData.specialties = formData.get('specialties') as string;
+    if (formData.has('avatar')) updateData.avatar = formData.get('avatar') as string;
+    if (formData.has('status')) updateData.status = formData.get('status') as any;
 
+    const updatedTeamMember = await prisma.teamMember.update({
+      where: { id: params.id },
+      data: updateData
+    });
+
+    return NextResponse.json({ success: true, data: updatedTeamMember });
+  } catch (error: any) {
+    console.error('Error updating team member:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to update team member' },
       { status: 500 }
-    )
+    );
   }
 }
 
@@ -81,13 +68,18 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    await deleteTeamMember(params.id)
-    return NextResponse.json({ success: true, message: 'Team member deleted successfully' })
+    const session = await getServerSession(authOptions)
+    if (!session || session.user.role !== 'SUPER_ADMIN') {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    await prisma.teamMember.delete({
+      where: { id: params.id }
+    });
+
+    return NextResponse.json({ success: true, message: 'Team member deleted successfully' });
   } catch (error) {
-    console.error('Error deleting team member:', error)
-    return NextResponse.json(
-      { success: false, error: 'Failed to delete team member' },
-      { status: 500 }
-    )
+    console.error('Error deleting team member:', error);
+    return NextResponse.json({ success: false, error: 'Failed to delete team member' }, { status: 500 });
   }
 }

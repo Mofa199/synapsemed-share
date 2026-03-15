@@ -126,8 +126,10 @@ export default function CoursesPage() {
       const curriculumResponse = await fetch('/api/curricula')
       const curriculumResult = await curriculumResponse.json()
 
-      // Filter curriculum by user's field
-      const userFieldCurricula = user?.field ? curriculumResult.curricula.filter((c: Curriculum) => c.field === user.field) : [];
+      // Filter curriculum by user's field if user exists, otherwise show all
+      const userFieldCurricula = user?.field 
+        ? curriculumResult.curricula.filter((c: Curriculum) => c.field === user.field) 
+        : curriculumResult.curricula;
 
       // Fetch modules for each curriculum
       const curriculaWithModules = await Promise.all(
@@ -162,11 +164,13 @@ export default function CoursesPage() {
       const dcResult = await dcResponse.json()
       setDrugClasses(dcResult.drugClasses || [])
 
-      // Fetch user progress data
-      const progressResponse = await fetch('/api/user/profile')
-      const progressResult = await progressResponse.json()
-      if (progressResult.success) {
-        setUserProgress(progressResult.data.gamification)
+      // Only fetch user progress data if logged in
+      if (user) {
+        const progressResponse = await fetch('/api/user/profile')
+        const progressResult = await progressResponse.json()
+        if (progressResult.success) {
+          setUserProgress(progressResult.data.gamification)
+        }
       }
     } catch (err) {
       setError('Failed to load data')
@@ -174,17 +178,6 @@ export default function CoursesPage() {
     } finally {
       setLoading(false)
     }
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#213874] mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    )
   }
 
   if (loading) {

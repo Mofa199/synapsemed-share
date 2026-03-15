@@ -7,17 +7,25 @@ import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { ArrowUp, Mail, Phone, MapPin, Users } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Logo } from "@/components/logo"
 import { useToast } from "@/hooks/use-toast"
 
 export function Footer() {
   const [email, setEmail] = useState("")
   const [isSubscribing, setIsSubscribing] = useState(false)
+  const [isVisible, setIsVisible] = useState(false)
   const { toast } = useToast()
 
+  // Check if we're in browser environment
+  useEffect(() => {
+    setIsVisible(true)
+  }, [])
+
   const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" })
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: "smooth" })
+    }
   }
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
@@ -62,6 +70,19 @@ export function Footer() {
     } finally {
       setIsSubscribing(false)
     }
+  }
+
+  if (!isVisible) {
+    return (
+      <footer className="bg-gray-900 text-white">
+        <div className="container mx-auto px-4 py-8 text-center">
+          <div className="animate-pulse">
+            <div className="h-4 bg-gray-800 rounded w-1/4 mx-auto mb-4"></div>
+            <div className="h-4 bg-gray-800 rounded w-1/2 mx-auto"></div>
+          </div>
+        </div>
+      </footer>
+    )
   }
 
   return (

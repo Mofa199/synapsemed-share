@@ -36,7 +36,7 @@ export default function ModuleTopicsPage() {
 
   useEffect(() => {
     if (user?.role !== "admin") {
-      window.location.href = "/admin"
+      router.push("/admin")
       return
     }
     fetchModuleAndTopics()

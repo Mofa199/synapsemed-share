@@ -150,10 +150,10 @@ export default function AdminBooksPage() {
   }
 
   const filteredBooks = books.filter(book => 
-    book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    book.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    book.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    book.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+    (book.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (book.author || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (book.category || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (book.tags || []).some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
   )
 
   const getFormatBadge = (format: string) => {
@@ -232,7 +232,7 @@ export default function AdminBooksPage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-[#213874]">
-                {books.reduce((acc, b) => acc + b.views, 0)}
+                {books.reduce((acc, b) => acc + (b.views || 0), 0)}
               </div>
             </CardContent>
           </Card>
@@ -315,7 +315,7 @@ export default function AdminBooksPage() {
                         )}
                         <div className="flex items-center gap-2">
                           <Eye className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm text-gray-600">{book.views} views</span>
+                          <span className="text-sm text-gray-600">{book.views || 0} views</span>
                         </div>
                         {book.pages && (
                           <div className="flex items-center gap-2">
@@ -330,7 +330,7 @@ export default function AdminBooksPage() {
                         {book.publicationYear && <span>Year: {book.publicationYear}</span>}
                         {book.isbn && <span>ISBN: {book.isbn}</span>}
                       </div>
-                      {book.tags.length > 0 && (
+                      {book.tags && book.tags.length > 0 && (
                         <div className="flex flex-wrap gap-2">
                           {book.tags.slice(0, 5).map((tag, index) => (
                             <Badge key={index} variant="outline" className="text-xs">

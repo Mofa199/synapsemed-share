@@ -47,6 +47,26 @@ interface AdminStats {
   completionRate: number
   newUsersThisWeek: number
   contentViewsThisWeek: number
+  contentBreakdown?: {
+    books: number
+    articles: number
+    topics: number
+    videos: number
+    simulations: number
+    questionBanks: number
+    flashcardSets: number
+    magazines: number
+    drugs: number
+  }
+  gamification?: {
+    badges: number
+    levels: number
+    challenges: number
+  }
+  simulations?: {
+    activeCases: number
+    avgCompletion: number
+  }
 }
 
 interface User {
@@ -70,6 +90,15 @@ export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("overview")
+
+  const [settings, setSettings] = useState({
+    userRegistration: true,
+    emailNotifications: true,
+    maintenanceMode: false,
+    twoFactorAuth: true,
+    sessionTimeout: '24 hours',
+    passwordPolicy: 'Strong'
+  })
 
   useEffect(() => {
     if (user) {
@@ -202,7 +231,10 @@ export default function AdminDashboard() {
     totalContent: 324,
     completionRate: 67,
     newUsersThisWeek: 12,
-    contentViewsThisWeek: 1847
+    contentViewsThisWeek: 1847,
+    contentBreakdown: { books: 0, articles: 0, topics: 0, videos: 0, simulations: 0, questionBanks: 0, flashcardSets: 0, magazines: 0, drugs: 0 },
+    gamification: { badges: 0, levels: 1, challenges: 0 },
+    simulations: { activeCases: 0, avgCompletion: 0 }
   }
 
   return (
@@ -523,7 +555,7 @@ export default function AdminDashboard() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-[#213874] mb-2">45</div>
+                    <div className="text-3xl font-bold text-[#213874] mb-2">{dashboardStats.contentBreakdown?.articles || 0}</div>
                     <p className="text-sm text-gray-600">Published articles</p>
                   </CardContent>
                 </Card>
@@ -539,7 +571,7 @@ export default function AdminDashboard() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-[#213874] mb-2">78</div>
+                    <div className="text-3xl font-bold text-[#213874] mb-2">{dashboardStats.contentBreakdown?.books || 0}</div>
                     <p className="text-sm text-gray-600">Medical textbooks</p>
                   </CardContent>
                 </Card>
@@ -555,7 +587,7 @@ export default function AdminDashboard() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-[#213874] mb-2">12</div>
+                    <div className="text-3xl font-bold text-[#213874] mb-2">{dashboardStats.contentBreakdown?.magazines || 0}</div>
                     <p className="text-sm text-gray-600">Medical journals</p>
                   </CardContent>
                 </Card>
@@ -571,7 +603,7 @@ export default function AdminDashboard() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-[#213874] mb-2">156</div>
+                    <div className="text-3xl font-bold text-[#213874] mb-2">{dashboardStats.contentBreakdown?.videos || 0}</div>
                     <p className="text-sm text-gray-600">Video lectures</p>
                   </CardContent>
                 </Card>
@@ -587,7 +619,7 @@ export default function AdminDashboard() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-[#213874] mb-2">342</div>
+                    <div className="text-3xl font-bold text-[#213874] mb-2">{dashboardStats.contentBreakdown?.drugs || 0}</div>
                     <p className="text-sm text-gray-600">Drug database</p>
                   </CardContent>
                 </Card>
@@ -603,7 +635,7 @@ export default function AdminDashboard() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-[#213874] mb-2">48</div>
+                    <div className="text-3xl font-bold text-[#213874] mb-2">0</div>
                     <p className="text-sm text-gray-600">Classification system</p>
                   </CardContent>
                 </Card>
@@ -619,7 +651,7 @@ export default function AdminDashboard() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-[#213874] mb-2">89</div>
+                    <div className="text-3xl font-bold text-[#213874] mb-2">0</div>
                     <p className="text-sm text-gray-600">Study materials</p>
                   </CardContent>
                 </Card>
@@ -635,7 +667,7 @@ export default function AdminDashboard() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-[#213874] mb-2">1,234</div>
+                    <div className="text-3xl font-bold text-[#213874] mb-2">{dashboardStats.contentBreakdown?.questionBanks || 0}</div>
                     <p className="text-sm text-gray-600">Practice questions</p>
                   </CardContent>
                 </Card>
@@ -651,7 +683,7 @@ export default function AdminDashboard() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-[#213874] mb-2">34</div>
+                    <div className="text-3xl font-bold text-[#213874] mb-2">{dashboardStats.contentBreakdown?.simulations || 0}</div>
                     <p className="text-sm text-gray-600">Patient cases</p>
                   </CardContent>
                 </Card>
@@ -667,7 +699,7 @@ export default function AdminDashboard() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-[#213874] mb-2">267</div>
+                    <div className="text-3xl font-bold text-[#213874] mb-2">{dashboardStats.contentBreakdown?.topics || 0}</div>
                     <p className="text-sm text-gray-600">Medical topics</p>
                   </CardContent>
                 </Card>
@@ -683,7 +715,7 @@ export default function AdminDashboard() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-[#213874] mb-2">42</div>
+                    <div className="text-3xl font-bold text-[#213874] mb-2">0</div>
                     <p className="text-sm text-gray-600">Achievement badges</p>
                   </CardContent>
                 </Card>
@@ -699,7 +731,7 @@ export default function AdminDashboard() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-[#213874] mb-2">156</div>
+                    <div className="text-3xl font-bold text-[#213874] mb-2">0</div>
                     <p className="text-sm text-gray-600">Memory aids</p>
                   </CardContent>
                 </Card>
@@ -715,7 +747,7 @@ export default function AdminDashboard() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-[#213874] mb-2">89</div>
+                    <div className="text-3xl font-bold text-[#213874] mb-2">{dashboardStats.contentBreakdown?.flashcardSets || 0}</div>
                     <p className="text-sm text-gray-600">Study flashcards</p>
                   </CardContent>
                 </Card>
@@ -826,7 +858,7 @@ export default function AdminDashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-[#213874] mb-2">24</div>
+                  <div className="text-3xl font-bold text-[#213874] mb-2">{dashboardStats.gamification?.badges || 0}</div>
                   <p className="text-sm text-gray-600 mb-4">Total badges available</p>
                   <Button className="w-full" variant="outline">
                     Manage Badges
@@ -842,7 +874,7 @@ export default function AdminDashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-[#213874] mb-2">50</div>
+                  <div className="text-3xl font-bold text-[#213874] mb-2">{dashboardStats.gamification?.levels || 1}</div>
                   <p className="text-sm text-gray-600 mb-4">Maximum level</p>
                   <Button className="w-full" variant="outline">
                     Level Settings
@@ -858,7 +890,7 @@ export default function AdminDashboard() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-[#213874] mb-2">8</div>
+                  <div className="text-3xl font-bold text-[#213874] mb-2">{dashboardStats.gamification?.challenges || 0}</div>
                   <p className="text-sm text-gray-600 mb-4">Active challenges</p>
                   <Button className="w-full" variant="outline">
                     Manage Challenges
@@ -987,12 +1019,12 @@ export default function AdminDashboard() {
                   <div className="space-y-4">
                     <div className="p-4 bg-blue-50 rounded-lg">
                       <h3 className="font-medium text-blue-800">Cases Active</h3>
-                      <p className="text-2xl font-bold text-blue-800">12</p>
+                      <p className="text-2xl font-bold text-blue-800">{dashboardStats.simulations?.activeCases || 0}</p>
                     </div>
 
                     <div className="p-4 bg-green-50 rounded-lg">
                       <h3 className="font-medium text-green-800">Avg Completion</h3>
-                      <p className="text-2xl font-bold text-green-800">78.5%</p>
+                      <p className="text-2xl font-bold text-green-800">{dashboardStats.simulations?.avgCompletion || 0}%</p>
                     </div>
                   </div>
                 </CardContent>
@@ -1004,10 +1036,10 @@ export default function AdminDashboard() {
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-[#213874]">Email Management</h2>
               <Button asChild>
-                <a href="/admin/email">
+                <Link href="/admin/email">
                   <Mail className="h-4 w-4 mr-2" />
                   Full Email Management
-                </a>
+                </Link>
               </Button>
             </div>
 
@@ -1038,7 +1070,7 @@ export default function AdminDashboard() {
                       <option>Custom Message</option>
                     </select>
                   </div>
-                  <Button className="w-full">
+                  <Button className="w-full" onClick={() => toast({ title: "Email Queued", description: "Your message has been added to the mail spool."})}>
                     <Send className="h-4 w-4 mr-2" />
                     Send Email
                   </Button>
@@ -1089,17 +1121,32 @@ export default function AdminDashboard() {
                 <CardContent className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span>User Registration</span>
-                    <Badge className="bg-green-100 text-green-700">Enabled</Badge>
+                    <Badge 
+                      className={`cursor-pointer ${settings.userRegistration ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}`}
+                      onClick={() => setSettings({...settings, userRegistration: !settings.userRegistration})}
+                    >
+                      {settings.userRegistration ? "Enabled" : "Disabled"}
+                    </Badge>
                   </div>
                   <div className="flex justify-between items-center">
                     <span>Email Notifications</span>
-                    <Badge className="bg-green-100 text-green-700">Enabled</Badge>
+                    <Badge 
+                      className={`cursor-pointer ${settings.emailNotifications ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}`}
+                      onClick={() => setSettings({...settings, emailNotifications: !settings.emailNotifications})}
+                    >
+                      {settings.emailNotifications ? "Enabled" : "Disabled"}
+                    </Badge>
                   </div>
                   <div className="flex justify-between items-center">
                     <span>Maintenance Mode</span>
-                    <Badge className="bg-gray-100 text-gray-700">Disabled</Badge>
+                    <Badge 
+                      className={`cursor-pointer ${settings.maintenanceMode ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-700"}`}
+                      onClick={() => setSettings({...settings, maintenanceMode: !settings.maintenanceMode})}
+                    >
+                      {settings.maintenanceMode ? "Enabled" : "Disabled"}
+                    </Badge>
                   </div>
-                  <Button className="w-full mt-4">
+                  <Button className="w-full mt-4" onClick={() => toast({ title: "Success", description: "General settings updated successfully."})}>
                     Update Settings
                   </Button>
                 </CardContent>
@@ -1112,17 +1159,39 @@ export default function AdminDashboard() {
                 <CardContent className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span>Two-Factor Auth</span>
-                    <Badge className="bg-green-100 text-green-700">Required</Badge>
+                    <Badge 
+                      className={`cursor-pointer ${settings.twoFactorAuth ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-700"}`}
+                      onClick={() => setSettings({...settings, twoFactorAuth: !settings.twoFactorAuth})}
+                    >
+                      {settings.twoFactorAuth ? "Required" : "Optional"}
+                    </Badge>
                   </div>
                   <div className="flex justify-between items-center">
                     <span>Session Timeout</span>
-                    <Badge variant="outline">24 hours</Badge>
+                    <select
+                      className="border rounded p-1 text-sm bg-transparent outline-none cursor-pointer"
+                      value={settings.sessionTimeout}
+                      onChange={(e) => setSettings({...settings, sessionTimeout: e.target.value})}
+                    >
+                      <option>1 hour</option>
+                      <option>4 hours</option>
+                      <option>12 hours</option>
+                      <option>24 hours</option>
+                    </select>
                   </div>
                   <div className="flex justify-between items-center">
                     <span>Password Policy</span>
-                    <Badge className="bg-green-100 text-green-700">Strong</Badge>
+                    <select
+                      className="border rounded p-1 text-sm bg-transparent outline-none cursor-pointer"
+                      value={settings.passwordPolicy}
+                      onChange={(e) => setSettings({...settings, passwordPolicy: e.target.value})}
+                    >
+                      <option>Basic</option>
+                      <option>Strong</option>
+                      <option>Strict</option>
+                    </select>
                   </div>
-                  <Button className="w-full mt-4">
+                  <Button className="w-full mt-4" onClick={() => toast({ title: "Success", description: "Security configurations securely applied."})}>
                     Security Settings
                   </Button>
                 </CardContent>

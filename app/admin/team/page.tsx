@@ -94,9 +94,9 @@ export default function AdminTeamPage() {
   }
 
   const filteredTeam = teamMembersData.filter(member => 
-    member.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    member.position.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    member.department.toLowerCase().includes(searchQuery.toLowerCase())
+    (member.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (member.position || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (member.department || '').toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const getDepartmentBadge = (department: string) => {
@@ -314,11 +314,11 @@ export default function AdminTeamPage() {
                         {member.position}
                       </CardDescription>
                       <div className="flex gap-2 mt-2">
-                        <Badge className={getDepartmentBadge(member.department)}>
-                          {member.department.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                        <Badge className={getDepartmentBadge(member.department || '')}>
+                          {(member.department || 'Unknown').replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
                         </Badge>
-                        <Badge className={getStatusBadge(member.status)}>
-                          {member.status.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                        <Badge className={getStatusBadge(member.status || '')}>
+                          {(member.status || 'Unknown').replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
                         </Badge>
                       </div>
                     </div>

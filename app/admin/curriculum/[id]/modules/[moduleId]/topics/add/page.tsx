@@ -61,9 +61,12 @@ export default function AddTopicPage() {
       formDataToSend.append("category", formData.category)
       formDataToSend.append("tags", JSON.stringify(formData.tags.split(",").map(tag => tag.trim()).filter(tag => tag)))
       formDataToSend.append("isPublished", formData.isPublished.toString())
-      formDataToSend.append("moduleId", window.location.pathname.split("/")[5]) // Get module ID from URL
+      // Get module ID from URL params instead of window.location
+      const urlParams = window?.location?.pathname.split("/") || [];
+      const moduleId = urlParams[5] || "";
+      formDataToSend.append("moduleId", moduleId)
 
-      const response = await fetch(`/api/admin/modules/${window.location.pathname.split("/")[5]}/topics`, {
+      const response = await fetch(`/api/admin/modules/${moduleId}/topics`, {
         method: "POST",
         body: formDataToSend,
       })
@@ -76,7 +79,8 @@ export default function AddTopicPage() {
           description: "Topic created successfully",
         })
         // Redirect back to module topics page
-        router.push(`/admin/curriculum/${window.location.pathname.split("/")[3]}/modules/${window.location.pathname.split("/")[5]}`)
+        const curriculumId = urlParams[3] || "";
+        router.push(`/admin/curriculum/${curriculumId}/modules/${moduleId}`)
       } else {
         toast({
           title: "Error",

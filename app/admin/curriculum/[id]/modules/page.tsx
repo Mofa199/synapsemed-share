@@ -23,7 +23,7 @@ export default function CurriculumModulesPage() {
 
   useEffect(() => {
     if (user?.role !== "SUPER_ADMIN") {
-      window.location.href = "/SUPER_ADMIN"
+      router.push("/admin")
       return
     }
     fetchCurriculumAndModules()

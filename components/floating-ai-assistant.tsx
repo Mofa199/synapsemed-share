@@ -34,6 +34,15 @@ export function FloatingAIAssistant({ context = 'general', studentLevel }: Float
     setCurrentService(null)
     
     try {
+      // Get the text content of the page for AI context
+      let pageContent = '';
+      if (typeof window !== 'undefined') {
+        const bodyText = document.body.innerText || '';
+        // Grab up to 8000 characters to prevent huge payloads
+        pageContent = bodyText.substring(0, 8000);
+      }
+
+      // Use the internal Next.js API route
       const response = await fetch(`/api/ai/${service}`, {
         method: 'POST',
         headers: {
@@ -42,7 +51,8 @@ export function FloatingAIAssistant({ context = 'general', studentLevel }: Float
         body: JSON.stringify({
           ...data,
           context,
-          studentLevel
+          studentLevel,
+          pageContent
         }),
       })
 
@@ -61,7 +71,7 @@ export function FloatingAIAssistant({ context = 'general', studentLevel }: Float
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to process AI request. Please try again.",
+        description: "Failed to connect to AI service. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -274,10 +284,13 @@ export function FloatingAIAssistant({ context = 'general', studentLevel }: Float
         <Button
           onClick={() => setIsOpen(true)}
           size="lg"
-          className="rounded-full h-16 w-16 shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+          className="rounded-full h-16 w-16 shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-r from-[#213874] to-[#1a6ac3] hover:from-[#1a6ac3] hover:to-[#213874] border-2 border-white animate-pulse"
         >
-          <Sparkles className="h-7 w-7" />
+          <Sparkles className="h-7 w-7 text-white" />
         </Button>
+        <div className="absolute -top-1 -right-1 h-5 w-5 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+          <span className="text-xs text-white font-bold">AI</span>
+        </div>
       </div>
 
       {/* AI Assistant Dialog */}
@@ -285,8 +298,11 @@ export function FloatingAIAssistant({ context = 'general', studentLevel }: Float
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-xl">
-              <Sparkles className="h-6 w-6 text-blue-600" />
+              <Sparkles className="h-6 w-6 text-[#213874]" />
               SYNAPSEMED AI Assistant
+              <Badge variant="secondary" className="ml-2 bg-green-100 text-green-800">
+                Powered by SynapseMedAI Backend
+              </Badge>
             </DialogTitle>
             <DialogDescription>
               Your AI-powered medical learning companion
