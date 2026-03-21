@@ -191,16 +191,7 @@ export default function AboutPage() {
                   <CardContent className="p-0">
                     <div className="prose max-w-none">
                       <p className="text-gray-700 mb-4">
-                        Dr. Mohamed Faisal is a renowned medical educator and technology innovator with over 20 years of experience in healthcare and digital learning. His passion for transforming medical education through technology led him to establish Synapse Med in 2018.
-                      </p>
-                      <p className="text-gray-700 mb-4">
-                        Before founding Synapse Med, Dr. Faisal served as the Director of Digital Learning at a prestigious medical school, where he pioneered several AI-powered educational tools that significantly improved student outcomes. His research in medical informatics and educational technology has been published in numerous peer-reviewed journals.
-                      </p>
-                      <p className="text-gray-700 mb-4">
-                        Dr. Faisal holds an MD from Harvard Medical School and completed his residency in Internal Medicine at Johns Hopkins Hospital. He is board-certified in Internal Medicine and has additional certifications in Medical Informatics and Educational Technology.
-                      </p>
-                      <p className="text-gray-700 mb-6">
-                        Under his leadership, Synapse Med has grown to become one of the leading medical education platforms, serving over 50,000 students across medical, nursing, and pharmacy programs worldwide. His vision continues to drive innovation in healthcare education, making quality medical learning accessible to students globally.
+                        Dr. Mohamed Faisal is a medical student at St Joseph University College of Health and Allied Sciences
                       </p>
                       <Button asChild className="bg-[#213874] hover:bg-[#1a6ac3]">
                         <Link href="/about/mohamed-faisal">
@@ -428,7 +419,7 @@ export default function AboutPage() {
                   <div>
                     <h3 className="text-xl font-semibold text-[#213874] mb-2">Call Us</h3>
                     <p className="text-gray-600 mb-2">Speak with our team directly</p>
-                    <p className="text-[#213874] font-medium">+1 (555) 123-4567</p>
+                    <p className="text-[#213874] font-medium">+255 768 924 035</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -439,9 +430,9 @@ export default function AboutPage() {
                     <h3 className="text-xl font-semibold text-[#213874] mb-2">Visit Us</h3>
                     <p className="text-gray-600 mb-2">Our headquarters location</p>
                     <p className="text-[#213874] font-medium">
-                      123 Medical Plaza
+                      SJUCHAS
                       <br />
-                      New York, NY 10001
+                      Dar es salaam Tanzania
                     </p>
                   </div>
                 </div>

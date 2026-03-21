@@ -25,9 +25,9 @@ export default function MohamedFaisalBiography() {
               <div className="md:w-1/3 flex items-center justify-center p-8 bg-gray-50">
                 {/* Founder image without frame/border */}
                 <div className="relative">
-                  <img 
-                    src="/placeholder.svg?height=300&width=300&text=MF" 
-                    alt="Mohamed Faisal MD" 
+                  <img
+                    src="/placeholder.svg?height=300&width=300&text=MF"
+                    alt="Mohamed Faisal MD"
                     className="w-64 h-64 object-cover"
                   />
                 </div>
@@ -42,19 +42,9 @@ export default function MohamedFaisalBiography() {
                 <CardContent className="p-0">
                   <div className="prose max-w-none">
                     <p className="text-gray-700 mb-4">
-                      Dr. Mohamed Faisal is a renowned medical educator and technology innovator with over 20 years of experience in healthcare and digital learning. His passion for transforming medical education through technology led him to establish Synapse Med in 2018.
+                      Dr. Mohamed Faisal is a medical student at St Joseph University College of Health and Allied Sciences
                     </p>
                     <h2 className="text-2xl font-bold text-[#213874] mt-8 mb-4">Professional Background</h2>
-                    <p className="text-gray-700 mb-4">
-                      Before founding Synapse Med, Dr. Faisal served as the Director of Digital Learning at a prestigious medical school, where he pioneered several AI-powered educational tools that significantly improved student outcomes. His research in medical informatics and educational technology has been published in numerous peer-reviewed journals.
-                    </p>
-                    <p className="text-gray-700 mb-4">
-                      Dr. Faisal holds an MD from Harvard Medical School and completed his residency in Internal Medicine at Johns Hopkins Hospital. He is board-certified in Internal Medicine and has additional certifications in Medical Informatics and Educational Technology.
-                    </p>
-                    <h2 className="text-2xl font-bold text-[#213874] mt-8 mb-4">Vision and Leadership</h2>
-                    <p className="text-gray-700 mb-4">
-                      Under his leadership, Synapse Med has grown to become one of the leading medical education platforms, serving over 50,000 students across medical, nursing, and pharmacy programs worldwide. His vision continues to drive innovation in healthcare education, making quality medical learning accessible to students globally.
-                    </p>
                     <p className="text-gray-700 mb-4">
                       Dr. Faisal is committed to bridging the gap between traditional medical education and cutting-edge technology. He believes that by leveraging AI and personalized learning approaches, we can create more effective and engaging educational experiences that better prepare healthcare professionals for real-world practice.
                     </p>
@@ -85,8 +75,8 @@ export default function MohamedFaisalBiography() {
                       For speaking engagements, partnerships, or media inquiries:
                     </p>
                     <ul className="list-disc list-inside text-gray-700 mb-4 ml-4">
-                      <li>Email: m.faisal@synapsemedical.com</li>
-                      <li>LinkedIn: linkedin.com/in/mohamedfaisal-md</li>
+                      <li>Email: Drmohamed@synapsemed.co.tz</li>
+                      <li>LinkedIn: https://www.linkedin.com/in/mohammed-faisal-19ab69342/</li>
                     </ul>
                   </div>
                 </CardContent>
