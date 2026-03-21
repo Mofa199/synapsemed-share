@@ -20,9 +20,9 @@ export default function AddCurriculumPage() {
   const [isLoading, setIsLoading] = useState(false)
 
   const [formData, setFormData] = useState({
-    title: "",
+    name: "",
     description: "",
-    category: "",
+    field: "",
     level: "",
     duration: "",
     prerequisites: "",
@@ -95,26 +95,26 @@ export default function AddCurriculumPage() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <Label htmlFor="title">Curriculum Title *</Label>
+                  <Label htmlFor="name">Curriculum Title *</Label>
                   <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => handleInputChange("title", e.target.value)}
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => handleInputChange("name", e.target.value)}
                     placeholder="Enter curriculum title"
                     required
                   />
                 </div>
                 <div>
-                  <Label htmlFor="category">Category *</Label>
-                  <Select value={formData.category} onValueChange={(value) => handleInputChange("category", value)}>
+                  <Label htmlFor="field">Category *</Label>
+                  <Select value={formData.field} onValueChange={(value) => handleInputChange("field", value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="medical">Medical</SelectItem>
-                      <SelectItem value="nursing">Nursing</SelectItem>
-                      <SelectItem value="pharmacy">Pharmacy</SelectItem>
-                      <SelectItem value="general">General Healthcare</SelectItem>
+                      <SelectItem value="MEDICAL">Medical</SelectItem>
+                      <SelectItem value="NURSING">Nursing</SelectItem>
+                      <SelectItem value="PHARMACY">Pharmacy</SelectItem>
+                      <SelectItem value="GENERAL">General Healthcare</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

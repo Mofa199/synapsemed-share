@@ -33,7 +33,7 @@ export default function DashboardPage() {
       points: 0,
       url: "/topic/respiratory-pathology",
     },
-    { id: 3, type: "badge", title: "Earned 'Quiz Master' badge", time: "2 days ago", points: 50, url: "/badges" },
+    { id: 3, type: "badge", title: "Earned 'Quiz Master' badge", time: "2 days ago", points: 50, url: "/gamification?tab=badges" },
     {
       id: 4,
       type: "completed",
@@ -67,14 +67,14 @@ export default function DashboardPage() {
       type: "Case Study",
       duration: "30 min",
       difficulty: "Advanced",
-      url: "/case-study/acute-mi",
+      url: "/student/dashboard", // Placeholder for case study
     },
   ]
 
   const upcomingGoals = [
     { id: 1, title: "Complete Pathology Module", progress: 45, deadline: "Next week", url: "/module/medical/2" },
-    { id: 2, title: "Earn 'Anatomy Expert' Badge", progress: 75, deadline: "2 weeks", url: "/badges/anatomy-expert" },
-    { id: 3, title: "Finish 10 Practice Quizzes", progress: 60, deadline: "This month", url: "/quizzes" },
+    { id: 2, title: "Earn 'Anatomy Expert' Badge", progress: 75, deadline: "2 weeks", url: "/gamification?tab=badges" },
+    { id: 3, title: "Finish 10 Practice Quizzes", progress: 60, deadline: "This month", url: "/student/questions" },
   ]
 
   return (

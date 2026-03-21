@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 import { verifyTokenFromRequest } from '@/lib/db-utils'
 
-const AI_BACKEND_URL = process.env.AI_BACKEND_URL || 'http://localhost:8000'
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function POST(request: NextRequest) {
   try {
@@ -11,21 +12,49 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    
-    const response = await fetch(`${AI_BACKEND_URL}/api/study-plan`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    })
+    const { topic, duration, level, preferences, pageContent } = body;
 
-    if (!response.ok) {
-      throw new Error(`AI service responded with status: ${response.status}`)
+    if (!process.env.GEMINI_API_KEY) {
+      return NextResponse.json(
+        { error: 'GEMINI_API_KEY is not set in environment variables.' },
+        { status: 500 }
+      );
     }
 
-    const data = await response.json()
-    
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", generationConfig: { responseMimeType: "application/json" } });
+
+    const prompt = `
+You are SynapseMedAI, a master medical education strategist.
+Create a personalized study plan for a medical student.
+Topic: ${topic}
+Duration: ${duration || '4 weeks'}
+Student Level: ${level || 'Intermediate'}
+Preferences: ${preferences || 'Balanced'}
+
+Website Context (Current Page Data):
+${pageContent ? pageContent.substring(0, 3000) : 'No page data provided.'}
+
+Instructions:
+Generate a structured weekly study plan. Use the website context if relevant.
+Return the output strictly in the following JSON schema:
+{
+  "title": "Study Plan for ${topic}",
+  "weeks": [
+    {
+      "week": 1,
+      "focus": "Focus of the week",
+      "tasks": [
+        { "day": "Monday", "task": "Task description", "resource": "Resource type" }
+      ]
+    }
+  ]
+}
+`;
+
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text();
+    const data = JSON.parse(responseText);
+
     return NextResponse.json(data)
   } catch (error) {
     console.error('AI Study Plan service error:', error)

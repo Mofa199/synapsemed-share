@@ -186,14 +186,25 @@ export default function ProfilePage() {
           })
 
           // Update achievements
-          setRecentAchievements(data.recentBadges.map((badge: any) => ({
-            name: badge.name,
-            date: new Date(badge.earnedAt).toLocaleDateString(),
-            icon: badge.icon || "🏆"
-          })))
+          if (data.recentBadges && Array.isArray(data.recentBadges)) {
+            setRecentAchievements(data.recentBadges.slice(0, 5).map((badge: any) => ({
+              name: badge.name,
+              date: new Date(badge.earnedAt).toLocaleDateString(),
+              icon: badge.icon || "🏆"
+            })))
+          } else if (data.badges && Array.isArray(data.badges)) {
+            // Fallback to badges if recentBadges is missing
+            setRecentAchievements(data.badges.slice(0, 5).map((badge: any) => ({
+              name: badge.name,
+              date: new Date(badge.earnedAt).toLocaleDateString(),
+              icon: badge.icon || "🏆"
+            })))
+          }
 
           // Update badges
-          setUserBadges(data.badges)
+          if (data.badges && Array.isArray(data.badges)) {
+            setUserBadges(data.badges)
+          }
 
           // Fetch study progress
           fetchStudyProgress(data.user.id)
