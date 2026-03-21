@@ -299,10 +299,10 @@ export default function AdminPartnersPage() {
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="text-xl font-semibold text-[#213874]">{partner.name}</h3>
                         <Badge className={getTypeBadge(partner.type)}>
-                          {partner.type.charAt(0) + partner.type.slice(1).toLowerCase()}
+                          {(partner.type?.charAt(0) || '') + (partner.type?.slice(1).toLowerCase() || '')}
                         </Badge>
                         <Badge className={getStatusBadge(partner.status)}>
-                          {partner.status.charAt(0) + partner.status.slice(1).toLowerCase()}
+                          {(partner.status?.charAt(0) || '') + (partner.status?.slice(1).toLowerCase() || '')}
                         </Badge>
                       </div>
                       <p className="text-gray-600 mb-4">{partner.description}</p>

@@ -1,69 +1,90 @@
-// Build-safe implementation that returns mock data during build
 import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { verifyTokenFromRequest } from '@/lib/db-utils'
+import bcrypt from 'bcryptjs'
 
 // GET /api/admin/users - Get all users for admin dashboard
 export async function GET(request: NextRequest) {
-  // Return mock data during build time
-  const mockUsers = [
-    {
-      id: '1',
-      name: 'Sample User',
-      email: 'sample@example.com',
-      role: 'STUDENT',
-      field: 'MEDICAL',
-      level: 5,
-      points: 500,
-      streak: 3,
-      isActive: true,
-      lastLoginAt: new Date().toISOString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+  try {
+    const adminUser = await verifyTokenFromRequest(request)
+    const adminRoles = ['SUPER_ADMIN', 'LECTURER', 'EDITOR']
+    
+    if (!adminUser || !adminRoles.includes(adminUser.role)) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
-  ];
 
-  const { searchParams } = new URL(request.url)
-  const page = parseInt(searchParams.get('page') || '1')
-  const limit = parseInt(searchParams.get('limit') || '50')
-  const search = searchParams.get('search')
-  const role = searchParams.get('role')
-  const field = searchParams.get('field')
+    const { searchParams } = new URL(request.url)
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '50')
+    const search = searchParams.get('search')
+    const role = searchParams.get('role')
+    const field = searchParams.get('field')
 
-  let users = mockUsers;
+    const where: any = {}
 
-  if (search) {
-    users = users.filter(u => 
-      u.name.toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase())
-    )
-  }
-
-  if (role) {
-    users = users.filter(u => u.role === role)
-  }
-
-  if (field) {
-    users = users.filter(u => u.field === field)
-  }
-
-  const skip = (page - 1) * limit
-  const paginatedUsers = users.slice(skip, skip + limit)
-
-  return NextResponse.json({
-    success: true,
-    data: paginatedUsers,
-    pagination: {
-      page,
-      limit,
-      totalCount: users.length,
-      totalPages: Math.ceil(users.length / limit)
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } }
+      ]
     }
-  })
+
+    if (role) {
+      where.role = role
+    }
+
+    if (field) {
+      where.field = field
+    }
+
+    const skip = (page - 1) * limit
+
+    const [users, totalCount] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          field: true,
+          level: true,
+          points: true,
+          isActive: true,
+          lastLoginAt: true,
+          createdAt: true
+        }
+      }),
+      prisma.user.count({ where })
+    ])
+
+    return NextResponse.json({
+      success: true,
+      data: users,
+      pagination: {
+        page,
+        limit,
+        totalCount,
+        totalPages: Math.ceil(totalCount / limit)
+      }
+    })
+  } catch (error) {
+    console.error('Error fetching users:', error)
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
+  }
 }
 
 // POST /api/admin/users - Create new user
 export async function POST(request: NextRequest) {
   try {
-    // In build mode, just return mock data
+    const adminUser = await verifyTokenFromRequest(request)
+    if (!adminUser || adminUser.role !== 'SUPER_ADMIN') {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
     const body = await request.json()
     const { name, email, password, role, field } = body
 
@@ -74,8 +95,9 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Check if user already exists (mock implementation)
-    const existingUser = null; // Mock: no existing user
+    const existingUser = await prisma.user.findUnique({
+      where: { email }
+    })
 
     if (existingUser) {
       return NextResponse.json({
@@ -84,30 +106,34 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Hash password (mock implementation)
-    const hashedPassword = password; // Mock: just return the password as is
+    const hashedPassword = await bcrypt.hash(password, 10)
 
-    const newUser = {
-      id: Math.random().toString(36).substring(7),
-      name,
-      email,
-      role,
-      field,
-      level: 1,
-      points: 0,
-      isActive: true,
-      createdAt: new Date().toISOString()
-    };
+    const newUser = await prisma.user.create({
+      data: {
+        name,
+        email,
+        password: hashedPassword,
+        role,
+        field,
+        isActive: true
+      }
+    })
 
     return NextResponse.json({
       success: true,
-      data: newUser
-    });
+      data: {
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role,
+        field: newUser.field
+      }
+    })
   } catch (error) {
-    console.error('Error creating user:', error);
+    console.error('Error creating user:', error)
     return NextResponse.json({
       success: false,
       error: 'Failed to create user'
-    }, { status: 500 });
+    }, { status: 500 })
   }
-}
+}

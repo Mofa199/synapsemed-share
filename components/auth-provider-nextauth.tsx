@@ -209,17 +209,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const uploadAvatar = async (file: File): Promise<void> => {
-    // Simulate file upload delay
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    const formData = new FormData()
+    formData.append('file', file)
 
-    // In a real app, this would upload to a file storage service
-    // For now, we'll create a local URL for the avatar
-    const avatarUrl = URL.createObjectURL(file)
+    const response = await fetch('/api/user/profile/upload', {
+      method: 'POST',
+      body: formData,
+    })
 
-    if (user) {
-      const updatedUser = { ...user, avatar: avatarUrl }
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || 'Failed to upload avatar')
+    }
+
+    const data = await response.json()
+    if (data.success && user) {
+      const updatedUser = { ...user, avatar: data.url }
       setUser(updatedUser)
-      localStorage.setItem("synapse-user", JSON.stringify(updatedUser))
+      // Update cookie as well
+      const userJson = JSON.stringify(updatedUser)
+      const encodedUser = encodeURIComponent(userJson)
+      document.cookie = `synapse-user=${encodedUser}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`
+      localStorage.setItem("synapse-user", userJson)
     }
   }
 

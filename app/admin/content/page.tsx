@@ -4,7 +4,7 @@ import { Navigation } from "@/components/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/components/auth-provider"
-import { BookOpen, FileText, Pill, Award, Plus, Settings, Users, Mail } from "lucide-react"
+import { BookOpen, FileText, Pill, Award, Plus, Settings, Users, Mail, Newspaper, Video } from "lucide-react"
 import Link from "next/link"
 
 export default function ContentManagementPage() {
@@ -69,6 +69,22 @@ export default function ContentManagementPage() {
       count: "12 simulations",
       addLink: "/admin/content/simulations/add",
       manageLink: "/admin/content/simulations",
+    },
+    {
+      title: "Magazines",
+      description: "Manage medical journals and magazines",
+      icon: Newspaper,
+      count: "84 magazines",
+      addLink: "/admin/content/magazines/add",
+      manageLink: "/admin/content/magazines",
+    },
+    {
+      title: "Videos",
+      description: "Manage video lectures and demonstrations",
+      icon: Video,
+      count: "324 videos",
+      addLink: "/admin/content/videos/add",
+      manageLink: "/admin/content/videos",
     },
     {
       title: "Email",

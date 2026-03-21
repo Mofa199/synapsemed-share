@@ -165,7 +165,14 @@ export default function MedicalChatPage() {
       const response = await fetch(`/api/chat/messages?channelId=${channelId}`);
       if (response.ok) {
         const data = await response.json();
-        // Update messages state
+        if (data.success) {
+          // Convert string timestamps to Date objects
+          const formattedMessages = data.data.map((msg: any) => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp)
+          }));
+          setMessages(formattedMessages);
+        }
       }
     } catch (error) {
       console.error("Failed to load messages:", error);
@@ -177,7 +184,13 @@ export default function MedicalChatPage() {
       const response = await fetch(`/api/chat/direct-messages?userId=${userId}`);
       if (response.ok) {
         const data = await response.json();
-        // Update direct messages
+        if (data.success) {
+          const formattedMessages = data.data.map((msg: any) => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp)
+          }));
+          setMessages(formattedMessages);
+        }
       }
     } catch (error) {
       console.error("Failed to load direct messages:", error);
@@ -502,29 +515,36 @@ export default function MedicalChatPage() {
         {/* Messages */}
         <div className="flex-1 overflow-y-auto p-4">
           <div className="space-y-4">
-            {filteredMessages.map((msg) => (
-              <div key={msg.id} className="flex">
-                <div className="flex-shrink-0 mr-3">
-                  <div className="w-10 h-10 rounded-full bg-[#213874] flex items-center justify-center text-white">
-                    <User className="h-5 w-5" />
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-baseline">
-                    <span className="font-medium">{msg.sender.name}</span>
-                    <span className="ml-2 text-xs text-gray-500">
-                      {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                    {msg.sender.role === "specialist" && (
-                      <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">
-                        Specialist
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-1 text-gray-700">{msg.content}</p>
-                </div>
+            {filteredMessages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center h-full text-gray-500 mt-20">
+                <MessageCircle className="h-12 w-12 mb-2 opacity-20" />
+                <p>No messages yet. Start the conversation!</p>
               </div>
-            ))}
+            ) : (
+              filteredMessages.map((msg) => (
+                <div key={msg.id} className="flex">
+                  <div className="flex-shrink-0 mr-3">
+                    <div className="w-10 h-10 rounded-full bg-[#213874] flex items-center justify-center text-white">
+                      <User className="h-5 w-5" />
+                    </div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-baseline">
+                      <span className="font-medium">{msg.sender.name}</span>
+                      <span className="ml-2 text-xs text-gray-500">
+                        {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                      {msg.sender.role === "specialist" && (
+                        <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded">
+                          Specialist
+                        </span>
+                      )}
+                    </div>
+                    <p className="mt-1 text-gray-700">{msg.content}</p>
+                  </div>
+                </div>
+              ))
+            )}
             <div ref={messagesEndRef} />
           </div>
         </div>

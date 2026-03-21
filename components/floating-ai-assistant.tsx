@@ -23,6 +23,7 @@ export function FloatingAIAssistant({ context = 'general', studentLevel }: Float
   const [questionInput, setQuestionInput] = useState('')
   const [flashcardTopic, setFlashcardTopic] = useState('')
   const [examTopic, setExamTopic] = useState('')
+  const [studyPlanTopic, setStudyPlanTopic] = useState('')
   const [examQuestions, setExamQuestions] = useState(5)
   const [results, setResults] = useState<any>(null)
   const [currentService, setCurrentService] = useState<string | null>(null)
@@ -115,6 +116,18 @@ export function FloatingAIAssistant({ context = 'general', studentLevel }: Float
     callAIService('exam-questions', { topic: examTopic, count: examQuestions })
   }
 
+  const handleGenerateStudyPlan = () => {
+    if (!studyPlanTopic.trim()) {
+      toast({
+        title: "Input Required",
+        description: "Please enter a topic for your study plan.",
+        variant: "destructive",
+      })
+      return
+    }
+    callAIService('study-plan', { topic: studyPlanTopic })
+  }
+
   const handleGetRecommendations = () => {
     callAIService('recommendations', { currentContext: context, level: studentLevel })
   }
@@ -125,31 +138,36 @@ export function FloatingAIAssistant({ context = 'general', studentLevel }: Float
     switch (currentService) {
       case 'answer':
         return (
-          <Card className="mt-4 border-blue-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <HelpCircle className="h-5 w-5 text-blue-600" />
-                Answer
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="bg-blue-50 p-3 rounded-lg">
-                  <p className="text-sm">{results.answer}</p>
-                </div>
-                {results.sources && results.sources.length > 0 && (
-                  <div className="text-xs text-gray-600">
-                    <p className="font-medium mb-1">Sources:</p>
-                    <ul className="list-disc list-inside space-y-1">
-                      {results.sources.map((source: string, idx: number) => (
-                        <li key={idx}>{source}</li>
-                      ))}
-                    </ul>
+          <ScrollArea className="h-64 mt-4">
+            <Card className="border-blue-200 shadow-sm overflow-hidden bg-white/50 backdrop-blur-sm">
+              <CardHeader className="pb-3 bg-blue-50/50">
+                <CardTitle className="text-lg flex items-center gap-2 text-blue-900">
+                  <HelpCircle className="h-5 w-5 text-blue-600" />
+                  SynapseMed AI Answer
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="space-y-4">
+                  <div className="prose prose-sm max-w-none text-gray-800 leading-relaxed">
+                    {results.answer}
                   </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                  {results.sources && results.sources.length > 0 && (
+                    <div className="pt-4 border-t border-blue-100">
+                      <p className="text-xs font-bold text-blue-800 mb-2 uppercase tracking-wider">Sources & References:</p>
+                      <ul className="space-y-1.5">
+                        {results.sources.map((source: string, idx: number) => (
+                          <li key={idx} className="text-xs text-gray-600 flex items-start gap-2">
+                            <div className="h-1 w-1 rounded-full bg-blue-400 mt-1.5 shrink-0" />
+                            {source}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </ScrollArea>
         )
 
       case 'flashcards':
@@ -231,45 +249,71 @@ export function FloatingAIAssistant({ context = 'general', studentLevel }: Float
 
       case 'recommendations':
         return (
-          <Card className="mt-4 border-yellow-200">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Star className="h-5 w-5 text-yellow-600" />
-                Study Recommendations
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ScrollArea className="h-64">
-                <div className="space-y-3">
-                  {results.recommendations?.map((rec: any, idx: number) => (
-                    <Card key={idx} className="border-l-4 border-l-yellow-500">
-                      <CardContent className="pt-3 pb-3">
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <p className="font-medium text-sm">{rec.title}</p>
-                            <Badge variant={rec.priority === 'high' ? 'destructive' : rec.priority === 'medium' ? 'default' : 'secondary'}>
-                              {rec.priority}
-                            </Badge>
-                          </div>
-                          <p className="text-xs text-gray-600">{rec.description}</p>
-                          {rec.resources && rec.resources.length > 0 && (
-                            <div className="text-xs">
-                              <p className="font-medium">Resources:</p>
-                              <ul className="list-disc list-inside">
-                                {rec.resources.slice(0, 3).map((resource: string, resIdx: number) => (
-                                  <li key={resIdx}>{resource}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          )}
+          <ScrollArea className="h-64 mt-4">
+            <div className="space-y-3">
+              {results.recommendations?.map((rec: any, idx: number) => (
+                <Card key={idx} className="border-l-4 border-l-yellow-500 shadow-sm">
+                  <CardContent className="pt-3 pb-3">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <p className="font-bold text-sm text-[#213874]">{rec.title}</p>
+                        <Badge className={rec.priority === 'high' ? 'bg-red-100 text-red-800' : rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' : 'bg-blue-100 text-blue-800'}>
+                          {rec.priority}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-gray-600 italic mb-2">"{rec.description}"</p>
+                      {rec.resources && rec.resources.length > 0 && (
+                        <div className="text-xs">
+                          <p className="font-bold mb-1 uppercase tracking-tight text-[10px] text-gray-400">Recommended Resources:</p>
+                          <ul className="space-y-1">
+                            {rec.resources.slice(0, 3).map((resource: string, resIdx: number) => (
+                              <li key={resIdx} className="flex items-center gap-1.5 underline decoration-blue-200 decoration-2 underline-offset-2">
+                                <div className="w-1 h-1 rounded-full bg-blue-500" />
+                                {resource}
+                              </li>
+                            ))}
+                          </ul>
                         </div>
-                      </CardContent>
-                    </Card>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </ScrollArea>
+        )
+
+      case 'study-plan':
+        return (
+          <ScrollArea className="h-64 mt-4">
+            <Card className="border-indigo-200 shadow-sm overflow-hidden bg-white/50 backdrop-blur-sm">
+              <CardHeader className="pb-3 bg-indigo-50/50">
+                <CardTitle className="text-lg flex items-center gap-2 text-indigo-900">
+                  <Calendar className="h-5 w-5 text-indigo-600" />
+                  AI Personalized Study Plan: {results.topic}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="space-y-4">
+                  {results.plan?.map((day: any, idx: number) => (
+                    <div key={idx} className="border-b border-indigo-100 last:border-0 pb-4 last:pb-0">
+                      <h4 className="font-bold text-indigo-900 mb-2">Day {day.day}: {day.title}</h4>
+                      <p className="text-xs text-gray-600 mb-2">{day.objective}</p>
+                      <ul className="space-y-1">
+                        {day.tasks?.map((task: string, tIdx: number) => (
+                          <li key={tIdx} className="text-xs text-gray-700 flex items-start gap-2">
+                            <CheckCircle2 className="h-3 w-3 text-indigo-400 mt-0.5" />
+                            {task}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   ))}
+                  {!results.plan && <p className="text-sm text-gray-600">{results.summary}</p>}
                 </div>
-              </ScrollArea>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </ScrollArea>
         )
 
       default:
@@ -310,10 +354,11 @@ export function FloatingAIAssistant({ context = 'general', studentLevel }: Float
           </DialogHeader>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="ask">Ask</TabsTrigger>
               <TabsTrigger value="flashcards">Flashcards</TabsTrigger>
               <TabsTrigger value="exam">Exam</TabsTrigger>
+              <TabsTrigger value="plan">Study Plan</TabsTrigger>
               <TabsTrigger value="recommend">Tips</TabsTrigger>
             </TabsList>
 
@@ -442,6 +487,35 @@ export function FloatingAIAssistant({ context = 'general', studentLevel }: Float
                   </Button>
                 </div>
                 {currentService === 'recommendations' && renderResults()}
+              </TabsContent>
+
+              <TabsContent value="plan" className="space-y-4 mt-0">
+                <div className="space-y-3">
+                  <label className="text-sm font-medium">Topic for study plan:</label>
+                  <Input
+                    placeholder="e.g., Cardiology Boards Prep"
+                    value={studyPlanTopic}
+                    onChange={(e) => setStudyPlanTopic(e.target.value)}
+                  />
+                  <Button 
+                    onClick={handleGenerateStudyPlan} 
+                    disabled={loading === 'study-plan'}
+                    className="w-full"
+                  >
+                    {loading === 'study-plan' ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Generating Plan...
+                      </>
+                    ) : (
+                      <>
+                        <Calendar className="mr-2 h-4 w-4" />
+                        Generate AI Study Plan
+                      </>
+                    )}
+                  </Button>
+                </div>
+                {currentService === 'study-plan' && renderResults()}
               </TabsContent>
             </ScrollArea>
           </Tabs>

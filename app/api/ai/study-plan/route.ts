@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { verifyTokenFromRequest } from '@/lib/db-utils'
 
 const AI_BACKEND_URL = process.env.AI_BACKEND_URL || 'http://localhost:8000'
 
 export async function POST(request: NextRequest) {
   try {
+    const user = await verifyTokenFromRequest(request)
+    if (!user) {
+      return new NextResponse("Unauthorized", { status: 401 })
+    }
+
     const body = await request.json()
     
     const response = await fetch(`${AI_BACKEND_URL}/api/study-plan`, {

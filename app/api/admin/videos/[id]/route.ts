@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyTokenFromRequest } from '@/lib/db-utils'
 
-// GET /api/admin/books/[id] - Get specific book
+// GET /api/admin/videos/[id] - Get specific video
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -15,26 +15,27 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    const book = await prisma.book.findUnique({
+    const video = await prisma.video.findUnique({
       where: { id: params.id },
       include: {
-        curriculum: { select: { name: true, field: true } },
-        module: { select: { name: true } }
+        curriculum: { select: { name: true } },
+        module: { select: { name: true } },
+        topic: { select: { title: true } }
       }
     })
 
-    if (!book) {
-      return NextResponse.json({ success: false, error: 'Book not found' }, { status: 404 })
+    if (!video) {
+      return NextResponse.json({ success: false, error: 'Video not found' }, { status: 404 })
     }
 
-    return NextResponse.json({ success: true, data: book })
+    return NextResponse.json({ success: true, data: video })
   } catch (error) {
-    console.error('Error fetching book:', error)
+    console.error('Error fetching video:', error)
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
 
-// PUT /api/admin/books/[id] - Update book
+// PUT /api/admin/videos/[id] - Update video
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -48,44 +49,34 @@ export async function PUT(
     }
 
     const body = await request.json()
-    const { 
-      title, author, isbn, publisher, publicationYear, 
-      edition, pages, language, format, description, 
-      category, tags, curriculumId, moduleId, isPublished,
-      coverUrl, fileUrl
-    } = body
+    const { title, description, url, thumbnail, duration, category, difficulty, tags, curriculumId, moduleId, topicId, isPublished } = body
 
-    const book = await prisma.book.update({
+    const video = await prisma.video.update({
       where: { id: params.id },
       data: {
         ...(title && { title }),
-        ...(author && { author }),
-        ...(isbn !== undefined && { isbn }),
-        ...(publisher !== undefined && { publisher }),
-        ...(publicationYear !== undefined && { publicationYear }),
-        ...(edition !== undefined && { edition }),
-        ...(pages !== undefined && { pages }),
-        ...(language !== undefined && { language }),
-        ...(format !== undefined && { format }),
         ...(description !== undefined && { description }),
+        ...(url && { url }),
+        ...(thumbnail !== undefined && { thumbnail }),
+        ...(duration !== undefined && { duration }),
         ...(category !== undefined && { category }),
+        ...(difficulty !== undefined && { difficulty }),
         ...(tags !== undefined && { tags: JSON.stringify(tags) }),
         ...(curriculumId !== undefined && { curriculumId }),
         ...(moduleId !== undefined && { moduleId }),
+        ...(topicId !== undefined && { topicId }),
         ...(isPublished !== undefined && { isPublished }),
-        ...(coverUrl !== undefined && { coverUrl }),
-        ...(fileUrl !== undefined && { fileUrl }),
       }
     })
 
-    return NextResponse.json({ success: true, data: book })
+    return NextResponse.json({ success: true, data: video })
   } catch (error) {
-    console.error('Error updating book:', error)
+    console.error('Error updating video:', error)
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
 
-// DELETE /api/admin/books/[id] - Delete book
+// DELETE /api/admin/videos/[id] - Delete video
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -96,13 +87,13 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    await prisma.book.delete({
+    await prisma.video.delete({
       where: { id: params.id }
     })
 
-    return NextResponse.json({ success: true, message: 'Book deleted successfully' })
+    return NextResponse.json({ success: true, message: 'Video deleted successfully' })
   } catch (error) {
-    console.error('Error deleting book:', error)
+    console.error('Error deleting video:', error)
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

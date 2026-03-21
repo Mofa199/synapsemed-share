@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyTokenFromRequest } from '@/lib/db-utils'
 
-// GET /api/admin/books/[id] - Get specific book
+// GET /api/admin/magazines/[id] - Get specific magazine
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -15,26 +15,25 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    const book = await prisma.book.findUnique({
+    const magazine = await prisma.magazine.findUnique({
       where: { id: params.id },
       include: {
-        curriculum: { select: { name: true, field: true } },
-        module: { select: { name: true } }
+        articles: true
       }
     })
 
-    if (!book) {
-      return NextResponse.json({ success: false, error: 'Book not found' }, { status: 404 })
+    if (!magazine) {
+      return NextResponse.json({ success: false, error: 'Magazine not found' }, { status: 404 })
     }
 
-    return NextResponse.json({ success: true, data: book })
+    return NextResponse.json({ success: true, data: magazine })
   } catch (error) {
-    console.error('Error fetching book:', error)
+    console.error('Error fetching magazine:', error)
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
 
-// PUT /api/admin/books/[id] - Update book
+// PUT /api/admin/magazines/[id] - Update magazine
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -48,44 +47,30 @@ export async function PUT(
     }
 
     const body = await request.json()
-    const { 
-      title, author, isbn, publisher, publicationYear, 
-      edition, pages, language, format, description, 
-      category, tags, curriculumId, moduleId, isPublished,
-      coverUrl, fileUrl
-    } = body
+    const { title, issue, volume, description, coverUrl, category, tags, isPublished } = body
 
-    const book = await prisma.book.update({
+    const magazine = await prisma.magazine.update({
       where: { id: params.id },
       data: {
         ...(title && { title }),
-        ...(author && { author }),
-        ...(isbn !== undefined && { isbn }),
-        ...(publisher !== undefined && { publisher }),
-        ...(publicationYear !== undefined && { publicationYear }),
-        ...(edition !== undefined && { edition }),
-        ...(pages !== undefined && { pages }),
-        ...(language !== undefined && { language }),
-        ...(format !== undefined && { format }),
+        ...(issue !== undefined && { issue }),
+        ...(volume !== undefined && { volume }),
         ...(description !== undefined && { description }),
+        ...(coverUrl !== undefined && { coverUrl }),
         ...(category !== undefined && { category }),
         ...(tags !== undefined && { tags: JSON.stringify(tags) }),
-        ...(curriculumId !== undefined && { curriculumId }),
-        ...(moduleId !== undefined && { moduleId }),
         ...(isPublished !== undefined && { isPublished }),
-        ...(coverUrl !== undefined && { coverUrl }),
-        ...(fileUrl !== undefined && { fileUrl }),
       }
     })
 
-    return NextResponse.json({ success: true, data: book })
+    return NextResponse.json({ success: true, data: magazine })
   } catch (error) {
-    console.error('Error updating book:', error)
+    console.error('Error updating magazine:', error)
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
 
-// DELETE /api/admin/books/[id] - Delete book
+// DELETE /api/admin/magazines/[id] - Delete magazine
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -96,13 +81,13 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    await prisma.book.delete({
+    await prisma.magazine.delete({
       where: { id: params.id }
     })
 
-    return NextResponse.json({ success: true, message: 'Book deleted successfully' })
+    return NextResponse.json({ success: true, message: 'Magazine deleted successfully' })
   } catch (error) {
-    console.error('Error deleting book:', error)
+    console.error('Error deleting magazine:', error)
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

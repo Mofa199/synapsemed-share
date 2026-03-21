@@ -100,7 +100,7 @@ export async function verifyTokenFromRequest(request: Request) {
             return [name, rest.join('=')]
           })
         )
-        token = cookies.token
+        token = cookies['auth-token']
       }
     }
 

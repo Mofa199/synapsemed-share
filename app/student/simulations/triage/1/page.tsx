@@ -1228,7 +1228,7 @@ export default function AMISimulationCasePage() {
                   const Icon = tabIcons[activeTab as keyof typeof tabIcons] || FileText;
                   return <Icon className="h-5 w-5" />;
                 })()}
-                {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} - STEMI
+                {(activeTab?.charAt(0).toUpperCase() || "") + (activeTab?.slice(1) || "")} - STEMI
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">

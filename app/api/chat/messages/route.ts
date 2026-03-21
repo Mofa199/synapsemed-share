@@ -1,27 +1,13 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import jwt from "jsonwebtoken"
-import { validateUser } from "@/lib/db-utils"
-
-// Helper function to verify JWT token from cookie
-async function verifyToken(request: NextRequest): Promise<{ userId: string } | null> {
-  try {
-    const token = request.cookies.get("auth-token")?.value
-    if (!token) return null
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { userId: string }
-    return decoded
-  } catch {
-    return null
-  }
-}
+import { verifyTokenFromRequest } from "@/lib/db-utils"
 
 // GET /api/chat/messages?channelId=...
 export async function GET(req: NextRequest) {
   try {
-    const tokenData = await verifyToken(req)
+    const user = await verifyTokenFromRequest(req)
     
-    if (!tokenData) {
+    if (!user) {
       return new NextResponse("Unauthorized", { status: 401 })
     }
 
@@ -32,18 +18,40 @@ export async function GET(req: NextRequest) {
       return new NextResponse("Channel ID is required", { status: 400 })
     }
 
-    // Fetch messages for the channel
+    // Fetch messages for the channel with user information
     const messages = await prisma.chatMessage.findMany({
       where: {
         channelId: channelId,
       },
+      include: {
+        user: {
+          select: {
+            name: true,
+            role: true,
+            field: true
+          }
+        }
+      },
       orderBy: {
         createdAt: "asc",
       },
-      take: 50, // Limit to last 50 messages
+      take: 50,
     })
 
-    return NextResponse.json({ success: true, data: messages })
+    const formattedMessages = messages.map(msg => ({
+      id: msg.id,
+      content: msg.message,
+      sender: {
+        id: msg.userId,
+        name: msg.user?.name || "Member",
+        role: msg.user?.role?.toLowerCase() || "user",
+        specialty: msg.user?.field
+      },
+      timestamp: msg.createdAt,
+      channelId: msg.channelId
+    }))
+
+    return NextResponse.json({ success: true, data: formattedMessages })
   } catch (error) {
     console.error("Error fetching chat messages:", error)
     return new NextResponse("Internal Server Error", { status: 500 })
@@ -53,9 +61,9 @@ export async function GET(req: NextRequest) {
 // POST /api/chat/messages
 export async function POST(req: NextRequest) {
   try {
-    const tokenData = await verifyToken(req)
+    const user = await verifyTokenFromRequest(req)
     
-    if (!tokenData) {
+    if (!user) {
       return new NextResponse("Unauthorized", { status: 401 })
     }
 
@@ -68,7 +76,7 @@ export async function POST(req: NextRequest) {
     // Save the message to the database
     const chatMessage = await prisma.chatMessage.create({
       data: {
-        userId: tokenData.userId,
+        userId: user.id,
         message: message,
         channelId: channelId,
         role: "USER",
@@ -80,4 +88,4 @@ export async function POST(req: NextRequest) {
     console.error("Error saving chat message:", error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }
-}
+}

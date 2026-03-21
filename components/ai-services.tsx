@@ -57,7 +57,7 @@ export function AIServices({ context = 'general', studentLevel }: AIServicesProp
 
       toast({
         title: "Success!",
-        description: `${service.charAt(0).toUpperCase() + service.slice(1)} completed successfully.`,
+        description: `${(service?.charAt(0).toUpperCase() || '') + (service?.slice(1) || '')} completed successfully.`,
       })
     } catch (error) {
       toast({
@@ -155,8 +155,8 @@ export function AIServices({ context = 'general', studentLevel }: AIServicesProp
             <CardContent>
               <div className="space-y-2">
                 <p className="font-medium">Question: {results.question}</p>
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <p>{results.answer}</p>
+                <div className="bg-blue-50/50 p-6 rounded-xl border border-blue-100 shadow-sm">
+                  <p className="leading-relaxed text-gray-800">{results.answer}</p>
                 </div>
                 {results.sources && (
                   <div>
@@ -318,7 +318,8 @@ export function AIServices({ context = 'general', studentLevel }: AIServicesProp
                   </CardHeader>
                 </Card>
               </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+              <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-none shadow-2xl p-0">
+                <div className="p-6 space-y-6">
                 <DialogHeader>
                   <DialogTitle className="flex items-center gap-2">
                     <Icon className="h-5 w-5" />
@@ -402,6 +403,7 @@ export function AIServices({ context = 'general', studentLevel }: AIServicesProp
                   </Button>
 
                   {currentService === service.id && renderResults()}
+                </div>
                 </div>
               </DialogContent>
             </Dialog>

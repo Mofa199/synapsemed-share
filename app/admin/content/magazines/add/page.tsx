@@ -15,7 +15,7 @@ import { useAuth } from "@/components/auth-provider"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { 
-  BookOpen, 
+  FileText, 
   Save, 
   X,
   ChevronRight,
@@ -26,36 +26,31 @@ import {
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 
-export default function AddBookPage() {
+export default function AddMagazinePage() {
   const { user } = useAuth()
   const { toast } = useToast()
   const router = useRouter()
   
   const [formData, setFormData] = useState({
     title: "",
-    author: "",
+    issueNumber: "",
     description: "",
-    isbn: "",
-    publisher: "",
-    publishYear: "",
-    pages: "",
     category: "",
-    edition: "",
+    month: new Date().toLocaleString('default', { month: 'long' }),
+    year: new Date().getFullYear().toString(),
+    pages: "",
     language: "english",
-    format: "pdf",
     tags: "",
-    curriculum: "medical",
-    module: "general",
     isPublished: false,
     coverUrl: "",
     fileUrl: ""
   })
 
   const [coverFile, setCoverFile] = useState<File | null>(null)
-  const [bookFile, setBookFile] = useState<File | null>(null)
+  const [magazineFile, setMagazineFile] = useState<File | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [uploadingCover, setUploadingCover] = useState(false)
-  const [uploadingBook, setUploadingBook] = useState(false)
+  const [uploadingMagazine, setUploadingMagazine] = useState(false)
 
   const adminRoles = ['SUPER_ADMIN', 'LECTURER', 'EDITOR']
   if (!user || !adminRoles.includes(user.role)) {
@@ -96,8 +91,7 @@ export default function AddBookPage() {
     setIsSubmitting(true)
 
     try {
-      if (!formData.title.trim()) throw new Error("Book title is required")
-      if (!formData.author.trim()) throw new Error("Author is required")
+      if (!formData.title.trim()) throw new Error("Magazine title is required")
 
       let currentCoverUrl = formData.coverUrl
       let currentFileUrl = formData.fileUrl
@@ -105,47 +99,42 @@ export default function AddBookPage() {
       if (coverFile) {
         setUploadingCover(true)
         try {
-          currentCoverUrl = await handleFileUpload(coverFile, 'covers')
+          currentCoverUrl = await handleFileUpload(coverFile, 'magazine-covers')
         } finally {
           setUploadingCover(false)
         }
       }
 
-      if (bookFile) {
-        setUploadingBook(true)
+      if (magazineFile) {
+        setUploadingMagazine(true)
         try {
-          currentFileUrl = await handleFileUpload(bookFile, 'books')
+          currentFileUrl = await handleFileUpload(magazineFile, 'magazines')
         } finally {
-          setUploadingBook(false)
+          setUploadingMagazine(false)
         }
       }
 
-      const bookData = {
+      const magazineData = {
         title: formData.title,
-        author: formData.author,
-        isbn: formData.isbn || undefined,
-        publisher: formData.publisher || undefined,
-        publicationYear: formData.publishYear ? parseInt(formData.publishYear) : undefined,
-        edition: formData.edition || undefined,
-        pages: formData.pages ? parseInt(formData.pages) : undefined,
-        language: formData.language,
-        format: formData.format.toUpperCase(),
+        issueNumber: formData.issueNumber || undefined,
         description: formData.description || undefined,
         category: formData.category || undefined,
+        month: formData.month,
+        year: parseInt(formData.year),
+        pages: formData.pages ? parseInt(formData.pages) : undefined,
+        language: formData.language,
         tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [],
-        curriculumId: formData.curriculum || undefined,
-        moduleId: formData.module || undefined,
         isPublished: formData.isPublished,
         coverUrl: currentCoverUrl,
         fileUrl: currentFileUrl
       }
 
-      const response = await fetch('/api/admin/books', {
+      const response = await fetch('/api/admin/magazines', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(bookData),
+        body: JSON.stringify(magazineData),
       })
 
       const data = await response.json()
@@ -153,17 +142,17 @@ export default function AddBookPage() {
       if (data.success) {
         toast({
           title: "Success",
-          description: "Book added successfully!",
+          description: "Magazine added successfully!",
         })
-        router.push("/admin/content/books")
+        router.push("/admin/content/magazines")
       } else {
-        throw new Error(data.error || 'Failed to add book')
+        throw new Error(data.error || 'Failed to add magazine')
       }
     } catch (error) {
-      console.error('Error adding book:', error)
+      console.error('Error adding magazine:', error)
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to add book",
+        description: error instanceof Error ? error.message : "Failed to add magazine",
         variant: "destructive",
       })
     } finally {
@@ -182,23 +171,23 @@ export default function AddBookPage() {
             <ChevronRight className="w-4 h-4" />
             <span>Content Management</span>
             <ChevronRight className="w-4 h-4" />
-            <span className="text-[#213874] font-medium">Add Book</span>
+            <span className="text-[#213874] font-medium">Add Magazine</span>
           </div>
           
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center">
-                <BookOpen className="w-6 h-6 text-green-600" />
+              <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
+                <FileText className="w-6 h-6 text-purple-600" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-[#213874]">Add New Book</h1>
-                <p className="text-gray-600">Add a book to the library</p>
+                <h1 className="text-3xl font-bold text-[#213874]">Add New Magazine</h1>
+                <p className="text-gray-600">Add a magazine issue to the platform</p>
               </div>
             </div>
             <Button variant="outline" asChild>
-              <Link href="/admin/content/books">
+              <Link href="/admin/content/magazines">
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Books
+                Back to Magazines
               </Link>
             </Button>
           </div>
@@ -209,16 +198,16 @@ export default function AddBookPage() {
             <div className="lg:col-span-2 space-y-6">
               <Card>
                 <CardHeader>
-                  <CardTitle>Book Information</CardTitle>
-                  <CardDescription>Basic details about the book</CardDescription>
+                  <CardTitle>Magazine Information</CardTitle>
+                  <CardDescription>Basic details about the magazine issue</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="title">Book Title *</Label>
+                      <Label htmlFor="title">Magazine Title *</Label>
                       <Input
                         id="title"
-                        placeholder="e.g., Gray's Anatomy"
+                        placeholder="e.g., Medical Science Today"
                         value={formData.title}
                         onChange={(e) => handleInputChange('title', e.target.value)}
                         required
@@ -226,13 +215,12 @@ export default function AddBookPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="author">Author *</Label>
+                      <Label htmlFor="issueNumber">Issue Number</Label>
                       <Input
-                        id="author"
-                        placeholder="e.g., Henry Gray"
-                        value={formData.author}
-                        onChange={(e) => handleInputChange('author', e.target.value)}
-                        required
+                        id="issueNumber"
+                        placeholder="e.g., Vol 12, Issue 4"
+                        value={formData.issueNumber}
+                        onChange={(e) => handleInputChange('issueNumber', e.target.value)}
                       />
                     </div>
                   </div>
@@ -242,94 +230,47 @@ export default function AddBookPage() {
                     <RichTextEditor
                       value={formData.description}
                       onChange={(value) => handleInputChange('description', value)}
-                      placeholder="Brief description of the book..."
+                      placeholder="Brief description of this issue..."
                       className="min-h-[200px]"
                     />
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="curriculum">Curriculum *</Label>
-                      <Select value={formData.curriculum} onValueChange={(value) => handleInputChange('curriculum', value)}>
+                      <Label htmlFor="month">Month</Label>
+                      <Select value={formData.month} onValueChange={(value) => handleInputChange('month', value)}>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select curriculum" />
+                          <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="medical">Medical</SelectItem>
-                          <SelectItem value="nursing">Nursing</SelectItem>
-                          <SelectItem value="pharmacy">Pharmacy</SelectItem>
+                          {["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"].map(m => (
+                            <SelectItem key={m} value={m}>{m}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="module">Module</Label>
-                      <Select value={formData.module} onValueChange={(value) => handleInputChange('module', value)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select module" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="anatomy">Anatomy & Physiology</SelectItem>
-                          <SelectItem value="pathology">Pathology</SelectItem>
-                          <SelectItem value="pharmacology">Pharmacology</SelectItem>
-                          <SelectItem value="microbiology">Microbiology</SelectItem>
-                          <SelectItem value="biochemistry">Biochemistry</SelectItem>
-                          <SelectItem value="general">General Reference</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Label htmlFor="year">Year</Label>
+                      <Input
+                        id="year"
+                        type="number"
+                        placeholder="2023"
+                        value={formData.year}
+                        onChange={(e) => handleInputChange('year', e.target.value)}
+                      />
                     </div>
                   </div>
 
                   <div className="grid md:grid-cols-3 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="isbn">ISBN</Label>
-                      <Input
-                        id="isbn"
-                        placeholder="978-0-123456-78-9"
-                        value={formData.isbn}
-                        onChange={(e) => handleInputChange('isbn', e.target.value)}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="publisher">Publisher</Label>
-                      <Input
-                        id="publisher"
-                        placeholder="e.g., Churchill Livingstone"
-                        value={formData.publisher}
-                        onChange={(e) => handleInputChange('publisher', e.target.value)}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="publishYear">Publish Year</Label>
-                      <Input
-                        id="publishYear"
-                        placeholder="2023"
-                        value={formData.publishYear}
-                        onChange={(e) => handleInputChange('publishYear', e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid md:grid-cols-4 gap-4">
-                    <div className="space-y-2">
                       <Label htmlFor="pages">Pages</Label>
                       <Input
                         id="pages"
-                        placeholder="1500"
+                        type="number"
+                        placeholder="64"
                         value={formData.pages}
                         onChange={(e) => handleInputChange('pages', e.target.value)}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="edition">Edition</Label>
-                      <Input
-                        id="edition"
-                        placeholder="42nd"
-                        value={formData.edition}
-                        onChange={(e) => handleInputChange('edition', e.target.value)}
                       />
                     </div>
 
@@ -349,46 +290,30 @@ export default function AddBookPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="format">Format</Label>
-                      <Select value={formData.format} onValueChange={(value) => handleInputChange('format', value)}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pdf">PDF</SelectItem>
-                          <SelectItem value="epub">EPUB</SelectItem>
-                          <SelectItem value="physical">Physical</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
                       <Label htmlFor="category">Category</Label>
                       <Input
                         id="category"
-                        placeholder="e.g., Anatomy, Physiology"
+                        placeholder="e.g., General, Clinical"
                         value={formData.category}
                         onChange={(e) => handleInputChange('category', e.target.value)}
                       />
                     </div>
+                  </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="tags">Tags</Label>
-                      <Input
-                        id="tags"
-                        placeholder="anatomy, reference (comma separated)"
-                        value={formData.tags}
-                        onChange={(e) => handleInputChange('tags', e.target.value)}
-                      />
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="tags">Tags</Label>
+                    <Input
+                      id="tags"
+                      placeholder="research, clinical, oncology (comma separated)"
+                      value={formData.tags}
+                      onChange={(e) => handleInputChange('tags', e.target.value)}
+                    />
                   </div>
 
                   <Card>
                     <CardHeader>
                       <CardTitle>Cover Image</CardTitle>
-                      <CardDescription>Upload a cover image for the book</CardDescription>
+                      <CardDescription>Upload a cover image for the magazine</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
@@ -423,14 +348,14 @@ export default function AddBookPage() {
 
                   <Card>
                     <CardHeader>
-                      <CardTitle>Book File</CardTitle>
-                      <CardDescription>Upload the book file (PDF, EPUB)</CardDescription>
+                      <CardTitle>Magazine File</CardTitle>
+                      <CardDescription>Upload the magazine PDF</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-4">
                         {formData.fileUrl && (
                           <div className="flex items-center gap-2 p-2 bg-blue-50 text-blue-700 rounded border border-blue-100">
-                            <BookOpen className="h-4 w-4" />
+                            <FileText className="h-4 w-4" />
                             <span className="text-sm font-medium">File uploaded</span>
                             <Button 
                               type="button" 
@@ -446,13 +371,13 @@ export default function AddBookPage() {
                         <div className="flex items-center gap-4">
                           <Input
                             type="file"
-                            accept=".pdf,.epub"
-                            onChange={(e) => setBookFile(e.target.files?.[0] || null)}
+                            accept=".pdf"
+                            onChange={(e) => setMagazineFile(e.target.files?.[0] || null)}
                             className="flex-1"
-                            disabled={uploadingBook}
+                            disabled={uploadingMagazine}
                           />
-                          {uploadingBook && <Loader2 className="h-4 w-4 animate-spin" />}
-                          {bookFile && !uploadingBook && <Badge variant="outline">{bookFile.name}</Badge>}
+                          {uploadingMagazine && <Loader2 className="h-4 w-4 animate-spin" />}
+                          {magazineFile && !uploadingMagazine && <Badge variant="outline">{magazineFile.name}</Badge>}
                         </div>
                       </div>
                     </CardContent>
@@ -465,13 +390,13 @@ export default function AddBookPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Publishing</CardTitle>
-                  <CardDescription>Control book availability</CardDescription>
+                  <CardDescription>Control magazine availability</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="publish" className="cursor-pointer">
                       <span className="font-medium">Published</span>
-                      <p className="text-sm text-gray-600">Make this book available</p>
+                      <p className="text-sm text-gray-600">Make this issue available</p>
                     </Label>
                     <Switch
                       id="publish"
@@ -486,10 +411,10 @@ export default function AddBookPage() {
                 <Button 
                   type="submit" 
                   className="bg-[#213874] hover:bg-[#1a6ac3]"
-                  disabled={isSubmitting || uploadingCover || uploadingBook}
+                  disabled={isSubmitting || uploadingCover || uploadingMagazine}
                 >
                   <Save className="w-4 h-4 mr-2" />
-                  {isSubmitting ? "Adding..." : "Add Book"}
+                  {isSubmitting ? "Adding..." : "Add Magazine"}
                 </Button>
                 <Button 
                   type="button" 

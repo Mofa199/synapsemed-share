@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { verifyTokenFromRequest } from '@/lib/db-utils'
 
-// GET /api/admin/books - Get all books
+// GET /api/admin/magazines - Get all magazines
 export async function GET(request: NextRequest) {
   try {
     const user = await verifyTokenFromRequest(request)
@@ -15,29 +15,24 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search')
     
-    const books = await prisma.book.findMany({
+    const magazines = await prisma.magazine.findMany({
       where: search ? {
         OR: [
           { title: { contains: search, mode: 'insensitive' } },
-          { author: { contains: search, mode: 'insensitive' } },
-          { category: { contains: search, mode: 'insensitive' } }
+          { description: { contains: search, mode: 'insensitive' } }
         ]
       } : {},
-      orderBy: { createdAt: 'desc' },
-      include: {
-        curriculum: { select: { name: true } },
-        module: { select: { name: true } }
-      }
+      orderBy: { createdAt: 'desc' }
     })
 
-    return NextResponse.json({ success: true, data: books })
+    return NextResponse.json({ success: true, data: magazines })
   } catch (error) {
-    console.error('Error fetching books:', error)
+    console.error('Error fetching magazines:', error)
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }
 
-// POST /api/admin/books - Create new book
+// POST /api/admin/magazines - Create new magazine
 export async function POST(request: NextRequest) {
   try {
     const user = await verifyTokenFromRequest(request)
@@ -46,42 +41,28 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { 
-      title, author, isbn, publisher, publicationYear, 
-      edition, pages, language, format, description, 
-      category, tags, curriculumId, moduleId, isPublished,
-      coverUrl, fileUrl
-    } = body
+    const { title, issue, volume, description, coverUrl, category, tags, isPublished } = body
 
-    if (!title || !author) {
-      return NextResponse.json({ success: false, error: 'Title and author are required' }, { status: 400 })
+    if (!title) {
+      return NextResponse.json({ success: false, error: 'Title is required' }, { status: 400 })
     }
 
-    const book = await prisma.book.create({
+    const magazine = await prisma.magazine.create({
       data: {
         title,
-        author,
-        isbn,
-        publisher,
-        publicationYear,
-        edition,
-        pages,
-        language: language || 'English',
-        format: format || 'PDF',
+        issue,
+        volume,
         description,
+        coverUrl,
         category,
         tags: JSON.stringify(tags || []),
-        curriculumId,
-        moduleId,
         isPublished: isPublished || false,
-        coverUrl,
-        fileUrl
       }
     })
 
-    return NextResponse.json({ success: true, data: book })
+    return NextResponse.json({ success: true, data: magazine })
   } catch (error) {
-    console.error('Error creating book:', error)
+    console.error('Error creating magazine:', error)
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
   }
 }

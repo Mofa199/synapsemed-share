@@ -887,7 +887,7 @@ export default function TriageSimulationCasePage({ params }: { params: { id: str
                   const Icon = tabIcons[activeTab as keyof typeof tabIcons] || FileText;
                   return <Icon className="h-5 w-5" />;
                 })()}
-                {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
+                {(activeTab?.charAt(0).toUpperCase() || "") + (activeTab?.slice(1) || "")}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">

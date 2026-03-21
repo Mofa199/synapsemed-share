@@ -22,6 +22,15 @@ import {
   PenTool,
   CalendarDays
 } from "lucide-react";
+import { Calendar as CalendarUI } from "@/components/ui/calendar";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import Link from "next/link";
 
 export default function StudyPlanner() {
@@ -35,6 +44,8 @@ export default function StudyPlanner() {
   const [sessionDialogOpen, setSessionDialogOpen] = useState(false);
   const [editingGoal, setEditingGoal] = useState<any | null>(null);
   const [editingSession, setEditingSession] = useState<any | null>(null);
+  const [calendarDate, setCalendarDate] = useState<Date | undefined>(new Date());
+  const [showCalendarDialog, setShowCalendarDialog] = useState(false);
 
   useEffect(() => {
     fetchGoals()
@@ -171,10 +182,7 @@ export default function StudyPlanner() {
   }
 
   const handleViewCalendar = () => {
-    toast({
-      title: "Calendar View",
-      description: "Full calendar view coming soon!",
-    })
+    setShowCalendarDialog(true)
   }
 
   return (
@@ -397,6 +405,63 @@ export default function StudyPlanner() {
         session={editingSession}
         mode={editingSession ? 'edit' : 'create'}
       />
+      <Dialog open={showCalendarDialog} onOpenChange={setShowCalendarDialog}>
+        <DialogContent className="sm:max-w-[700px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CalendarDays className="h-6 w-6 text-blue-600" />
+              Full Study Calendar
+            </DialogTitle>
+            <DialogDescription>
+              View and manage your study schedule
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid md:grid-cols-2 gap-6 pt-4">
+            <div className="border rounded-xl p-4 bg-white shadow-sm flex justify-center">
+              <CalendarUI
+                mode="single"
+                selected={calendarDate}
+                onSelect={setCalendarDate}
+                className="rounded-md border-0"
+              />
+            </div>
+            <div className="space-y-4">
+              <h4 className="font-bold text-[#213874] flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Schedule for {calendarDate?.toLocaleDateString()}
+              </h4>
+              <ScrollArea className="h-[300px] pr-4">
+                {studySessions.filter(s => new Date(s.date).toDateString() === calendarDate?.toDateString()).length > 0 ? (
+                  <div className="space-y-3">
+                    {studySessions
+                      .filter(s => new Date(s.date).toDateString() === calendarDate?.toDateString())
+                      .map((session) => (
+                        <div key={session.id} className="p-3 border-l-4 border-l-blue-500 bg-blue-50 rounded-r-lg shadow-sm">
+                          <p className="font-medium text-sm text-[#213874]">{session.title}</p>
+                          <p className="text-xs text-gray-500">{session.startTime} ({session.duration} min)</p>
+                        </div>
+                      ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-gray-400 bg-gray-50 rounded-xl border border-dashed">
+                    <Calendar className="h-8 w-8 mx-auto mb-2 opacity-20" />
+                    <p className="text-xs italic">No sessions scheduled for this day</p>
+                    <Button variant="ghost" size="sm" className="mt-2 text-blue-600" onClick={() => {
+                      setShowCalendarDialog(false);
+                      handleScheduleSession();
+                    }}>
+                      <Plus className="h-3 w-3 mr-1" /> Schedule One
+                    </Button>
+                  </div>
+                )}
+              </ScrollArea>
+              <Button className="w-full bg-[#213874]" onClick={() => setShowCalendarDialog(false)}>
+                Close Calendar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

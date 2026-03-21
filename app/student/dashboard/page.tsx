@@ -56,6 +56,42 @@ const bookmarks = [
 export default function StudentDashboard() {
   const { user, logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
+  const [stats, setStats] = useState({
+    level: 1,
+    points: 0,
+    streak: 0,
+    completionRate: 0,
+    completedItems: 0,
+    totalItems: 50,
+    loading: true
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('/api/user/profile');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.user.gamification) {
+            setStats({
+              level: data.user.gamification.level || 1,
+              points: data.user.gamification.points || 0,
+              streak: data.user.gamification.streak || 0,
+              completionRate: data.user.gamification.completionRate || 0,
+              completedItems: data.user.gamification.completedItems || 0,
+              totalItems: data.user.gamification.totalItems || 50,
+              loading: false
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch dashboard stats:", error);
+        setStats(prev => ({ ...prev, loading: false }));
+      }
+    };
+
+    fetchStats();
+  }, []);
 
   // Navigation items for the sidebar
   const navigationItems = [
@@ -392,18 +428,23 @@ export default function StudentDashboard() {
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
                       <span className="text-sm">Topics Completed</span>
-                      <span className="text-sm font-medium">24/50</span>
+                      <span className="text-sm font-medium">
+                        {stats.loading ? "..." : `${stats.completedItems}/${stats.totalItems}`}
+                      </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-green-500 h-2 rounded-full" style={{width: '48%'}}></div>
+                      <div 
+                        className="bg-green-500 h-2 rounded-full transition-all duration-500" 
+                        style={{width: `${stats.loading ? 0 : stats.completionRate}%`}}
+                      ></div>
                     </div>
                     <div className="flex justify-between text-xs text-gray-600">
-                      <span>Current streak: 7 days</span>
-                      <span>48% complete</span>
+                      <span>Current streak: {stats.loading ? "..." : `${stats.streak} days`}</span>
+                      <span>{stats.loading ? "..." : `${stats.completionRate}% complete`}</span>
                     </div>
                   </div>
                   <Button className="w-full mt-3" variant="outline" size="sm" asChild>
-                    <Link href="/gamification">View Details</Link>
+                    <Link href="/student/paths">View Details</Link>
                   </Button>
                 </CardContent>
               </Card>

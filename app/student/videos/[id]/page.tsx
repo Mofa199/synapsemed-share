@@ -455,7 +455,7 @@ export default function VideoPlayerPage() {
                       <div key={comment.id} className="border-b pb-4 last:border-b-0">
                         <div className="flex items-start gap-3">
                           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
-                            {comment.userName.charAt(0)}
+                            {comment.userName?.charAt(0) || 'U'}
                           </div>
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">

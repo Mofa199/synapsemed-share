@@ -193,7 +193,7 @@ export default function AnalyticsPage() {
                 <PieChart>
                   <Pie
                     data={Object.entries(analyticsData?.contentStats || {}).map(([key, value]) => ({
-                      name: key.charAt(0).toUpperCase() + key.slice(1),
+                      name: (key?.charAt(0).toUpperCase() || '') + (key?.slice(1) || ''),
                       value,
                     }))}
                     cx="50%"
