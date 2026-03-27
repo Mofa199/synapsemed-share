@@ -150,7 +150,7 @@ export default function AdminArticlesPage() {
     article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     article.author.toLowerCase().includes(searchQuery.toLowerCase()) ||
     article.category?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    article.keywords.some(keyword => keyword.toLowerCase().includes(searchQuery.toLowerCase()))
+    (article.keywords || []).some(keyword => keyword.toLowerCase().includes(searchQuery.toLowerCase()))
   )
 
   const getDifficultyBadge = (difficulty: string) => {
@@ -321,14 +321,14 @@ export default function AdminArticlesPage() {
                           </span>
                         </div>
                       </div>
-                      {article.keywords.length > 0 && (
+                      {(article.keywords || []).length > 0 && (
                         <div className="flex flex-wrap gap-2">
                           {article.keywords.slice(0, 5).map((keyword, index) => (
                             <Badge key={index} variant="outline" className="text-xs">
                               {keyword}
                             </Badge>
                           ))}
-                          {article.keywords.length > 5 && (
+                          {(article.keywords || []).length > 5 && (
                             <Badge variant="outline" className="text-xs">
                               +{article.keywords.length - 5} more
                             </Badge>

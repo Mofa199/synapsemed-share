@@ -52,7 +52,11 @@ Return the output strictly in the following JSON schema:
 `;
 
     const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
+    let responseText = result.response.text();
+    
+    // Clean up potential markdown formatting from Gemini
+    responseText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+    
     const data = JSON.parse(responseText);
 
     return NextResponse.json(data)
