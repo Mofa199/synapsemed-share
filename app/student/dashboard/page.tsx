@@ -98,6 +98,7 @@ export default function StudentDashboard() {
     { name: "Home", icon: Home, href: "/student/dashboard" },
     { name: "Study Planner", icon: BookOpen, href: "/student/planner" },
     { name: "My Content", icon: FileText, href: "/student/content" },
+    { name: "Magazines", icon: BookMarked, href: "/student/magazines" },
     { name: "Videos", icon: Play, href: "/student/videos" },
     { name: "Concept Pages", icon: Lightbulb, href: "/student/concepts" },
     { name: "Question Bank", icon: HelpCircle, href: "/student/questions" },

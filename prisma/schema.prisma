@@ -12,33 +12,33 @@ datasource db {
 
 // User Management
 model User {
-  id                String   @id @default(cuid())
-  email             String   @unique
-  name              String
-  password          String
-  role              UserRole @default(STUDENT)
-  field             UserField
-  avatarUrl         String?
-  level             Int      @default(1)
-  points            Int      @default(0)
-  streak            Int      @default(0)
-  isActive          Boolean  @default(true)
-  lastLoginAt       DateTime?
-  resetToken        String?
-  resetTokenExpiry  DateTime?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id               String    @id @default(cuid())
+  email            String    @unique
+  name             String
+  password         String
+  role             UserRole  @default(STUDENT)
+  field            UserField
+  avatarUrl        String?
+  level            Int       @default(1)
+  points           Int       @default(0)
+  streak           Int       @default(0)
+  isActive         Boolean   @default(true)
+  lastLoginAt      DateTime?
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   // Relations
-  userBadges     UserBadge[]
-  userChallenges UserChallenge[]
-  bookmarks      Bookmark[]
-  highlights     Highlight[]
-  ratings        Rating[]
-  progress       Progress[]
-  chatMessages   ChatMessage[]
-  createdContent Article[] @relation("ArticleAuthor")
-  notes          Note[] @relation("UserNotes")
+  userBadges              UserBadge[]
+  userChallenges          UserChallenge[]
+  bookmarks               Bookmark[]
+  highlights              Highlight[]
+  ratings                 Rating[]
+  progress                Progress[]
+  chatMessages            ChatMessage[]
+  createdContent          Article[]                @relation("ArticleAuthor")
+  notes                   Note[]                   @relation("UserNotes")
   questionOfTheDayAnswers QuestionOfTheDayAnswer[]
 
   @@map("users")
@@ -59,59 +59,71 @@ enum UserField {
 
 // Curriculum Structure
 model Curriculum {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   name        String
   description String?
   field       UserField
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   // Relations
-  modules Module[]
-  topics  Topic[]
-  books   Book[]
-  videos  Video[]
+  modules       Module[]
+  topics        Topic[]
+  books         Book[]
+  videos        Video[]
+  articles      Article[]
+  magazines     Magazine[]
+  studyGuides   StudyGuide[]
+  questionBanks QuestionBank[]
+  flashcardSets FlashcardSet[]
+  simulations   Simulation[]
 
   @@map("curricula")
 }
 
 model Module {
-  id           String     @id @default(cuid())
+  id           String   @id @default(cuid())
   name         String
   description  String?
   curriculumId String
-  order        Int        @default(0)
-  isActive     Boolean    @default(true)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  order        Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   // Relations
-  curriculum Curriculum @relation(fields: [curriculumId], references: [id], onDelete: Cascade)
-  topics     Topic[]
-  books      Book[]
-  videos     Video[]
+  curriculum    Curriculum     @relation(fields: [curriculumId], references: [id], onDelete: Cascade)
+  topics        Topic[]
+  books         Book[]
+  videos        Video[]
+  articles      Article[]
+  magazines     Magazine[]
+  studyGuides   StudyGuide[]
+  questionBanks QuestionBank[]
+  flashcardSets FlashcardSet[]
+  simulations   Simulation[]
 
   @@map("modules")
 }
 
 // Content Management
 model Topic {
-  id               String       @id @default(cuid())
-  title            String
-  description      String
-  content          String
-  type             ContentType  @default(ARTICLE)
-  difficulty       Difficulty   @default(BEGINNER)
-  duration         String?
-  category         String?
-  tags             String       // Changed from String[] to String (JSON)
-  isPublished      Boolean      @default(false)
-  views            Int          @default(0)
-  curriculumId     String?
-  moduleId         String?
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
+  id           String      @id @default(cuid())
+  title        String
+  description  String
+  content      String
+  type         ContentType @default(ARTICLE)
+  difficulty   Difficulty  @default(BEGINNER)
+  duration     String?
+  category     String?
+  tags         String // Changed from String[] to String (JSON)
+  isPublished  Boolean     @default(false)
+  views        Int         @default(0)
+  curriculumId String?
+  moduleId     String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
   // Relations
   curriculum Curriculum? @relation(fields: [curriculumId], references: [id])
@@ -126,27 +138,31 @@ model Topic {
 }
 
 model Article {
-  id             String     @id @default(cuid())
-  title          String
-  author         String
-  authorId       String?
-  authorBio      String?
-  journal        String?
-  category       String?
-  abstract       String?
-  content        String
-  keywords       String     // Changed from String[] to String (JSON)
-  references     String     // Changed from String[] to String (JSON)
-  readTime       String?
-  difficulty     Difficulty @default(BEGINNER)
-  views          Int        @default(0)
-  isPublished    Boolean    @default(false)
-  publishedAt    DateTime?
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  id           String     @id @default(cuid())
+  title        String
+  author       String
+  authorId     String?
+  authorBio    String?
+  journal      String?
+  category     String?
+  abstract     String?
+  content      String
+  keywords     String // Changed from String[] to String (JSON)
+  references   String // Changed from String[] to String (JSON)
+  readTime     String?
+  difficulty   Difficulty @default(BEGINNER)
+  views        Int        @default(0)
+  isPublished  Boolean    @default(false)
+  publishedAt  DateTime?
+  curriculumId String?
+  moduleId     String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 
   // Relations
-  authorUser User?      @relation("ArticleAuthor", fields: [authorId], references: [id])
+  authorUser User?       @relation("ArticleAuthor", fields: [authorId], references: [id])
+  curriculum Curriculum? @relation(fields: [curriculumId], references: [id])
+  module     Module?     @relation(fields: [moduleId], references: [id])
   bookmarks  Bookmark[]
   highlights Highlight[]
   ratings    Rating[]
@@ -155,7 +171,7 @@ model Article {
 }
 
 model Book {
-  id              String      @id @default(cuid())
+  id              String     @id @default(cuid())
   title           String
   author          String
   isbn            String?
@@ -163,19 +179,19 @@ model Book {
   publicationYear Int?
   edition         String?
   pages           Int?
-  language        String      @default("English")
-  format          BookFormat  @default(PDF)
+  language        String     @default("English")
+  format          BookFormat @default(PDF)
   description     String?
   coverUrl        String?
   fileUrl         String?
   category        String?
-  tags            String      // Changed from String[] to String (JSON)
-  isPublished     Boolean     @default(false)
-  views           Int         @default(0)
+  tags            String // Changed from String[] to String (JSON)
+  isPublished     Boolean    @default(false)
+  views           Int        @default(0)
   curriculumId    String?
   moduleId        String?
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
 
   // Relations
   curriculum Curriculum? @relation(fields: [curriculumId], references: [id])
@@ -202,27 +218,27 @@ model DrugClass {
 }
 
 model Drug {
-  id                         String    @id @default(cuid())
+  id                         String   @id @default(cuid())
   name                       String
   genericName                String?
-  brandNames                 String    // Changed from String[] to String (JSON)
+  brandNames                 String // Changed from String[] to String (JSON)
   drugClassId                String
   description                String?
   mechanism                  String?
-  indications                String    // Changed from String[] to String (JSON)
+  indications                String // Changed from String[] to String (JSON)
   dosageAdult                String?
   dosagePediatric            String?
   dosageElderly              String?
   administrationRoute        String?
   administrationTiming       String?
   administrationInstructions String?
-  contraindications          String    // Changed from String[] to String (JSON)
-  warnings                   String    // Changed from String[] to String (JSON)
-  sideEffectsCommon          String    // Changed from String[] to String (JSON)
-  sideEffectsSerious         String    // Changed from String[] to String (JSON)
-  sideEffectsRare            String    // Changed from String[] to String (JSON)
-  interactions               String    // Changed from String[] to String (JSON)
-  monitoring                 String    // Changed from String[] to String (JSON)
+  contraindications          String // Changed from String[] to String (JSON)
+  warnings                   String // Changed from String[] to String (JSON)
+  sideEffectsCommon          String // Changed from String[] to String (JSON)
+  sideEffectsSerious         String // Changed from String[] to String (JSON)
+  sideEffectsRare            String // Changed from String[] to String (JSON)
+  interactions               String // Changed from String[] to String (JSON)
+  monitoring                 String // Changed from String[] to String (JSON)
   storage                    String?
   pregnancy                  String?
   absorption                 String?
@@ -230,52 +246,56 @@ model Drug {
   metabolism                 String?
   elimination                String?
   halfLife                   String?
-  isActive                   Boolean   @default(true)
-  createdAt                  DateTime  @default(now())
-  updatedAt                  DateTime  @updatedAt
+  isActive                   Boolean  @default(true)
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
 
   // Relations
-  drugClass  DrugClass  @relation(fields: [drugClassId], references: [id], onDelete: Cascade)
-  bookmarks  Bookmark[]
-  ratings    Rating[]
+  drugClass DrugClass  @relation(fields: [drugClassId], references: [id], onDelete: Cascade)
+  bookmarks Bookmark[]
+  ratings   Rating[]
 
   @@map("drugs")
 }
 
 // Question Banks and Study Guides
 model QuestionBank {
-  id          String     @id @default(cuid())
-  title       String
-  description String?
-  category    String
-  difficulty  Difficulty @default(BEGINNER)
-  totalQuestions Int     @default(0)
+  id             String     @id @default(cuid())
+  title          String
+  description    String?
+  category       String
+  difficulty     Difficulty @default(BEGINNER)
+  totalQuestions Int        @default(0)
   estimatedTime  String?
-  tags           String     // Changed from String[] to String (JSON)
-  isPublished    Boolean @default(false)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  tags           String // Changed from String[] to String (JSON)
+  isPublished    Boolean    @default(false)
+  curriculumId   String?
+  moduleId       String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 
   // Relations
-  questions Question[]
-  bookmarks Bookmark[]
-  ratings   Rating[]
-  progress  Progress[]
+  curriculum Curriculum? @relation(fields: [curriculumId], references: [id])
+  module     Module?     @relation(fields: [moduleId], references: [id])
+  questions  Question[]
+  bookmarks  Bookmark[]
+  ratings    Rating[]
+  progress   Progress[]
 
   @@map("question_banks")
 }
 
 model Question {
-  id              String       @id @default(cuid())
-  questionBankId  String
-  question        String
-  options         String       // Changed from String[] to String (JSON)
-  correctAnswer   Int
-  explanation     String?
-  difficulty      Difficulty   @default(BEGINNER)
-  tags            String       // Changed from String[] to String (JSON)
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  id             String     @id @default(cuid())
+  questionBankId String
+  question       String
+  options        String // Changed from String[] to String (JSON)
+  correctAnswer  Int
+  explanation    String?
+  difficulty     Difficulty @default(BEGINNER)
+  tags           String // Changed from String[] to String (JSON)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 
   // Relations
   questionBank QuestionBank @relation(fields: [questionBankId], references: [id], onDelete: Cascade)
@@ -284,41 +304,45 @@ model Question {
 }
 
 model StudyGuide {
-  id          String     @id @default(cuid())
-  title       String
-  description String?
-  content     String
-  category    String
-  difficulty  Difficulty @default(BEGINNER)
+  id            String     @id @default(cuid())
+  title         String
+  description   String?
+  content       String
+  category      String
+  difficulty    Difficulty @default(BEGINNER)
   estimatedTime String?
-  tags          String     // Changed from String[] to String (JSON)
+  tags          String // Changed from String[] to String (JSON)
   isPublished   Boolean    @default(false)
   views         Int        @default(0)
+  curriculumId  String?
+  moduleId      String?
   createdAt     DateTime   @default(now())
   updatedAt     DateTime   @updatedAt
 
   // Relations
-  bookmarks Bookmark[]
+  curriculum Curriculum? @relation(fields: [curriculumId], references: [id])
+  module     Module?     @relation(fields: [moduleId], references: [id])
+  bookmarks  Bookmark[]
   highlights Highlight[]
-  ratings   Rating[]
-  progress  Progress[]
+  ratings    Rating[]
+  progress   Progress[]
 
   @@map("study_guides")
 }
 
 // Gamification
 model Badge {
-  id          String   @id @default(cuid())
-  name        String
-  description String?
-  icon        String?
-  color       String?
-  category    String?
-  criteria    String?
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  icon           String?
+  color          String?
+  category       String?
+  criteria       String?
   pointsRequired Int?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   // Relations
   userBadges UserBadge[]
@@ -342,21 +366,21 @@ model UserBadge {
 
 // User Interactions
 model Bookmark {
-  id               String         @id @default(cuid())
-  userId           String
-  resourceType     ResourceType
-  topicId          String?
-  articleId        String?
-  bookId           String?
-  drugId           String?
-  questionBankId   String?
-  studyGuideId     String?
-  magazineId       String?
-  videoId          String?
-  flashcardSetId   String?
-  simulationId     String?
-  conceptId        String?
-  createdAt        DateTime       @default(now())
+  id             String       @id @default(cuid())
+  userId         String
+  resourceType   ResourceType
+  topicId        String?
+  articleId      String?
+  bookId         String?
+  drugId         String?
+  questionBankId String?
+  studyGuideId   String?
+  magazineId     String?
+  videoId        String?
+  flashcardSetId String?
+  simulationId   String?
+  conceptId      String?
+  createdAt      DateTime     @default(now())
 
   // Relations
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -376,16 +400,16 @@ model Bookmark {
 }
 
 model Highlight {
-  id           String      @id @default(cuid())
+  id           String       @id @default(cuid())
   userId       String
   resourceType ResourceType
   topicId      String?
   articleId    String?
   studyGuideId String?
   text         String
-  color        String      @default("yellow")
+  color        String       @default("yellow")
   note         String?
-  createdAt    DateTime    @default(now())
+  createdAt    DateTime     @default(now())
 
   // Relations
   user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -397,23 +421,23 @@ model Highlight {
 }
 
 model Rating {
-  id               String         @id @default(cuid())
-  userId           String
-  resourceType     ResourceType
-  topicId          String?
-  articleId        String?
-  bookId           String?
-  drugId           String?
-  questionBankId   String?
-  studyGuideId     String?
-  magazineId       String?
-  videoId          String?
-  flashcardSetId   String?
-  simulationId     String?
-  rating           Int            // 1-5 stars
-  review           String?
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  id             String       @id @default(cuid())
+  userId         String
+  resourceType   ResourceType
+  topicId        String?
+  articleId      String?
+  bookId         String?
+  drugId         String?
+  questionBankId String?
+  studyGuideId   String?
+  magazineId     String?
+  videoId        String?
+  flashcardSetId String?
+  simulationId   String?
+  rating         Int // 1-5 stars
+  review         String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   // Relations
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -433,21 +457,21 @@ model Rating {
 }
 
 model Progress {
-  id               String         @id @default(cuid())
-  userId           String
-  resourceType     ResourceType
-  topicId          String?
-  questionBankId   String?
-  studyGuideId     String?
-  flashcardSetId   String?
-  simulationId     String?
-  status           ProgressStatus @default(NOT_STARTED)
-  completionPercentage Int        @default(0)
-  timeSpent        Int            @default(0) // in minutes
-  lastAccessedAt   DateTime       @default(now())
-  completedAt      DateTime?
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  id                   String         @id @default(cuid())
+  userId               String
+  resourceType         ResourceType
+  topicId              String?
+  questionBankId       String?
+  studyGuideId         String?
+  flashcardSetId       String?
+  simulationId         String?
+  status               ProgressStatus @default(NOT_STARTED)
+  completionPercentage Int            @default(0)
+  timeSpent            Int            @default(0) // in minutes
+  lastAccessedAt       DateTime       @default(now())
+  completedAt          DateTime?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
 
   // Relations
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -576,61 +600,61 @@ enum ChallengeStatus {
 
 // Partner Management
 model Partner {
-  id                String        @id @default(cuid())
-  name              String
-  description       String
-  type              PartnerType
-  status            PartnerStatus @default(ACTIVE)
-  website           String?
-  contactName       String
-  contactEmail      String
-  contactPhone      String?
-  logo              String?
-  studentsCount     Int           @default(0)
-  partnershipType   String?
-  joinDate          DateTime      @default(now())
-  createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  id              String        @id @default(cuid())
+  name            String
+  description     String
+  type            PartnerType
+  status          PartnerStatus @default(ACTIVE)
+  website         String?
+  contactName     String
+  contactEmail    String
+  contactPhone    String?
+  logo            String?
+  studentsCount   Int           @default(0)
+  partnershipType String?
+  joinDate        DateTime      @default(now())
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 
   @@map("partners")
 }
 
 // Team Management
 model TeamMember {
-  id           String             @id @default(cuid())
-  name         String
-  email        String             @unique
-  phone        String?
-  position     String
-  department   TeamDepartment
-  status       TeamMemberStatus   @default(ACTIVE)
-  bio          String?
-  avatar       String?
-  linkedin     String?
-  expertise    String?
-  specialties  String             // Changed from String[] to String (JSON)
-  rating       Float?             @default(0)
-  joinDate     DateTime           @default(now())
-  createdAt    DateTime           @default(now())
-  updatedAt    DateTime           @updatedAt
+  id          String           @id @default(cuid())
+  name        String
+  email       String           @unique
+  phone       String?
+  position    String
+  department  TeamDepartment
+  status      TeamMemberStatus @default(ACTIVE)
+  bio         String?
+  avatar      String?
+  linkedin    String?
+  expertise   String?
+  specialties String // Changed from String[] to String (JSON)
+  rating      Float?           @default(0)
+  joinDate    DateTime         @default(now())
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 
   @@map("team_members")
 }
 
 // Word of the Day
 model WordOfTheDay {
-  id           String   @id @default(cuid())
-  word         String
-  definition   String
+  id            String     @id @default(cuid())
+  word          String
+  definition    String
   pronunciation String?
-  etymology    String?
-  category     String?
-  difficulty   Difficulty @default(BEGINNER)
-  example      String?
+  etymology     String?
+  category      String?
+  difficulty    Difficulty @default(BEGINNER)
+  example       String?
   dateScheduled DateTime
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  isActive      Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
   @@unique([dateScheduled])
   @@map("word_of_the_day")
@@ -638,38 +662,42 @@ model WordOfTheDay {
 
 // Magazine Management
 model Magazine {
-  id          String   @id @default(cuid())
-  title       String
-  issue       String?
-  volume      String?
-  description String?
-  coverUrl    String?
-  publishedAt DateTime?
-  category    String?
-  tags        String   // JSON
-  isPublished Boolean  @default(false)
-  views       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String    @id @default(cuid())
+  title        String
+  issue        String?
+  volume       String?
+  description  String?
+  coverUrl     String?
+  publishedAt  DateTime?
+  category     String?
+  tags         String // JSON
+  isPublished  Boolean   @default(false)
+  views        Int       @default(0)
+  curriculumId String?
+  moduleId     String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   // Relations
-  articles    MagazineArticle[]
-  bookmarks   Bookmark[]
-  ratings     Rating[]
+  curriculum Curriculum?       @relation(fields: [curriculumId], references: [id])
+  module     Module?           @relation(fields: [moduleId], references: [id])
+  articles   MagazineArticle[]
+  bookmarks  Bookmark[]
+  ratings    Rating[]
 
   @@map("magazines")
 }
 
 model MagazineArticle {
-  id          String   @id @default(cuid())
-  magazineId  String
-  title       String
-  author      String
-  content     String
-  pageNumber  Int?
-  order       Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(cuid())
+  magazineId String
+  title      String
+  author     String
+  content    String
+  pageNumber Int?
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   // Relations
   magazine Magazine @relation(fields: [magazineId], references: [id], onDelete: Cascade)
@@ -687,7 +715,7 @@ model Video {
   duration     String?
   category     String?
   difficulty   Difficulty @default(BEGINNER)
-  tags         String     // JSON
+  tags         String // JSON
   curriculumId String?
   moduleId     String?
   topicId      String?
@@ -708,17 +736,21 @@ model Video {
 
 // Flashcard Management
 model FlashcardSet {
-  id          String     @id @default(cuid())
-  title       String
-  description String?
-  category    String?
-  difficulty  Difficulty @default(BEGINNER)
-  tags        String     // JSON
-  isPublished Boolean    @default(false)
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id           String     @id @default(cuid())
+  title        String
+  description  String?
+  category     String?
+  difficulty   Difficulty @default(BEGINNER)
+  tags         String // JSON
+  isPublished  Boolean    @default(false)
+  curriculumId String?
+  moduleId     String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 
   // Relations
+  curriculum Curriculum? @relation(fields: [curriculumId], references: [id])
+  module     Module?     @relation(fields: [moduleId], references: [id])
   flashcards Flashcard[]
   bookmarks  Bookmark[]
   ratings    Rating[]
@@ -728,15 +760,15 @@ model FlashcardSet {
 }
 
 model Flashcard {
-  id            String       @id @default(cuid())
+  id             String   @id @default(cuid())
   flashcardSetId String
-  front         String
-  back          String
-  category      String?      // Add category field to match frontend expectations
-  hint          String?
-  order         Int          @default(0)
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  front          String
+  back           String
+  category       String? // Add category field to match frontend expectations
+  hint           String?
+  order          Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   // Relations
   flashcardSet FlashcardSet @relation(fields: [flashcardSetId], references: [id], onDelete: Cascade)
@@ -746,40 +778,44 @@ model Flashcard {
 
 // Simulation Management
 model Simulation {
-  id           String           @id @default(cuid())
-  title        String
-  description  String?
-  patientAge   Int?
-  patientGender String?
+  id             String     @id @default(cuid())
+  title          String
+  description    String?
+  patientAge     Int?
+  patientGender  String?
   chiefComplaint String
-  scenario     String
-  difficulty   Difficulty       @default(BEGINNER)
-  category     String?
-  tags         String           // JSON
-  estimatedTime String?
-  isPublished  Boolean          @default(false)
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  scenario       String
+  difficulty     Difficulty @default(BEGINNER)
+  category       String?
+  tags           String // JSON
+  estimatedTime  String?
+  isPublished    Boolean    @default(false)
+  curriculumId   String?
+  moduleId       String?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 
   // Relations
-  steps        SimulationStep[]
-  bookmarks    Bookmark[]
-  ratings      Rating[]
-  progress     Progress[]
+  curriculum Curriculum?      @relation(fields: [curriculumId], references: [id])
+  module     Module?          @relation(fields: [moduleId], references: [id])
+  steps      SimulationStep[]
+  bookmarks  Bookmark[]
+  ratings    Rating[]
+  progress   Progress[]
 
   @@map("simulations")
 }
 
 model SimulationStep {
-  id           String     @id @default(cuid())
+  id           String   @id @default(cuid())
   simulationId String
   title        String
   description  String
   stepType     StepType
   order        Int
-  data         String     // JSON for step-specific data
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  data         String // JSON for step-specific data
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   // Relations
   simulation Simulation @relation(fields: [simulationId], references: [id], onDelete: Cascade)
@@ -796,7 +832,7 @@ model Challenge {
   difficulty   Difficulty    @default(BEGINNER)
   category     String?
   pointsReward Int           @default(0)
-  badgeReward  String?       // Badge ID
+  badgeReward  String? // Badge ID
   startDate    DateTime
   endDate      DateTime
   isActive     Boolean       @default(true)
@@ -834,7 +870,7 @@ model Note {
   title     String
   content   String
   category  String   @default("General")
-  tags      String   // JSON
+  tags      String // JSON
   isPinned  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -847,20 +883,20 @@ model Note {
 
 // Spaced Repetition System
 model SpacedRepetitionCard {
-  id              String   @id @default(cuid())
-  userId          String
-  front           String
-  back            String
-  category        String?
-  tags            String   // JSON
-  difficulty      Difficulty @default(BEGINNER)
-  easeFactor      Float    @default(2.5)
-  interval        Int      @default(1) // days
-  repetitions     Int      @default(0)
-  nextReviewDate  DateTime @default(now())
-  lastReviewedAt  DateTime?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id             String     @id @default(cuid())
+  userId         String
+  front          String
+  back           String
+  category       String?
+  tags           String // JSON
+  difficulty     Difficulty @default(BEGINNER)
+  easeFactor     Float      @default(2.5)
+  interval       Int        @default(1) // days
+  repetitions    Int        @default(0)
+  nextReviewDate DateTime   @default(now())
+  lastReviewedAt DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 
   @@index([userId, nextReviewDate])
   @@map("spaced_repetition_cards")
@@ -868,18 +904,18 @@ model SpacedRepetitionCard {
 
 // Question of the Day
 model QuestionOfTheDay {
-  id              String   @id @default(cuid())
-  question        String
-  options         String   // JSON array
-  correctAnswer   Int
-  explanation     String
-  difficulty      Difficulty @default(INTERMEDIATE)
-  category        String?
-  tags            String   // JSON
-  dateScheduled   DateTime
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id            String     @id @default(cuid())
+  question      String
+  options       String // JSON array
+  correctAnswer Int
+  explanation   String
+  difficulty    Difficulty @default(INTERMEDIATE)
+  category      String?
+  tags          String // JSON
+  dateScheduled DateTime
+  isActive      Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
   // Relations
   userAnswers QuestionOfTheDayAnswer[]
@@ -906,36 +942,36 @@ model QuestionOfTheDayAnswer {
 
 // Study Planner
 model StudyGoal {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   userId      String
   title       String
   description String?
-  progress    Int      @default(0) // 0-100
+  progress    Int       @default(0) // 0-100
   dueDate     DateTime?
-  priority    Priority @default(MEDIUM)
+  priority    Priority  @default(MEDIUM)
   category    String?
-  tags        String   // JSON
-  completed   Boolean  @default(false)
+  tags        String // JSON
+  completed   Boolean   @default(false)
   completedAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   @@map("study_goals")
 }
 
 model StudySession {
-  id          String      @id @default(cuid())
+  id          String        @id @default(cuid())
   userId      String
   title       String
   description String?
   sessionType SessionType
   date        DateTime
-  startTime   String      // HH:MM format
-  duration    Int         // minutes
+  startTime   String // HH:MM format
+  duration    Int // minutes
   status      SessionStatus @default(SCHEDULED)
   notes       String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
 
   @@map("study_sessions")
 }
@@ -947,7 +983,7 @@ model StudyPlan {
   description String?
   startDate   DateTime
   endDate     DateTime
-  goals       String   // JSON array of goal IDs
+  goals       String // JSON array of goal IDs
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -991,29 +1027,29 @@ model VideoFavorite {
 
 // Video Comments/Discussion
 model VideoComment {
-  id        String   @id @default(cuid())
-  userId    String
-  videoId   String
-  userName  String
+  id         String   @id @default(cuid())
+  userId     String
+  videoId    String
+  userName   String
   userAvatar String?
-  comment   String
-  likes     Int      @default(0)
-  parentId  String?  // For replies
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  comment    String
+  likes      Int      @default(0)
+  parentId   String? // For replies
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@map("video_comments")
 }
 
 // Video Quiz
 model VideoQuiz {
-  id          String   @id @default(cuid())
-  videoId     String
-  title       String
-  description String?
-  passingScore Int     @default(70)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  videoId      String
+  title        String
+  description  String?
+  passingScore Int      @default(70)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   // Relations
   questions VideoQuizQuestion[]
@@ -1026,7 +1062,7 @@ model VideoQuizQuestion {
   id            String   @id @default(cuid())
   videoQuizId   String
   question      String
-  options       String   // JSON array
+  options       String // JSON array
   correctAnswer Int
   explanation   String?
   order         Int      @default(0)
@@ -1040,14 +1076,14 @@ model VideoQuizQuestion {
 }
 
 model VideoQuizAttempt {
-  id          String   @id @default(cuid())
-  userId      String
-  videoQuizId String
-  score       Int
+  id             String   @id @default(cuid())
+  userId         String
+  videoQuizId    String
+  score          Int
   totalQuestions Int
-  answers     String   // JSON
-  passed      Boolean
-  createdAt   DateTime @default(now())
+  answers        String // JSON
+  passed         Boolean
+  createdAt      DateTime @default(now())
 
   // Relations
   videoQuiz VideoQuiz @relation(fields: [videoQuizId], references: [id], onDelete: Cascade)
@@ -1057,15 +1093,15 @@ model VideoQuizAttempt {
 
 // Video Progress Tracking
 model VideoProgress {
-  id              String   @id @default(cuid())
-  userId          String
-  videoId         String
-  watchTime       Int      @default(0) // seconds
-  totalDuration   Int      // seconds
-  completed       Boolean  @default(false)
-  lastPosition    Int      @default(0) // seconds
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id            String   @id @default(cuid())
+  userId        String
+  videoId       String
+  watchTime     Int      @default(0) // seconds
+  totalDuration Int // seconds
+  completed     Boolean  @default(false)
+  lastPosition  Int      @default(0) // seconds
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@unique([userId, videoId])
   @@map("video_progress")
@@ -1076,13 +1112,13 @@ model Concept {
   id          String     @id @default(cuid())
   title       String
   description String
-  content     String     // Rich text content
+  content     String // Rich text content
   category    String
   difficulty  Difficulty @default(INTERMEDIATE)
-  readTime    String?    // e.g., "8 min"
-  tags        String     // JSON array
-  summary     String?    // Brief summary
-  keyPoints   String?    // JSON array of key points
+  readTime    String? // e.g., "8 min"
+  tags        String // JSON array
+  summary     String? // Brief summary
+  keyPoints   String? // JSON array of key points
   isPublished Boolean    @default(false)
   views       Int        @default(0)
   createdAt   DateTime   @default(now())
@@ -1099,13 +1135,13 @@ model Mnemonic {
   id          String   @id @default(cuid())
   conceptId   String
   title       String
-  mnemonic    String   // The actual mnemonic phrase
-  explanation String   // What each letter/word stands for
-  example     String?  // Example usage
-  category    String?  // e.g., "Acronym", "Rhyme", "Visual"
+  mnemonic    String // The actual mnemonic phrase
+  explanation String // What each letter/word stands for
+  example     String? // Example usage
+  category    String? // e.g., "Acronym", "Rhyme", "Visual"
   upvotes     Int      @default(0)
   downvotes   Int      @default(0)
-  createdBy   String?  // User ID who created it
+  createdBy   String? // User ID who created it
   isVerified  Boolean  @default(false) // Admin-verified
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -1129,41 +1165,41 @@ model ConceptFavorite {
 
 // Exam Simulations
 model ExamSimulation {
-  id               String   @id @default(cuid())
-  title            String
-  description      String
-  field            UserField
-  duration         Int      // duration in seconds
-  totalQuestions   Int
-  passingScore     Int      @default(70)
-  difficulty       Difficulty @default(INTERMEDIATE)
-  category         String?  // e.g., "USMLE Step 1", "NCLEX-RN"
-  isActive         Boolean  @default(true)
-  isPublic         Boolean  @default(true) // If false, only assigned users can access
-  createdById      String?  // Lecturer who created it
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id             String     @id @default(cuid())
+  title          String
+  description    String
+  field          UserField
+  duration       Int // duration in seconds
+  totalQuestions Int
+  passingScore   Int        @default(70)
+  difficulty     Difficulty @default(INTERMEDIATE)
+  category       String? // e.g., "USMLE Step 1", "NCLEX-RN"
+  isActive       Boolean    @default(true)
+  isPublic       Boolean    @default(true) // If false, only assigned users can access
+  createdById    String? // Lecturer who created it
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 
   // Relations
-  questions      ExamQuestion[]
-  attempts       ExamAttempt[]
-  assignments    ExamAssignment[]
+  questions   ExamQuestion[]
+  attempts    ExamAttempt[]
+  assignments ExamAssignment[]
 
   @@map("exam_simulations")
 }
 
 model ExamQuestion {
-  id               String   @id @default(cuid())
-  examId           String
-  question         String
-  options          String   // JSON array of options
-  correctAnswer    Int      // Index of correct option
-  explanation      String?
-  category         String   // e.g., "Cardiology", "Pharmacology"
-  difficulty       Difficulty @default(INTERMEDIATE)
-  order            Int      @default(0)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id            String     @id @default(cuid())
+  examId        String
+  question      String
+  options       String // JSON array of options
+  correctAnswer Int // Index of correct option
+  explanation   String?
+  category      String // e.g., "Cardiology", "Pharmacology"
+  difficulty    Difficulty @default(INTERMEDIATE)
+  order         Int        @default(0)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
   // Relations
   exam ExamSimulation @relation(fields: [examId], references: [id], onDelete: Cascade)
@@ -1172,19 +1208,19 @@ model ExamQuestion {
 }
 
 model ExamAttempt {
-  id                String   @id @default(cuid())
-  userId            String
-  examId            String
-  answers           String   // JSON object mapping question index to answer index
-  score             Int
-  totalQuestions    Int
-  correctAnswers    Int
-  timeUsed          Int      // seconds
-  completed         Boolean  @default(false)
-  xpEarned          Int      @default(0)
+  id                 String   @id @default(cuid())
+  userId             String
+  examId             String
+  answers            String // JSON object mapping question index to answer index
+  score              Int
+  totalQuestions     Int
+  correctAnswers     Int
+  timeUsed           Int // seconds
+  completed          Boolean  @default(false)
+  xpEarned           Int      @default(0)
   achievementsEarned String? // JSON array of achievement IDs
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 
   // Relations
   exam ExamSimulation @relation(fields: [examId], references: [id], onDelete: Cascade)
@@ -1194,14 +1230,14 @@ model ExamAttempt {
 
 // Exam Assignments (Lecturer assigns exams to specific users)
 model ExamAssignment {
-  id          String   @id @default(cuid())
-  examId      String
-  userId      String
-  assignedBy  String   // Lecturer ID
-  dueDate     DateTime?
-  notified    Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String    @id @default(cuid())
+  examId     String
+  userId     String
+  assignedBy String // Lecturer ID
+  dueDate    DateTime?
+  notified   Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   // Relations
   exam ExamSimulation @relation(fields: [examId], references: [id], onDelete: Cascade)
@@ -1212,18 +1248,18 @@ model ExamAssignment {
 
 // Achievement System
 model Achievement {
-  id          String   @id @default(cuid())
-  name        String   @unique
+  id          String              @id @default(cuid())
+  name        String              @unique
   title       String
   description String
-  icon        String   // Icon name or URL
+  icon        String // Icon name or URL
   category    AchievementCategory
-  xpReward    Int      @default(0)
-  condition   String   // JSON object describing unlock condition
-  tier        AchievementTier @default(BRONZE)
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  xpReward    Int                 @default(0)
+  condition   String // JSON object describing unlock condition
+  tier        AchievementTier     @default(BRONZE)
+  isActive    Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
 
   // Relations
   userAchievements UserAchievement[]
@@ -1261,15 +1297,13 @@ enum AchievementTier {
   DIAMOND
 }
 
-
-
 // XP and Leveling System
 model XPTransaction {
   id          String   @id @default(cuid())
   userId      String
-  amount      Int      // Can be positive or negative
+  amount      Int // Can be positive or negative
   source      XPSource
-  sourceId    String?  // ID of the related entity (exam, quiz, etc.)
+  sourceId    String? // ID of the related entity (exam, quiz, etc.)
   description String?
   createdAt   DateTime @default(now())
 
@@ -1294,7 +1328,7 @@ model EmailSubscription {
   email     String   @unique
   name      String?
   isActive  Boolean  @default(true)
-  source    String?  // e.g., "footer", "newsletter", "signup"
+  source    String? // e.g., "footer", "newsletter", "signup"
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
