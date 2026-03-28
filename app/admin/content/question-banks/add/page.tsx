@@ -312,7 +312,7 @@ export default function AddQuestionBankPage() {
                   <div className="space-y-2">
                     <Label>Tags</Label>
                     <div className="space-y-3">
-                      {formData.tags.map((tag, index) => (
+                      {(formData.tags || []).map((tag: string, index: number) => (
                         <div key={index} className="flex gap-3">
                           <Input
                             placeholder={`Tag ${index + 1}`}

@@ -314,7 +314,7 @@ export default function AdminSimulationsPage() {
                       </div>
                       {simulation.tags.length > 0 && (
                         <div className="flex flex-wrap gap-2">
-                          {simulation.tags.map((tag, index) => (
+                          {(simulation.tags || []).map((tag: string, index: number) => (
                             <Badge key={index} variant="outline" className="text-xs">
                               {tag}
                             </Badge>

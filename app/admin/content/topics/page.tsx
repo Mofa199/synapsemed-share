@@ -318,9 +318,9 @@ export default function AdminTopicsPage() {
                           </div>
                         )}
                       </div>
-                      {topic.tags.length > 0 && (
+                      {(topic.tags || []).length > 0 && (
                         <div className="flex flex-wrap gap-2">
-                          {topic.tags.map((tag, index) => (
+                          {(topic.tags || []).map((tag: string, index: number) => (
                             <Badge key={index} variant="outline" className="text-xs">
                               {tag}
                             </Badge>

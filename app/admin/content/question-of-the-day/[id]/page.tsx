@@ -221,7 +221,7 @@ export default function QuestionDetailsPage() {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-gray-900">Options</h3>
             <div className="space-y-2">
-              {question.options.map((option, index) => (
+              {(question.options || []).map((option: string, index: number) => (
                 <div 
                   key={index} 
                   className={`p-3 rounded-lg border ${
@@ -259,7 +259,7 @@ export default function QuestionDetailsPage() {
             <div className="mt-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Tags</h3>
               <div className="flex flex-wrap gap-2">
-                {question.tags.map((tag, index) => (
+                {(question.tags || []).map((tag: string, index: number) => (
                   <Badge key={index} variant="secondary">{tag}</Badge>
                 ))}
               </div>

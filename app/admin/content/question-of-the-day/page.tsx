@@ -303,7 +303,7 @@ export default function QuestionOfTheDayAdmin() {
               <div className="space-y-2">
                 <Label>Options</Label>
                 <div className="space-y-3">
-                  {formData.options.map((option, index) => (
+                  {(formData.options || []).map((option: string, index: number) => (
                     <div key={index} className="flex items-center gap-2">
                       <div className="flex items-center gap-2 w-full">
                         <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-sm font-medium">

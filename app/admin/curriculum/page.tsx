@@ -43,9 +43,12 @@ export default function CurriculumManagementPage() {
   }
 
   const filteredCurriculums = curriculums.filter(
-    (curriculum: any) =>
-      curriculum.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      curriculum.description.toLowerCase().includes(searchQuery.toLowerCase()),
+    (curriculum: any) => {
+      const name = curriculum.name || curriculum.title || "";
+      const desc = curriculum.description || "";
+      return name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+             desc.toLowerCase().includes(searchQuery.toLowerCase());
+    }
   )
 
   return (
@@ -104,7 +107,7 @@ export default function CurriculumManagementPage() {
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <CardTitle className="text-lg text-[#213874] mb-2">{curriculum.title}</CardTitle>
+                      <CardTitle className="text-lg text-[#213874] mb-2">{curriculum.name || curriculum.title}</CardTitle>
                       <CardDescription className="text-sm">{curriculum.description}</CardDescription>
                     </div>
                     <Badge variant="outline" className="ml-2">
