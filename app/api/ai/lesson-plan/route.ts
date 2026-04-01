@@ -1,25 +1,61 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 
-const AI_BACKEND_URL = process.env.AI_BACKEND_URL || 'http://localhost:8000'
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    
-    const response = await fetch(`${AI_BACKEND_URL}/api/lesson-plan`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    })
+    const { topic, duration, level, objectives, pageContent } = body
 
-    if (!response.ok) {
-      throw new Error(`AI service responded with status: ${response.status}`)
+    if (!process.env.GEMINI_API_KEY) {
+      return NextResponse.json(
+        { error: 'GEMINI_API_KEY is not set in environment variables.' },
+        { status: 500 }
+      )
     }
 
-    const data = await response.json()
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", generationConfig: { responseMimeType: "application/json" } })
+
+    const prompt = `
+You are SynapseMedAI, an expert medical education curriculum designer.
+Create a comprehensive lesson plan for medical educators.
+Topic: ${topic}
+Duration: ${duration || '60 minutes'}
+Student Level: ${level || 'Intermediate'}
+Learning Objectives: ${objectives || 'Not specified'}
+
+Website Context (Current Page Data):
+${pageContent ? pageContent.substring(0, 3000) : 'No page data provided.'}
+
+Instructions:
+Generate a detailed lesson plan with clear structure and timing.
+Return the output strictly in the following JSON schema:
+{
+  "title": "Lesson Plan: ${topic}",
+  "duration": "Total time",
+  "objectives": ["Objective 1", "Objective 2"],
+  "materials": ["Materials needed"],
+  "activities": [
+    {
+      "phase": "Introduction/Body/Conclusion",
+      "time": "X minutes",
+      "description": "What to do",
+      "teachingMethod": "Lecture/Discussion/Activity"
+    }
+  ],
+  "assessment": "How to evaluate understanding"
+}
+`
+
+    const result = await model.generateContent(prompt)
+    let responseText = result.response.text()
     
+    // Clean up potential markdown formatting
+    responseText = responseText.replace(/```json/g, '').replace(/```/g, '').trim()
+    
+    const data = JSON.parse(responseText)
+
     return NextResponse.json(data)
   } catch (error) {
     console.error('AI Lesson Plan service error:', error)

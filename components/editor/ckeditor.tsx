@@ -38,6 +38,9 @@ export function CKEditor({
             placeholder,
             height,
             
+            // License key (optional - removes warning)
+            licenseKey: '', // Leave empty for GPL license or add your commercial key
+            
             // Toolbar configuration
             toolbar: {
               items: [

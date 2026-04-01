@@ -1,4 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,32 +15,45 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Try to call the AI backend
-    try {
-      const aiResponse = await fetch('http://localhost:8000/generate-mnemonic', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ topic })
-      });
-
-      if (aiResponse.ok) {
-        const data = await aiResponse.json();
-        return NextResponse.json(data);
-      }
-    } catch (aiError) {
-      console.log('AI backend not available, using fallback');
+    if (!process.env.GEMINI_API_KEY) {
+      return NextResponse.json(
+        { error: 'GEMINI_API_KEY is not set in environment variables.' },
+        { status: 500 }
+      );
     }
 
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", generationConfig: { responseMimeType: "application/json" } });
+
+    const prompt = `
+You are SynapseMedAI, an expert at creating memorable mnemonics for medical students.
+Create a powerful mnemonic device for the topic: ${topic}
+
+Generate a mnemonic that helps students remember key concepts about this topic.
+
+Return the output strictly in the following JSON schema:
+{
+  "mnemonic": "The catchy phrase or acronym",
+  "explanation": "Breakdown of what each part means",
+  "example": "How to use this mnemonic when studying",
+  "category": "Acronym" | "Rhyme" | "Phrase" | "Song"
+}`;
+
+    const result = await model.generateContent(prompt);
+    let responseText = result.response.text();
+    
+    // Clean up potential markdown formatting
+    responseText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+    
+    const data = JSON.parse(responseText);
+
+    return NextResponse.json(data);
+  } catch (error) {
+    console.error('Error generating mnemonic:', error);
+    
     // Fallback: Generate based on topic keywords
     const fallbackMnemonics = generateFallbackMnemonic(topic);
     
     return NextResponse.json(fallbackMnemonics);
-  } catch (error) {
-    console.error('Error generating mnemonic:', error);
-    return NextResponse.json(
-      { error: 'Failed to generate mnemonic' },
-      { status: 500 }
-    );
   }
 }
 
@@ -69,7 +85,7 @@ function generateFallbackMnemonic(topic: string) {
   } else {
     // Generic template
     const words = topic.split(' ').filter(w => w.length > 2);
-    const acronym = words.map(w => w[0].toUpperCase()).join(' ');
+    const acronym = words.map(w => w[0].toUpperCase()).join('');
     
     return {
       mnemonic: acronym || "Memory Aid",

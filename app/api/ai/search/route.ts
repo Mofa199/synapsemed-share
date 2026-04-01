@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 
-const AI_BACKEND_URL = process.env.AI_BACKEND_URL || 'http://localhost:8000'
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    const query = searchParams.get('q')
+    const query = searchParams.get('query') || searchParams.get('q')
     const context = searchParams.get('context') || 'general'
     const filters = searchParams.get('filters')
     
@@ -16,27 +17,43 @@ export async function GET(request: NextRequest) {
       )
     }
     
-    const requestBody = {
-      query,
-      context,
-      filters: filters ? JSON.parse(filters) : null
+    if (!process.env.GEMINI_API_KEY) {
+      return NextResponse.json(
+        { error: 'GEMINI_API_KEY is not set in environment variables.' },
+        { status: 500 }
+      )
     }
+
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+
+    const prompt = `
+You are SynapseMedAI, an intelligent search assistant for medical education.
+Help the user find relevant information and resources.
+
+Search Query: ${query}
+Context: ${context}
+Filters: ${filters || 'None'}
+
+Provide a helpful response that:
+1. Explains the topic briefly
+2. Suggests related concepts to explore
+3. Recommends study approaches for this topic
+4. Lists key subtopics worth investigating
+
+Format your response clearly with headings.`
+
+    const result = await model.generateContent(prompt)
+    const responseText = result.response.text()
     
-    const response = await fetch(`${AI_BACKEND_URL}/api/search`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
+    return NextResponse.json({
+      query: query,
+      results: [{
+        title: `Search Results for "${query}"`,
+        content: responseText,
+        relevance: 1.0
+      }],
+      suggestions: [`Explore ${query} in detail`, `Practice questions on ${query}`, `View related topics`]
     })
-
-    if (!response.ok) {
-      throw new Error(`AI service responded with status: ${response.status}`)
-    }
-
-    const data = await response.json()
-    
-    return NextResponse.json(data)
   } catch (error) {
     console.error('AI Smart Search service error:', error)
     return NextResponse.json(
@@ -52,22 +69,52 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    const { query, context, filters } = body
     
-    const response = await fetch(`${AI_BACKEND_URL}/api/search`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    })
-
-    if (!response.ok) {
-      throw new Error(`AI service responded with status: ${response.status}`)
+    if (!query) {
+      return NextResponse.json(
+        { error: 'Query is required' },
+        { status: 400 }
+      )
     }
 
-    const data = await response.json()
+    if (!process.env.GEMINI_API_KEY) {
+      return NextResponse.json(
+        { error: 'GEMINI_API_KEY is not set in environment variables.' },
+        { status: 500 }
+      )
+    }
+
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+
+    const prompt = `
+You are SynapseMedAI, an intelligent search assistant for medical education.
+Help the user find relevant information and resources.
+
+Search Query: ${query}
+Context: ${context || 'General'}
+Filters: ${filters || 'None'}
+
+Provide a helpful response that:
+1. Explains the topic briefly
+2. Suggests related concepts to explore
+3. Recommends study approaches for this topic
+4. Lists key subtopics worth investigating
+
+Format your response clearly with headings.`
+
+    const result = await model.generateContent(prompt)
+    const responseText = result.response.text()
     
-    return NextResponse.json(data)
+    return NextResponse.json({
+      query: query,
+      results: [{
+        title: `Search Results for "${query}"`,
+        content: responseText,
+        relevance: 1.0
+      }],
+      suggestions: [`Explore ${query} in detail`, `Practice questions on ${query}`, `View related topics`]
+    })
   } catch (error) {
     console.error('AI Smart Search service error:', error)
     return NextResponse.json(

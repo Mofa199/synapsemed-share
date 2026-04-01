@@ -1,26 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { GoogleGenerativeAI } from '@google/generative-ai'
 
-const AI_BACKEND_URL = process.env.AI_BACKEND_URL || 'http://localhost:8000'
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    
-    const response = await fetch(`${AI_BACKEND_URL}/api/exam-mentor`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    })
+    const { topic, examType, difficulty, studyTips, pageContent } = body
 
-    if (!response.ok) {
-      throw new Error(`AI service responded with status: ${response.status}`)
+    if (!process.env.GEMINI_API_KEY) {
+      return NextResponse.json(
+        { error: 'GEMINI_API_KEY is not set in environment variables.' },
+        { status: 500 }
+      )
     }
 
-    const data = await response.json()
-    
-    return NextResponse.json(data)
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+
+    const prompt = `
+You are SynapseMedAI, an expert medical exam preparation mentor.
+Help students prepare for their medical exams on this topic.
+Topic: ${topic}
+Exam Type: ${examType || 'General medical exam'}
+Difficulty: ${difficulty || 'Intermediate'}
+
+Website Context (Current Page Data):
+${pageContent ? pageContent.substring(0, 3000) : 'No page data provided.'}
+
+Provide comprehensive exam mentoring including:
+1. Key concepts to focus on
+2. Common exam question patterns
+3. Study strategies specific to this topic
+4. Time management tips for the exam
+5. Memory techniques for complex information
+
+Format your response in a clear, structured way with headings and bullet points.`
+
+    const result = await model.generateContent(prompt)
+    const responseText = result.response.text()
+
+    return NextResponse.json({
+      topic: topic,
+      mentorship: responseText,
+      tips: ["Review key concepts", "Practice with sample questions", "Use active recall techniques"]
+    })
   } catch (error) {
     console.error('AI Exam Mentor service error:', error)
     return NextResponse.json(

@@ -1,22 +1,22 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { GoogleGenerativeAI } from "@google/generative-ai"
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '')
 
 export async function POST(req: NextRequest) {
   try {
     const { message, history } = await req.json()
 
-    // Use DeepSeek API instead of OpenAI
-    const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "deepseek-chat",
-        messages: [
-          {
-            role: "system",
-            content: `You are a helpful medical education assistant for Synapse Med, an online learning platform for medical, nursing, and pharmacy students. 
+    if (!process.env.GEMINI_API_KEY) {
+      return NextResponse.json(
+        { error: 'GEMINI_API_KEY is not set in environment variables.' },
+        { status: 500 }
+      )
+    }
+
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" })
+
+    const prompt = `You are a helpful medical education assistant for Synapse Med, an online learning platform for medical, nursing, and pharmacy students. 
 
 Your role is to:
 - Answer medical and healthcare-related questions accurately
@@ -31,23 +31,16 @@ Guidelines:
 - Use clear, educational language
 - Provide evidence-based information
 - Include disclaimers when appropriate
-- Focus on learning and education, not diagnosis or treatment advice`,
-          },
-          ...history,
-          { role: "user", content: message },
-        ],
-        max_tokens: 1000,
-        temperature: 0.7,
-        stream: false,
-      }),
-    })
+- Focus on learning and education, not diagnosis or treatment advice
 
-    if (!response.ok) {
-      throw new Error(`DeepSeek API error: ${response.status}`)
-    }
+Conversation History:
+${history?.map((h: any) => `${h.role}: ${h.content}`).join('\n') || 'No previous conversation'}
 
-    const data = await response.json()
-    const aiMessage = data.choices[0]?.message?.content || "I'm sorry, I couldn't process your request."
+Current Question: ${message}`
+
+    const result = await model.generateContent(prompt)
+    const responseText = result.response.text()
+    const aiMessage = responseText || "I'm sorry, I couldn't process your request."
 
     return NextResponse.json({ message: aiMessage })
   } catch (error) {

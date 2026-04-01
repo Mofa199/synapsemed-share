@@ -20,6 +20,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'No file provided' }, { status: 400 })
     }
 
+    // Check file size (limit to 10MB)
+    const maxSize = 10 * 1024 * 1024 // 10MB
+    if (file.size > maxSize) {
+      return NextResponse.json({ 
+        success: false, 
+        error: `File too large. Maximum size is 10MB. Your file is ${(file.size / 1024 / 1024).toFixed(2)}MB`
+      }, { status: 413 })
+    }
+
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
@@ -39,7 +48,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       url: `/${folder}/${filename}`,
-      name: file.name
+      name: file.name,
+      size: file.size
     })
   } catch (error) {
     console.error('Upload error:', error)
