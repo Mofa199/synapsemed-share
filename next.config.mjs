@@ -14,13 +14,6 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
   },
-  // API routes configuration
-  api: {
-    bodyParser: {
-      sizeLimit: '10mb', // Set limit for file uploads
-    },
-    responseLimit: false, // Disable response size limit
-  },
   // Bundle optimization
   webpack: (config, { isServer }) => {
     // Reduce bundle size

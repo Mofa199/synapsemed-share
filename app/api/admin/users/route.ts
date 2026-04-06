@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { verifyTokenFromRequest } from '@/lib/db-utils'
+import { UserRole } from '@prisma/client'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import bcrypt from 'bcryptjs'
 
-// GET /api/admin/users - Get all users for admin dashboard
+// GET /api/admin/users - Get all users
 export async function GET(request: NextRequest) {
   try {
-    const adminUser = await verifyTokenFromRequest(request)
-    const adminRoles = ['SUPER_ADMIN', 'LECTURER', 'EDITOR']
+    const session = await getServerSession(authOptions)
+    const adminRoles = [UserRole.SUPER_ADMIN, UserRole.LECTURER, UserRole.EDITOR]
     
-    if (!adminUser || !adminRoles.includes(adminUser.role)) {
+    if (!session || !adminRoles.includes(session.user.role as UserRole)) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -29,13 +31,8 @@ export async function GET(request: NextRequest) {
       ]
     }
 
-    if (role) {
-      where.role = role
-    }
-
-    if (field) {
-      where.field = field
-    }
+    if (role) where.role = role
+    if (field) where.field = field
 
     const skip = (page - 1) * limit
 
@@ -80,8 +77,9 @@ export async function GET(request: NextRequest) {
 // POST /api/admin/users - Create new user
 export async function POST(request: NextRequest) {
   try {
-    const adminUser = await verifyTokenFromRequest(request)
-    if (!adminUser || adminUser.role !== 'SUPER_ADMIN') {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -89,10 +87,7 @@ export async function POST(request: NextRequest) {
     const { name, email, password, role, field } = body
 
     if (!name || !email || !password || !role || !field) {
-      return NextResponse.json({
-        success: false,
-        error: 'Missing required fields'
-      }, { status: 400 })
+      return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })
     }
 
     const existingUser = await prisma.user.findUnique({
@@ -100,10 +95,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (existingUser) {
-      return NextResponse.json({
-        success: false,
-        error: 'User with this email already exists'
-      }, { status: 400 })
+      return NextResponse.json({ success: false, error: 'User with this email already exists' }, { status: 400 })
     }
 
     const hashedPassword = await bcrypt.hash(password, 10)
@@ -113,7 +105,7 @@ export async function POST(request: NextRequest) {
         name,
         email,
         password: hashedPassword,
-        role,
+        role: role as UserRole,
         field,
         isActive: true
       }
@@ -131,9 +123,6 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Error creating user:', error)
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to create user'
-    }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to create user' }, { status: 500 })
   }
-}
+}

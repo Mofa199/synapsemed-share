@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { verifyTokenFromRequest } from '@/lib/db-utils'
+import { UserRole } from '@prisma/client'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const user = await verifyTokenFromRequest(request)
-    const adminRoles = ['SUPER_ADMIN', 'LECTURER', 'EDITOR']
+    const session = await getServerSession(authOptions)
+    const adminRoles = [UserRole.SUPER_ADMIN, UserRole.LECTURER, UserRole.EDITOR]
     
-    if (!user || !adminRoles.includes(user.role)) {
+    if (!session || !adminRoles.includes(session.user.role as UserRole)) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -50,7 +52,7 @@ export async function GET(request: NextRequest) {
       prisma.challenge.count({ where: { isActive: true } }),
       prisma.user.aggregate({ _max: { level: true } }),
       prisma.simulation.count({ where: { isPublished: true } }),
-      prisma.badge ? prisma.badge.count() : Promise.resolve(0)
+      prisma.badge.count()
     ]);
 
     const totalContent = totalBooks + totalArticles + totalTopics + totalVideos + totalSimulations +
@@ -91,7 +93,7 @@ export async function GET(request: NextRequest) {
         },
         gamification: {
           badges: totalBadges,
-          levels: maxLevelObj._max.level || 1,
+          levels: maxLevelObj._max?.level || 1,
           challenges: activeChallenges
         },
         simulations: {
@@ -104,4 +106,4 @@ export async function GET(request: NextRequest) {
     console.error('Error fetching admin stats:', error);
     return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
-}
+}

@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { UserRole, Difficulty } from '@prisma/client'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
 // GET /api/admin/question-of-the-day - Get all questions
 export async function GET() {
   try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
     const questions = await prisma.questionOfTheDay.findMany({
       orderBy: { dateScheduled: 'desc' },
       include: {
@@ -29,10 +38,25 @@ export async function GET() {
       const correctAnswers = question.userAnswers.filter(a => a.isCorrect).length
       const accuracy = totalAnswers > 0 ? Math.round((correctAnswers / totalAnswers) * 100) : 0
       
+      let parsedOptions = [];
+      try {
+        parsedOptions = typeof question.options === 'string' ? JSON.parse(question.options) : question.options;
+      } catch (e) {
+        console.error('Error parsing options:', e);
+      }
+
+      let parsedTags = [];
+      try {
+        parsedTags = typeof question.tags === 'string' ? JSON.parse(question.tags) : question.tags;
+      } catch (e) {
+        // Fallback for comma-separated string
+        parsedTags = typeof question.tags === 'string' ? question.tags.split(',').map(t => t.trim()) : [];
+      }
+      
       return {
         ...question,
-        options: JSON.parse(question.options),
-        tags: JSON.parse(question.tags),
+        options: parsedOptions,
+        tags: parsedTags,
         totalAnswers,
         correctAnswers,
         accuracy
@@ -45,96 +69,95 @@ export async function GET() {
     })
   } catch (error) {
     console.error('Error fetching questions:', error)
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to fetch questions'
-    }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to fetch questions' }, { status: 500 })
   }
 }
 
 // POST /api/admin/question-of-the-day - Create new question
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
     const body = await request.json()
     const { question, options, correctAnswer, explanation, difficulty, category, tags, dateScheduled } = body
 
-    // Validate required fields
     if (!question || !options || correctAnswer === undefined || !explanation || !dateScheduled) {
-      return NextResponse.json({
-        success: false,
-        error: 'Missing required fields'
-      }, { status: 400 })
+      return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 })
     }
 
-    // Validate options array
+    // Validate options
     if (!Array.isArray(options) || options.length === 0) {
-      return NextResponse.json({
-        success: false,
-        error: 'Options must be a non-empty array'
-      }, { status: 400 })
+      return NextResponse.json({ success: false, error: 'Options must be a non-empty array' }, { status: 400 })
     }
 
-    // Validate correctAnswer index
-    if (correctAnswer < 0 || correctAnswer >= options.length) {
-      return NextResponse.json({
-        success: false,
-        error: 'Invalid correct answer index'
-      }, { status: 400 })
-    }
-
-    // Validate date
     const scheduledDate = new Date(dateScheduled)
-    if (isNaN(scheduledDate.getTime())) {
-      return NextResponse.json({
-        success: false,
-        error: 'Invalid date format'
-      }, { status: 400 })
-    }
+    
+    // Check for existing question on this date
+    const startOfDay = new Date(scheduledDate)
+    startOfDay.setHours(0, 0, 0, 0)
+    const endOfDay = new Date(scheduledDate)
+    endOfDay.setHours(23, 59, 59, 999)
 
-    // Check if a question already exists for this date
     const existingQuestion = await prisma.questionOfTheDay.findFirst({
       where: {
         dateScheduled: {
-          gte: new Date(scheduledDate.setHours(0, 0, 0, 0)),
-          lt: new Date(scheduledDate.getTime() + 24 * 60 * 60 * 1000)
+          gte: startOfDay,
+          lte: endOfDay
         }
       }
     })
 
     if (existingQuestion) {
-      return NextResponse.json({
-        success: false,
-        error: 'A question already exists for this date'
-      }, { status: 400 })
+      return NextResponse.json({ success: false, error: 'A question already exists for this date' }, { status: 400 })
     }
 
-    // Create the question
     const newQuestion = await prisma.questionOfTheDay.create({
       data: {
         question,
         options: JSON.stringify(options),
-        correctAnswer,
+        correctAnswer: parseInt(correctAnswer),
         explanation,
-        difficulty: difficulty || 'INTERMEDIATE',
+        difficulty: (difficulty as Difficulty) || Difficulty.INTERMEDIATE,
         category: category || null,
-        tags: JSON.stringify(tags || []),
+        tags: Array.isArray(tags) ? JSON.stringify(tags) : (tags || "[]"),
         dateScheduled: scheduledDate
       }
     })
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        ...newQuestion,
-        options: JSON.parse(newQuestion.options),
-        tags: JSON.parse(newQuestion.tags)
-      }
-    })
+    return NextResponse.json({ success: true, data: newQuestion })
   } catch (error) {
     console.error('Error creating question:', error)
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to create question'
-    }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to create question' }, { status: 500 })
+  }
+}
+
+// DELETE /api/admin/question-of-the-day - Delete question
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Question ID is required' }, { status: 400 })
+    }
+
+    await prisma.questionOfTheDay.delete({
+      where: { id }
+    })
+
+    return NextResponse.json({ success: true, message: 'Question deleted successfully' })
+  } catch (error) {
+    console.error('Error deleting question:', error)
+    return NextResponse.json({ success: false, error: 'Failed to delete question' }, { status: 500 })
   }
 }

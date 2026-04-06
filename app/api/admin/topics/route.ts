@@ -1,71 +1,124 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { UserRole, Difficulty } from '@prisma/client'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
-// Build-safe implementation that returns mock data during build
+// GET /api/admin/topics - Get all topics
 export async function GET() {
-  // Return mock data during build time
-  const mockTopics = [
-    {
-      id: '1',
-      title: 'Sample Topic Title',
-      description: 'Sample topic description',
-      content: 'Sample topic content...',
-      difficulty: 'INTERMEDIATE',
-      isPublished: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
-  ];
-  
-  return NextResponse.json({ success: true, data: mockTopics });
+
+    const topics = await prisma.topic.findMany({
+      orderBy: { createdAt: 'desc' }
+    })
+
+    return NextResponse.json({ success: true, data: topics })
+  } catch (error) {
+    console.error('Error fetching topics:', error)
+    return NextResponse.json({ success: false, error: 'Failed to fetch topics' }, { status: 500 })
+  }
 }
 
-export async function POST(req: NextRequest) {
+// POST /api/admin/topics - Create new topic
+export async function POST(request: NextRequest) {
   try {
-    const formData = await req.formData()
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
 
-    const title = formData.get("title") as string
-    const description = formData.get("description") as string
-    const content = formData.get("content") as string
-    const type = formData.get("type") as string || 'ARTICLE'
-    const difficulty = formData.get("difficulty") as string
-    const duration = formData.get("duration") as string || undefined
-    const category = formData.get("category") as string || undefined
-    const moduleId = formData.get("moduleId") as string || undefined
-    const curriculumId = formData.get("curriculumId") as string || undefined
-    const tags = JSON.parse((formData.get("tags") as string) || "[]")
-    const isPublished = formData.get("isPublished") === "true"
+    const body = await request.json()
+    const { 
+      title, description, content, category, 
+      difficulty, tags, isPublished 
+    } = body
 
     if (!title || !description || !content || !difficulty) {
       return NextResponse.json(
-        { success: false, error: 'Missing required fields' },
+        { success: false, error: 'Title, description, content, and difficulty are required' },
         { status: 400 }
       )
     }
 
-    // Create mock topic during build time
-    const mockTopic = {
-      id: Math.random().toString(36).substring(7),
-      title,
-      description,
-      content,
-      type,
-      difficulty,
-      duration,
-      category,
-      moduleId,
-      curriculumId,
-      tags,
-      isPublished,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    const topic = await prisma.topic.create({
+      data: {
+        title,
+        description: description || null,
+        content,
+        category: category || "",
+        difficulty: (difficulty as Difficulty) || Difficulty.BEGINNER,
+        tags: Array.isArray(tags) ? tags.join(', ') : (tags || ""),
+        isPublished: !!isPublished,
+      }
+    })
 
-    return NextResponse.json({ success: true, data: mockTopic }, { status: 201 });
+    return NextResponse.json({ success: true, data: topic })
   } catch (error) {
-    console.error("Error creating topic:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to create topic" },
-      { status: 500 }
-    );
+    console.error('Error creating topic:', error)
+    return NextResponse.json({ success: false, error: 'Failed to create topic' }, { status: 500 })
+  }
+}
+
+// PUT /api/admin/topics - Update topic
+export async function PUT(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { id, ...updateData } = body
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Topic ID is required' }, { status: 400 })
+    }
+
+    const processedData: any = { ...updateData }
+    if (Array.isArray(processedData.tags)) processedData.tags = processedData.tags.join(', ')
+
+    const topic = await prisma.topic.update({
+      where: { id },
+      data: processedData
+    })
+
+    return NextResponse.json({ success: true, data: topic })
+  } catch (error) {
+    console.error('Error updating topic:', error)
+    return NextResponse.json({ success: false, error: 'Failed to update topic' }, { status: 500 })
+  }
+}
+
+// DELETE /api/admin/topics - Delete topic
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Topic ID is required' }, { status: 400 })
+    }
+
+    await prisma.topic.delete({
+      where: { id }
+    })
+
+    return NextResponse.json({ success: true, message: 'Topic deleted successfully' })
+  } catch (error) {
+    console.error('Error deleting topic:', error)
+    return NextResponse.json({ success: false, error: 'Failed to delete topic' }, { status: 500 })
   }
 }

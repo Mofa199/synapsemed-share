@@ -1,9 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
-// import { prisma } from '@/lib/prisma'
-// TODO: Enable after Prisma migration is complete
+import { prisma } from '@/lib/prisma'
+import { UserRole } from '@prisma/client'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
+// GET /api/admin/modules - Get modules for a curriculum
 export async function GET(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
     const curriculumId = searchParams.get('curriculumId')
 
@@ -14,55 +23,22 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    // TODO: Replace with actual database call
-    // const modules = await prisma.module.findMany({
-    //   where: { 
-    //     curriculumId,
-    //     isActive: true 
-    //   },
-    //   include: {
-    //     curriculum: {
-    //       select: { name: true, field: true }
-    //     },
-    //     topics: {
-    //       where: { isPublished: true },
-    //       select: {
-    //         id: true,
-    //         title: true,
-    //         description: true,
-    //         difficulty: true,
-    //         duration: true,
-    //         views: true,
-    //       }
-    //     },
-    //     _count: { select: { topics: true } }
-    //   },
-    //   orderBy: { order: 'asc' }
-    // })
-
-    // Mock data for now
-    const mockModules = [
-      {
-        id: 'mod-1',
-        name: 'Sample Module',
-        description: 'A sample module for testing',
+    const modules = await prisma.module.findMany({
+      where: { 
         curriculumId,
-        order: 1,
-        isActive: true,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+      },
+      include: {
         curriculum: {
-          name: 'Sample Curriculum',
-          field: 'MEDICAL'
+          select: { name: true, field: true }
         },
-        topics: [],
-        _count: { topics: 0 }
-      }
-    ]
+        _count: { select: { topics: true } }
+      },
+      orderBy: { order: 'asc' }
+    })
 
     return NextResponse.json({
       success: true,
-      data: mockModules,
+      data: modules,
     })
   } catch (error) {
     console.error('Error fetching modules:', error)
@@ -73,8 +49,15 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// POST /api/admin/modules - Create new module
 export async function POST(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const {
       name,
       description,
@@ -90,43 +73,25 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // TODO: Replace with actual database call
-    // const module = await prisma.module.create({
-    //   data: {
-    //     name,
-    //     description,
-    //     curriculumId,
-    //     order,
-    //     isActive,
-    //   },
-    //   include: {
-    //     curriculum: {
-    //       select: { name: true, field: true }
-    //     },
-    //     _count: { select: { topics: true } }
-    //   }
-    // })
-
-    // Mock response for now
-    const mockModule = {
-      id: `mock-module-${Date.now()}`,
-      name,
-      description,
-      curriculumId,
-      order,
-      isActive,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      curriculum: {
-        name: 'Sample Curriculum',
-        field: 'MEDICAL'
+    const module = await prisma.module.create({
+      data: {
+        name,
+        description,
+        curriculumId,
+        order,
+        isActive,
       },
-      _count: { topics: 0 }
-    }
+      include: {
+        curriculum: {
+          select: { name: true, field: true }
+        },
+        _count: { select: { topics: true } }
+      }
+    })
 
     return NextResponse.json({
       success: true,
-      data: mockModule,
+      data: module,
       message: 'Module created successfully',
     })
   } catch (error) {
@@ -138,8 +103,15 @@ export async function POST(request: NextRequest) {
   }
 }
 
+// PUT /api/admin/modules - Update module
 export async function PUT(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { id, ...updateData } = await request.json()
 
     if (!id) {
@@ -149,33 +121,20 @@ export async function PUT(request: NextRequest) {
       )
     }
 
-    // TODO: Replace with actual database call
-    // const module = await prisma.module.update({
-    //   where: { id },
-    //   data: updateData,
-    //   include: {
-    //     curriculum: {
-    //       select: { name: true, field: true }
-    //     },
-    //     _count: { select: { topics: true } }
-    //   }
-    // })
-
-    // Mock response for now
-    const mockModule = {
-      id,
-      ...updateData,
-      updatedAt: new Date().toISOString(),
-      curriculum: {
-        name: 'Sample Curriculum',
-        field: 'MEDICAL'
-      },
-      _count: { topics: 0 }
-    }
+    const module = await prisma.module.update({
+      where: { id },
+      data: updateData,
+      include: {
+        curriculum: {
+          select: { name: true, field: true }
+        },
+        _count: { select: { topics: true } }
+      }
+    })
 
     return NextResponse.json({
       success: true,
-      data: mockModule,
+      data: module,
       message: 'Module updated successfully',
     })
   } catch (error) {
@@ -187,8 +146,15 @@ export async function PUT(request: NextRequest) {
   }
 }
 
+// DELETE /api/admin/modules - Delete module
 export async function DELETE(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
 
@@ -199,10 +165,9 @@ export async function DELETE(request: NextRequest) {
       )
     }
 
-    // TODO: Replace with actual database call
-    // await prisma.module.delete({
-    //   where: { id }
-    // })
+    await prisma.module.delete({
+      where: { id }
+    })
 
     return NextResponse.json({
       success: true,

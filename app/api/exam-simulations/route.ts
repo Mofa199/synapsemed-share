@@ -1,133 +1,137 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { UserRole, Difficulty, UserField } from '@prisma/client'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
-// Mock data - will be replaced with database queries
-const mockExamSimulations = [
-  {
-    id: '1',
-    title: 'USMLE Step 1 Practice Exam',
-    description: 'Comprehensive practice exam covering all basic sciences for USMLE Step 1 preparation',
-    field: 'MEDICAL',
-    duration: 1800, // 30 minutes
-    totalQuestions: 5,
-    passingScore: 70,
-    difficulty: 'ADVANCED',
-    category: 'USMLE Step 1',
-    isActive: true,
-    isPublic: true,
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: '2',
-    title: 'NCLEX-RN Comprehensive Review',
-    description: 'Full-length NCLEX-RN practice exam with real-world scenarios',
-    field: 'NURSING',
-    duration: 2400, // 40 minutes
-    totalQuestions: 8,
-    passingScore: 75,
-    difficulty: 'ADVANCED',
-    category: 'NCLEX-RN',
-    isActive: true,
-    isPublic: true,
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: '3',
-    title: 'Pharmacology Quick Assessment',
-    description: 'Quick pharmacology assessment covering major drug classes',
-    field: 'PHARMACY',
-    duration: 900, // 15 minutes
-    totalQuestions: 3,
-    passingScore: 70,
-    difficulty: 'INTERMEDIATE',
-    category: 'Pharmacology',
-    isActive: true,
-    isPublic: true,
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: '4',
-    title: 'Cardiology Intensive Exam',
-    description: 'Advanced cardiology exam for medical students and residents',
-    field: 'MEDICAL',
-    duration: 2100, // 35 minutes
-    totalQuestions: 7,
-    passingScore: 80,
-    difficulty: 'ADVANCED',
-    category: 'Cardiology',
-    isActive: true,
-    isPublic: false, // Assigned by lecturers only
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: '5',
-    title: 'Nursing Fundamentals Review',
-    description: 'Basic nursing fundamentals for first-year nursing students',
-    field: 'NURSING',
-    duration: 1200, // 20 minutes
-    totalQuestions: 4,
-    passingScore: 70,
-    difficulty: 'BEGINNER',
-    category: 'Nursing Fundamentals',
-    isActive: true,
-    isPublic: true,
-    createdAt: new Date().toISOString()
-  }
-];
-
-// GET - Fetch all available exam simulations
+// GET /api/exam-simulations - Fetch exams
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const field = searchParams.get('field');
-    const difficulty = searchParams.get('difficulty');
-    const category = searchParams.get('category');
+    const { searchParams } = new URL(request.url)
+    const field = searchParams.get('field') as UserField | null
+    const difficulty = searchParams.get('difficulty') as Difficulty | null
+    const category = searchParams.get('category')
 
-    let filteredExams = mockExamSimulations.filter(exam => exam.isActive);
+    const where: any = { isActive: true }
+    if (field && field !== 'all' as any) where.field = field
+    if (difficulty) where.difficulty = difficulty
+    if (category) where.category = category
 
-    if (field) {
-      filteredExams = filteredExams.filter(exam => exam.field === field);
-    }
+    const exams = await prisma.examSimulation.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        _count: {
+          select: { questions: true }
+        }
+      }
+    })
 
-    if (difficulty) {
-      filteredExams = filteredExams.filter(exam => exam.difficulty === difficulty);
-    }
-
-    if (category) {
-      filteredExams = filteredExams.filter(exam => exam.category === category);
-    }
-
-    return NextResponse.json(filteredExams);
+    return NextResponse.json(exams)
   } catch (error) {
-    console.error('Error fetching exam simulations:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch exam simulations' },
-      { status: 500 }
-    );
+    console.error('Error fetching exam simulations:', error)
+    return NextResponse.json({ error: 'Failed to fetch exam simulations' }, { status: 500 })
   }
 }
 
-// POST - Create new exam simulation (admin/lecturer only)
+// POST /api/exam-simulations - Create new exam (Admin/Lecturer only)
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const session = await getServerSession(authOptions)
     
-    const newExam = {
-      id: String(mockExamSimulations.length + 1),
-      ...body,
-      createdAt: new Date().toISOString()
-    };
+    if (!session || (session.user.role !== UserRole.SUPER_ADMIN && session.user.role !== UserRole.LECTURER)) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
 
-    mockExamSimulations.push(newExam);
+    const body = await request.json()
+    const { 
+      title, description, field, duration, 
+      totalQuestions, passingScore, difficulty, category, isPublic 
+    } = body
 
-    return NextResponse.json({ 
-      success: true, 
-      exam: newExam 
-    }, { status: 201 });
+    if (!title || !description || !field) {
+      return NextResponse.json({ success: false, error: 'Title, description, and field are required' }, { status: 400 })
+    }
+
+    const exam = await prisma.examSimulation.create({
+      data: {
+        title,
+        description,
+        field: field as UserField,
+        duration: parseInt(duration),
+        totalQuestions: parseInt(totalQuestions),
+        passingScore: parseInt(passingScore) || 70,
+        difficulty: (difficulty as Difficulty) || Difficulty.INTERMEDIATE,
+        category: category || null,
+        isPublic: isPublic !== undefined ? !!isPublic : true,
+        isActive: true,
+        createdById: session.user.id
+      }
+    })
+
+    return NextResponse.json({ success: true, exam }, { status: 201 })
   } catch (error) {
-    console.error('Error creating exam simulation:', error);
-    return NextResponse.json(
-      { error: 'Failed to create exam simulation' },
-      { status: 500 }
-    );
+    console.error('Error creating exam simulation:', error)
+    return NextResponse.json({ error: 'Failed to create exam simulation' }, { status: 500 })
+  }
+}
+
+// PUT /api/exam-simulations - Update exam (Admin/Lecturer only)
+export async function PUT(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || (session.user.role !== UserRole.SUPER_ADMIN && session.user.role !== UserRole.LECTURER)) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { id, ...updateData } = body
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Exam ID is required' }, { status: 400 })
+    }
+
+    const processedData: any = { ...updateData }
+    if (processedData.duration) processedData.duration = parseInt(processedData.duration)
+    if (processedData.totalQuestions) processedData.totalQuestions = parseInt(processedData.totalQuestions)
+    if (processedData.passingScore) processedData.passingScore = parseInt(processedData.passingScore)
+
+    const updatedExam = await prisma.examSimulation.update({
+      where: { id },
+      data: processedData
+    })
+
+    return NextResponse.json({ success: true, exam: updatedExam })
+  } catch (error) {
+    console.error('Error updating exam simulation:', error)
+    return NextResponse.json({ error: 'Failed to update exam simulation' }, { status: 500 })
+  }
+}
+
+// DELETE /api/exam-simulations - Delete exam (Admin/Lecturer only)
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || (session.user.role !== UserRole.SUPER_ADMIN && session.user.role !== UserRole.LECTURER)) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Exam ID is required' }, { status: 400 })
+    }
+
+    await prisma.examSimulation.delete({
+      where: { id }
+    })
+
+    return NextResponse.json({ success: true, message: 'Exam deleted successfully' })
+  } catch (error) {
+    console.error('Error deleting exam simulation:', error)
+    return NextResponse.json({ error: 'Failed to delete exam simulation' }, { status: 500 })
   }
 }

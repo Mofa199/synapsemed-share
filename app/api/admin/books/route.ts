@@ -1,28 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { verifyTokenFromRequest } from '@/lib/db-utils'
+import { UserRole, BookFormat } from '@prisma/client'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
 // GET /api/admin/books - Get all books
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const user = await verifyTokenFromRequest(request)
-    const adminRoles = ['SUPER_ADMIN', 'LECTURER', 'EDITOR']
+    const session = await getServerSession(authOptions)
     
-    if (!user || !adminRoles.includes(user.role)) {
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { searchParams } = new URL(request.url)
-    const search = searchParams.get('search')
-    
     const books = await prisma.book.findMany({
-      where: search ? {
-        OR: [
-          { title: { contains: search, mode: 'insensitive' } },
-          { author: { contains: search, mode: 'insensitive' } },
-          { category: { contains: search, mode: 'insensitive' } }
-        ]
-      } : {},
       orderBy: { createdAt: 'desc' },
       include: {
         curriculum: { select: { name: true } },
@@ -33,15 +24,16 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ success: true, data: books })
   } catch (error) {
     console.error('Error fetching books:', error)
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to fetch books' }, { status: 500 })
   }
 }
 
 // POST /api/admin/books - Create new book
 export async function POST(request: NextRequest) {
   try {
-    const user = await verifyTokenFromRequest(request)
-    if (!user || user.role !== 'SUPER_ADMIN') {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -61,27 +53,87 @@ export async function POST(request: NextRequest) {
       data: {
         title,
         author,
-        isbn,
-        publisher,
-        publicationYear,
-        edition,
-        pages,
+        isbn: isbn || null,
+        publisher: publisher || null,
+        publicationYear: publicationYear ? parseInt(publicationYear) : null,
+        edition: edition || null,
+        pages: pages ? parseInt(pages) : null,
         language: language || 'English',
-        format: format || 'PDF',
-        description,
-        category,
-        tags: JSON.stringify(tags || []),
-        curriculumId,
-        moduleId,
-        isPublished: isPublished || false,
-        coverUrl,
-        fileUrl
+        format: (format as BookFormat) || BookFormat.PDF,
+        description: description || null,
+        category: category || null,
+        tags: Array.isArray(tags) ? tags.join(', ') : (tags || ""),
+        curriculumId: curriculumId || null,
+        moduleId: moduleId || null,
+        isPublished: !!isPublished,
+        coverUrl: coverUrl || null,
+        fileUrl: fileUrl || null
       }
     })
 
     return NextResponse.json({ success: true, data: book })
   } catch (error) {
     console.error('Error creating book:', error)
-    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ success: false, error: 'Failed to create book' }, { status: 500 })
+  }
+}
+
+// PUT /api/admin/books - Update book
+export async function PUT(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { id, ...updateData } = body
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Book ID is required' }, { status: 400 })
+    }
+
+    // Process numeric and string fields
+    if (updateData.publicationYear) updateData.publicationYear = parseInt(updateData.publicationYear)
+    if (updateData.pages) updateData.pages = parseInt(updateData.pages)
+    if (Array.isArray(updateData.tags)) updateData.tags = updateData.tags.join(', ')
+
+    const book = await prisma.book.update({
+      where: { id },
+      data: updateData
+    })
+
+    return NextResponse.json({ success: true, data: book })
+  } catch (error) {
+    console.error('Error updating book:', error)
+    return NextResponse.json({ success: false, error: 'Failed to update book' }, { status: 500 })
+  }
+}
+
+// DELETE /api/admin/books - Delete book
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Book ID is required' }, { status: 400 })
+    }
+
+    await prisma.book.delete({
+      where: { id }
+    })
+
+    return NextResponse.json({ success: true, message: 'Book deleted successfully' })
+  } catch (error) {
+    console.error('Error deleting book:', error)
+    return NextResponse.json({ success: false, error: 'Failed to delete book' }, { status: 500 })
   }
 }

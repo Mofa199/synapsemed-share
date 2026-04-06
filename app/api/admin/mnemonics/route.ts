@@ -1,67 +1,53 @@
-// Build-safe implementation that returns mock data during build
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { UserRole, Difficulty } from '@prisma/client'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
-// GET - Get all mnemonics or a single mnemonic by ID (admin view)
+// GET /api/admin/mnemonics - Get all mnemonics
 export async function GET(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const id = searchParams.get('id');
-
-    // If ID is provided, return single mock mnemonic
-    if (id) {
-      const mockMnemonic = {
-        id,
-        conceptId: 'sample-concept-id',
-        title: 'Sample Mnemonic',
-        mnemonic: 'Sample mnemonic text',
-        explanation: 'Sample explanation',
-        example: 'Sample example',
-        category: 'Acronym',
-        isVerified: true,
-        upvotes: 10,
-        downvotes: 0,
-        createdBy: 'admin',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      return NextResponse.json(mockMnemonic);
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Otherwise return mock mnemonics
-    const mockMnemonics = [
-      {
-        id: '1',
-        conceptId: 'sample-concept-id',
-        title: 'Sample Mnemonic',
-        mnemonic: 'Sample mnemonic text',
-        explanation: 'Sample explanation',
-        example: 'Sample example',
-        category: 'Acronym',
-        isVerified: true,
-        upvotes: 10,
-        downvotes: 0,
-        createdBy: 'admin',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }
-    ];
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
 
-    return NextResponse.json(mockMnemonics);
+    if (id) {
+      const mnemonic = await prisma.mnemonic.findUnique({
+        where: { id },
+        include: { concept: true }
+      })
+      if (!mnemonic) return NextResponse.json({ success: false, error: 'Mnemonic not found' }, { status: 404 })
+      return NextResponse.json({ success: true, data: mnemonic })
+    }
+
+    const mnemonics = await prisma.mnemonic.findMany({
+      include: { concept: true },
+      orderBy: { createdAt: 'desc' }
+    })
+
+    return NextResponse.json(mnemonics) // Matching frontend expectation of returning the array directly
   } catch (error) {
-    console.error('Error fetching mnemonics:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch mnemonics' },
-      { status: 500 }
-    );
+    console.error('Error fetching mnemonics:', error)
+    return NextResponse.json({ success: false, error: 'Failed to fetch mnemonics' }, { status: 500 })
   }
 }
 
-// POST - Create new mnemonic (admin)
+// POST /api/admin/mnemonics - Create new mnemonic
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    let {
       conceptId,
       title,
       mnemonic,
@@ -69,127 +55,115 @@ export async function POST(request: NextRequest) {
       example,
       category,
       isVerified
-    } = body;
+    } = body
 
-    if (!conceptId || !title || !mnemonic || !explanation) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
+    if (!title || !mnemonic || !explanation) {
+      return NextResponse.json({ success: false, error: 'Title, mnemonic, and explanation are required' }, { status: 400 })
     }
 
-    const mockMnemonic = {
-      id: Math.random().toString(36).substring(7),
-      conceptId,
-      title,
-      mnemonic,
-      explanation,
-      example: example || null,
-      category: category || 'Acronym',
-      isVerified: isVerified !== undefined ? isVerified : true,
-      upvotes: 0,
-      downvotes: 0,
-      createdBy: 'admin',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    // Auto-create or find a default concept if not provided
+    if (!conceptId) {
+      let defaultConcept = await prisma.concept.findFirst({
+        where: { title: category || 'General' }
+      })
+      
+      if (!defaultConcept) {
+        defaultConcept = await prisma.concept.create({
+          data: {
+            title: category || 'General',
+            description: category || 'General',
+            content: category || 'General',
+            category: category || 'General',
+            tags: category || 'General'
+          }
+        })
+      }
+      conceptId = defaultConcept.id
+    }
+
+    const newMnemonic = await prisma.mnemonic.create({
+      data: {
+        conceptId,
+        title,
+        mnemonic,
+        explanation,
+        example: example || null,
+        category: category || 'Acronym',
+        isVerified: isVerified !== undefined ? !!isVerified : false,
+        createdBy: session.user.name || 'Admin',
+      }
+    })
 
     return NextResponse.json({
       success: true,
-      mnemonic: mockMnemonic
-    });
+      mnemonic: newMnemonic
+    })
   } catch (error) {
-    console.error('Error creating mnemonic:', error);
-    return NextResponse.json(
-      { error: 'Failed to create mnemonic' },
-      { status: 500 }
-    );
+    console.error('Error creating mnemonic:', error)
+    return NextResponse.json({ success: false, error: 'Failed to create mnemonic' }, { status: 500 })
   }
 }
 
-// PUT - Update mnemonic (admin)
+// PUT /api/admin/mnemonics - Update mnemonic
 export async function PUT(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
     const url = new URL(request.url);
     const id = url.pathname.split('/').pop();
-
-    if (!id) {
-      return NextResponse.json(
-        { error: 'Mnemonic ID is required' },
-        { status: 400 }
-      );
-    }
-
     const body = await request.json();
-    const {
-      conceptId,
-      title,
-      mnemonic,
-      explanation,
-      example,
-      category,
-      isVerified
-    } = body;
+    const { id: bodyId, ...updateData } = body;
+    const targetId = id === 'mnemonics' ? bodyId : id;
 
-    if (!conceptId || !title || !mnemonic || !explanation) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
+    if (!targetId) {
+      return NextResponse.json({ success: false, error: 'Mnemonic ID is required' }, { status: 400 })
     }
 
-    const updatedMnemonic = {
-      id,
-      conceptId,
-      title,
-      mnemonic,
-      explanation,
-      example: example || null,
-      category: category || 'Acronym',
-      isVerified: isVerified !== undefined ? isVerified : true,
-      upvotes: 0,
-      downvotes: 0,
-      createdBy: 'admin',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    const updatedMnemonic = await prisma.mnemonic.update({
+      where: { id: targetId },
+      data: updateData
+    })
 
     return NextResponse.json({
       success: true,
       mnemonic: updatedMnemonic
-    });
+    })
   } catch (error) {
-    console.error('Error updating mnemonic:', error);
-    return NextResponse.json(
-      { error: 'Failed to update mnemonic' },
-      { status: 500 }
-    );
+    console.error('Error updating mnemonic:', error)
+    return NextResponse.json({ success: false, error: 'Failed to update mnemonic' }, { status: 500 })
   }
 }
 
-// DELETE - Delete mnemonic
+// DELETE /api/admin/mnemonics - Delete mnemonic
 export async function DELETE(request: NextRequest) {
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const id = searchParams.get('id');
-
-    if (!id) {
-      return NextResponse.json(
-        { error: 'Mnemonic ID is required' },
-        { status: 400 }
-      );
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Return success during build time
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Mnemonic ID is required' }, { status: 400 })
+    }
+
+    await prisma.mnemonic.delete({
+      where: { id }
+    })
+
     return NextResponse.json({
       success: true,
-      message: 'Mnemonic deleted'
-    });
+      message: 'Mnemonic deleted successfully'
+    })
   } catch (error) {
-    console.error('Error deleting mnemonic:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete mnemonic' },
-      { status: 500 }
-    );
+    console.error('Error deleting mnemonic:', error)
+    return NextResponse.json({ success: false, error: 'Failed to delete mnemonic' }, { status: 500 })
   }
 }

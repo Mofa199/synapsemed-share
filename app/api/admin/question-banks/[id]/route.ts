@@ -1,12 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getQuestionBankById, updateQuestionBank, deleteQuestionBank } from '@/lib/db-utils'
+import { prisma } from '@/lib/prisma'
+import { UserRole, Difficulty } from '@prisma/client'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const questionBank = await getQuestionBankById(params.id)
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const questionBank = await prisma.questionBank.findUnique({
+      where: { id: params.id },
+      include: {
+        questions: true,
+        _count: {
+          select: { questions: true }
+        }
+      }
+    })
     
     if (!questionBank) {
       return NextResponse.json(
@@ -30,40 +47,35 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
     const body = await request.json()
     const { 
-      name, 
+      name, // Mapping 'name' from frontend to 'title' in schema
       description, 
       difficulty,
-      examType,
       category,
-      timeLimit,
-      passingScore,
-      curriculumId,
-      moduleId,
+      estimatedTime,
       tags,
       isPublished
     } = body
 
-    if (!name || !description || !difficulty) {
-      return NextResponse.json(
-        { success: false, error: 'Name, description, and difficulty are required' },
-        { status: 400 }
-      )
-    }
+    const updateData: any = {}
+    if (name !== undefined) updateData.title = name
+    if (description !== undefined) updateData.description = description
+    if (difficulty !== undefined) updateData.difficulty = difficulty as Difficulty
+    if (category !== undefined) updateData.category = category
+    if (estimatedTime !== undefined) updateData.estimatedTime = estimatedTime.toString()
+    if (tags !== undefined) updateData.tags = Array.isArray(tags) ? tags.join(', ') : tags
+    if (isPublished !== undefined) updateData.isPublished = !!isPublished
 
-    const questionBank = await updateQuestionBank(params.id, {
-      name,
-      description,
-      difficulty,
-      examType,
-      category,
-      timeLimit: timeLimit ? parseInt(timeLimit) : undefined,
-      passingScore: passingScore ? parseInt(passingScore) : undefined,
-      curriculumId,
-      moduleId,
-      tags,
-      isPublished,
+    const questionBank = await prisma.questionBank.update({
+      where: { id: params.id },
+      data: updateData
     })
 
     return NextResponse.json({ success: true, data: questionBank })
@@ -81,7 +93,16 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    await deleteQuestionBank(params.id)
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    await prisma.questionBank.delete({
+      where: { id: params.id }
+    })
+    
     return NextResponse.json({ success: true, message: 'Question bank deleted successfully' })
   } catch (error) {
     console.error('Error deleting question bank:', error)

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { verifyTokenFromRequest } from '@/lib/db-utils'
+import { UserRole } from '@prisma/client'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
 // GET /api/admin/users/[id] - Get specific user
 export async function GET(
@@ -8,15 +10,20 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
-    const adminUser = await verifyTokenFromRequest(request)
-    const adminRoles = ['SUPER_ADMIN', 'LECTURER', 'EDITOR']
+    const session = await getServerSession(authOptions)
+    const adminRoles = [UserRole.SUPER_ADMIN, UserRole.LECTURER, UserRole.EDITOR]
     
-    if (!adminUser || !adminRoles.includes(adminUser.role)) {
+    if (!session || !adminRoles.includes(session.user.role as UserRole)) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = params
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'User ID is required' }, { status: 400 })
+    }
+
     const user = await prisma.user.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: {
         id: true,
         name: true,
@@ -53,26 +60,31 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const adminUser = await verifyTokenFromRequest(request)
-    const adminRoles = ['SUPER_ADMIN', 'LECTURER', 'EDITOR']
+    const session = await getServerSession(authOptions)
+    const adminRoles = [UserRole.SUPER_ADMIN, UserRole.LECTURER, UserRole.EDITOR]
     
-    if (!adminUser || !adminRoles.includes(adminUser.role)) {
+    if (!session || !adminRoles.includes(session.user.role as UserRole)) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { id } = params
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'User ID is required' }, { status: 400 })
     }
 
     const body = await request.json()
     const { name, email, role, field, level, points, isActive } = body
 
     const updatedUser = await prisma.user.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(name && { name }),
         ...(email && { email }),
-        ...(role && { role }),
+        ...(role && { role: role as UserRole }),
         ...(field && { field }),
-        ...(level !== undefined && { level }),
-        ...(points !== undefined && { points }),
-        ...(isActive !== undefined && { isActive }),
+        ...(level !== undefined && { level: parseInt(level) }),
+        ...(points !== undefined && { points: parseInt(points) }),
+        ...(isActive !== undefined && { isActive: !!isActive }),
       }
     })
 
@@ -95,13 +107,19 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const adminUser = await verifyTokenFromRequest(request)
-    if (!adminUser || adminUser.role !== 'SUPER_ADMIN') {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = params
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'User ID is required' }, { status: 400 })
+    }
+
     await prisma.user.update({
-      where: { id: params.id },
+      where: { id },
       data: { isActive: false }
     })
 
@@ -116,4 +134,4 @@ export async function DELETE(
       error: 'Failed to delete user'
     }, { status: 500 })
   }
-}
+}

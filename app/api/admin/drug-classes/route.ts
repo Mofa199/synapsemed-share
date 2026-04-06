@@ -1,31 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { UserRole } from '@prisma/client'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
-// Build-safe implementation that returns mock data during build
 // GET /api/admin/drug-classes - Get all drug classes
 export async function GET(request: NextRequest) {
-  // Return mock data during build time
-  const mockDrugClasses = [
-    {
-      id: '1',
-      name: 'Sample Drug Class',
-      category: 'Sample Category',
-      description: 'Sample drug class description',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      drugs: []
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-  ];
-  
-  return NextResponse.json({
-    success: true,
-    data: mockDrugClasses
-  });
+
+    const { searchParams } = new URL(request.url)
+    const category = searchParams.get('category')
+
+    const drugClasses = await prisma.drugClass.findMany({
+      where: category ? { category } : {},
+      orderBy: { name: 'asc' },
+      include: {
+        _count: { select: { drugs: true } }
+      }
+    })
+    
+    return NextResponse.json({
+      success: true,
+      data: drugClasses
+    });
+  } catch (error) {
+    console.error('Error fetching drug classes:', error);
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to fetch drug classes'
+    }, { status: 500 });
+  }
 }
 
 // POST /api/admin/drug-classes - Create new drug class
 export async function POST(request: NextRequest) {
   try {
-    // In build mode, just return mock data
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const body = await request.json()
     const {
       name,
@@ -36,22 +56,21 @@ export async function POST(request: NextRequest) {
     if (!name || !category) {
       return NextResponse.json({
         success: false,
-        error: 'Missing required fields'
+        error: 'Name and category are required'
       }, { status: 400 })
     }
 
-    const mockDrugClass = {
-      id: Math.random().toString(36).substring(7),
-      name,
-      category,
-      description: description || '',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    const drugClass = await prisma.drugClass.create({
+      data: {
+        name,
+        category,
+        description: description || null,
+      }
+    });
 
     return NextResponse.json({
       success: true,
-      data: mockDrugClass
+      data: drugClass
     });
   } catch (error) {
     console.error('Error creating drug class:', error);
@@ -65,21 +84,19 @@ export async function POST(request: NextRequest) {
 // PUT /api/admin/drug-classes - Update drug class
 export async function PUT(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const body = await request.json()
     const {
+      id,
       name,
       category,
       description,
-      mechanism,
-      therapeuticUses,
-      commonSideEffects,
-      contraindications,
-      drugs
     } = body
-
-    // Extract ID from URL
-    const url = new URL(request.url)
-    const id = url.searchParams.get('id')
 
     if (!id) {
       return NextResponse.json({
@@ -88,24 +105,18 @@ export async function PUT(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Return mock updated drug class during build time
-    const mockDrugClass = {
-      id,
-      name: name || 'Sample Drug Class',
-      category: category || 'Sample Category',
-      description: description || 'Sample drug class description',
-      mechanism,
-      therapeuticUses,
-      commonSideEffects,
-      contraindications,
-      drugs,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    const drugClass = await prisma.drugClass.update({
+      where: { id },
+      data: {
+        name,
+        category,
+        description,
+      }
+    });
 
     return NextResponse.json({
       success: true,
-      data: mockDrugClass
+      data: drugClass
     });
   } catch (error) {
     console.error('Error updating drug class:', error);
@@ -119,6 +130,12 @@ export async function PUT(request: NextRequest) {
 // DELETE /api/admin/drug-classes - Delete drug class
 export async function DELETE(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
 
@@ -129,7 +146,10 @@ export async function DELETE(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Return success during build time
+    await prisma.drugClass.delete({
+      where: { id }
+    })
+
     return NextResponse.json({
       success: true,
       message: 'Drug class deleted successfully'

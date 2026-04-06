@@ -1,66 +1,123 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { UserRole, Difficulty } from '@prisma/client'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
-// GET /api/admin/simulations
-export async function GET(req: NextRequest) {
+// GET /api/admin/simulations - Get all simulations
+export async function GET() {
   try {
-    // Fetch all simulations
-    const simulations = await prisma.topic.findMany({
-      where: {
-        type: "INTERACTIVE",
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const simulations = await prisma.simulation.findMany({
+      orderBy: { createdAt: 'desc' }
     })
 
-    // Parse tags from JSON strings
-    const simulationsWithTags = simulations.map(simulation => ({
-      ...simulation,
-      tags: simulation.tags ? JSON.parse(simulation.tags) : []
-    }));
-
-    return NextResponse.json({ success: true, data: simulationsWithTags })
+    return NextResponse.json({ success: true, data: simulations })
   } catch (error) {
-    console.error("Error fetching simulations:", error)
-    return new NextResponse("Internal Server Error", { status: 500 })
+    console.error('Error fetching simulations:', error)
+    return NextResponse.json({ success: false, error: 'Failed to fetch simulations' }, { status: 500 })
   }
 }
 
-// POST /api/admin/simulations
-export async function POST(req: NextRequest) {
+// POST /api/admin/simulations - Create new simulation
+export async function POST(request: NextRequest) {
   try {
-    const formData = await req.formData()
+    const session = await getServerSession(authOptions)
     
-    const title = formData.get('title') as string
-    const description = formData.get('description') as string
-    const content = formData.get('content') as string
-    const type = formData.get('type') as string
-    const difficulty = formData.get('difficulty') as string
-    const duration = formData.get('duration') as string
-    const category = formData.get('category') as string
-    const tags = JSON.parse(formData.get('tags') as string || '[]')
-    const isPublished = formData.get('isPublished') === 'true'
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
 
-    // Create the simulation as a topic with interactive type
-    const simulation = await prisma.topic.create({
+    const body = await request.json()
+    const { 
+      title, description, content, type, 
+      difficulty, estimatedTime, tags, isPublished 
+    } = body
+
+    if (!title || !content || !type) {
+      return NextResponse.json({ success: false, error: 'Title, content, and type are required' }, { status: 400 })
+    }
+
+    const simulation = await prisma.simulation.create({
       data: {
         title,
-        description,
-        content: content || "",
-        type: "INTERACTIVE",
-        difficulty: difficulty as any,
-        duration: duration || null,
-        category: category || null,
-        tags: JSON.stringify(tags), // Convert to JSON string for SQLite
-        isPublished,
-        views: 0,
-      },
+        description: description || null,
+        content,
+        type,
+        difficulty: (difficulty as Difficulty) || Difficulty.BEGINNER,
+        estimatedTime: estimatedTime ? estimatedTime.toString() : null,
+        tags: Array.isArray(tags) ? tags.join(', ') : (tags || ""),
+        isPublished: !!isPublished,
+      }
     })
 
     return NextResponse.json({ success: true, data: simulation })
   } catch (error) {
-    console.error("Error creating simulation:", error)
-    return new NextResponse("Internal Server Error", { status: 500 })
+    console.error('Error creating simulation:', error)
+    return NextResponse.json({ success: false, error: 'Failed to create simulation' }, { status: 500 })
+  }
+}
+
+// PUT /api/admin/simulations - Update simulation
+export async function PUT(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { id, ...updateData } = body
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Simulation ID is required' }, { status: 400 })
+    }
+
+    const processedData: any = { ...updateData }
+    if (Array.isArray(processedData.tags)) processedData.tags = processedData.tags.join(', ')
+    if (processedData.estimatedTime) processedData.estimatedTime = processedData.estimatedTime.toString()
+
+    const simulation = await prisma.simulation.update({
+      where: { id },
+      data: processedData
+    })
+
+    return NextResponse.json({ success: true, data: simulation })
+  } catch (error) {
+    console.error('Error updating simulation:', error)
+    return NextResponse.json({ success: false, error: 'Failed to update simulation' }, { status: 500 })
+  }
+}
+
+// DELETE /api/admin/simulations - Delete simulation
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Simulation ID is required' }, { status: 400 })
+    }
+
+    await prisma.simulation.delete({
+      where: { id }
+    })
+
+    return NextResponse.json({ success: true, message: 'Simulation deleted successfully' })
+  } catch (error) {
+    console.error('Error deleting simulation:', error)
+    return NextResponse.json({ success: false, error: 'Failed to delete simulation' }, { status: 500 })
   }
 }

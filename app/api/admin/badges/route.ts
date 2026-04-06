@@ -1,74 +1,71 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { UserRole } from '@prisma/client'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
-// Build-safe implementation that returns mock data during build
-export async function GET(request: NextRequest) {
-  // Return mock data during build time
-  const mockBadges = [
-    {
-      id: '1',
-      name: 'Sample Badge',
-      description: 'Sample badge description',
-      category: 'Sample Category',
-      isActive: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+// GET /api/admin/badges - Get all badges
+export async function GET() {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
-  ];
-  
-  const { searchParams } = new URL(request.url)
-  const search = searchParams.get('search')
-  const category = searchParams.get('category')
 
-  let badges = mockBadges
+    const badges = await prisma.badge.findMany({
+      orderBy: { createdAt: 'desc' }
+    })
 
-  if (category && category !== 'all') {
-    badges = badges.filter(badge => badge.category === category)
+    return NextResponse.json({
+      success: true,
+      data: badges,
+      total: badges.length
+    });
+  } catch (error) {
+    console.error('Error fetching badges:', error);
+    return NextResponse.json({ success: false, error: 'Failed to fetch badges' }, { status: 500 })
   }
-
-  if (search) {
-    badges = badges.filter(badge => 
-      badge.name.toLowerCase().includes(search.toLowerCase()) ||
-      (badge.description && badge.description.toLowerCase().includes(search.toLowerCase()))
-    )
-  }
-
-  return NextResponse.json({
-    success: true,
-    data: badges,
-    total: badges.length
-  });
 }
 
+// POST /api/admin/badges - Create new badge
 export async function POST(request: NextRequest) {
   try {
-    const data = await request.json()
+    const session = await getServerSession(authOptions)
     
-    // Validate required fields
-    if (!data.name || !data.description) {
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const data = await request.json()
+    const { 
+      name, description, icon, color, 
+      category, criteria, pointsRequired, isActive 
+    } = data
+    
+    if (!name || !description) {
       return NextResponse.json(
         { success: false, error: 'Name and description are required' },
         { status: 400 }
       )
     }
 
-    // Create mock badge during build time
-    const mockBadge = {
-      id: Math.random().toString(36).substring(7),
-      name: data.name,
-      description: data.description,
-      icon: data.icon,
-      color: data.color,
-      category: data.category,
-      criteria: data.criteria,
-      pointsRequired: data.pointsRequired ? parseInt(data.pointsRequired) : undefined,
-      isActive: data.isActive !== undefined ? data.isActive : true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    const badge = await prisma.badge.create({
+      data: {
+        name,
+        description: description || null,
+        icon: icon || null,
+        color: color || null,
+        category: category || null,
+        criteria: criteria || null,
+        pointsRequired: pointsRequired ? parseInt(pointsRequired) : null,
+        isActive: isActive !== undefined ? !!isActive : true,
+      }
+    });
 
     return NextResponse.json({
       success: true,
-      data: mockBadge,
+      data: badge,
       message: 'Badge created successfully'
     });
   } catch (error) {
@@ -77,5 +74,65 @@ export async function POST(request: NextRequest) {
       { success: false, error: 'Failed to create badge' },
       { status: 500 }
     );
+  }
+}
+
+// PUT /api/admin/badges - Update badge
+export async function PUT(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { id, ...updateData } = body
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Badge ID is required' }, { status: 400 })
+    }
+
+    const processedData: any = { ...updateData }
+    if (processedData.pointsRequired !== undefined) {
+      processedData.pointsRequired = parseInt(processedData.pointsRequired)
+    }
+
+    const badge = await prisma.badge.update({
+      where: { id },
+      data: processedData
+    })
+
+    return NextResponse.json({ success: true, data: badge })
+  } catch (error) {
+    console.error('Error updating badge:', error)
+    return NextResponse.json({ success: false, error: 'Failed to update badge' }, { status: 500 })
+  }
+}
+
+// DELETE /api/admin/badges - Delete badge
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const id = searchParams.get('id')
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Badge ID is required' }, { status: 400 })
+    }
+
+    await prisma.badge.delete({
+      where: { id }
+    })
+
+    return NextResponse.json({ success: true, message: 'Badge deleted successfully' })
+  } catch (error) {
+    console.error('Error deleting badge:', error)
+    return NextResponse.json({ success: false, error: 'Failed to delete badge' }, { status: 500 })
   }
 }

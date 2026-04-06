@@ -1,66 +1,65 @@
-// Build-safe implementation that returns mock data during build
 import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { UserRole } from '@prisma/client'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
 // GET /api/admin/drugs - Get all drugs
 export async function GET(request: NextRequest) {
-  // Return mock data during build time
-  const mockDrugs = [
-    {
-      id: '1',
-      name: 'Sample Drug',
-      genericName: 'Sample Generic Name',
-      brandNames: ['Sample Brand'],
-      drugClassId: 'sample-class-id',
-      description: 'Sample drug description',
-      mechanism: 'Sample mechanism of action',
-      indications: ['Indication 1'],
-      dosageAdult: 'As directed',
-      dosagePediatric: 'As directed',
-      dosageElderly: 'As directed',
-      contraindications: ['Contraindication 1'],
-      interactions: ['Interaction 1'],
-      drugClass: {
-        id: 'sample-class-id',
-        name: 'Sample Drug Class',
-        category: 'Sample Category',
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-  ];
-  
-  const { searchParams } = new URL(request.url)
-  const drugClassId = searchParams.get('drugClassId')
-  const category = searchParams.get('category')
-  const search = searchParams.get('search')
 
-  let drugs = mockDrugs
+    const { searchParams } = new URL(request.url)
+    const drugClassId = searchParams.get('drugClassId')
+    const category = searchParams.get('category')
+    const search = searchParams.get('search')
 
-  if (drugClassId) {
-    drugs = drugs.filter(drug => drug.drugClassId === drugClassId)
+    const where: any = {}
+    if (drugClassId) where.drugClassId = drugClassId
+    if (category) where.drugClass = { category }
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { genericName: { contains: search, mode: 'insensitive' } },
+      ]
+    }
+
+    const drugs = await prisma.drug.findMany({
+      where,
+      include: {
+        drugClass: {
+          select: { id: true, name: true, category: true }
+        }
+      },
+      orderBy: { name: 'asc' }
+    })
+
+    return NextResponse.json({
+      success: true,
+      data: drugs
+    });
+  } catch (error) {
+    console.error('Error fetching drugs:', error);
+    return NextResponse.json({
+      success: false,
+      error: 'Failed to fetch drugs'
+    }, { status: 500 });
   }
-
-  if (category) {
-    drugs = drugs.filter(drug => drug.drugClass?.category === category)
-  }
-
-  if (search) {
-    drugs = drugs.filter(drug => 
-      drug.name.toLowerCase().includes(search.toLowerCase()) ||
-      drug.genericName.toLowerCase().includes(search.toLowerCase())
-    )
-  }
-
-  return NextResponse.json({
-    success: true,
-    data: drugs
-  })
 }
 
 // POST /api/admin/drugs - Create new drug
 export async function POST(request: NextRequest) {
   try {
-    // In build mode, just return mock data
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const body = await request.json()
     const {
       name,
@@ -74,42 +73,59 @@ export async function POST(request: NextRequest) {
       dosagePediatric,
       dosageElderly,
       contraindications,
-      interactions
+      warnings,
+      sideEffectsCommon,
+      sideEffectsSerious,
+      sideEffectsRare,
+      interactions,
+      monitoring,
+      storage,
+      pregnancy,
+      administrationRoute,
+      isActive = true
     } = body
 
-    if (!name || !genericName || !drugClassId) {
+    if (!name || !drugClassId) {
       return NextResponse.json({
         success: false,
-        error: 'Missing required fields'
+        error: 'Name and drug class ID are required'
       }, { status: 400 })
     }
 
-    const mockDrug = {
-      id: Math.random().toString(36).substring(7),
-      name,
-      genericName,
-      brandNames: brandNames || [],
-      drugClassId,
-      description: description || '',
-      mechanism: mechanism || '',
-      indications: indications || [],
-      dosageAdult: dosageAdult || '',
-      dosagePediatric: dosagePediatric || '',
-      dosageElderly: dosageElderly || '',
-      contraindications: contraindications || [],
-      interactions: interactions || [],
-      drugClass: {
-        id: drugClassId,
-        name: 'Sample Drug Class',
-        category: 'Sample Category',
+    const drug = await prisma.drug.create({
+      data: {
+        name,
+        genericName: genericName || null,
+        brandNames: Array.isArray(brandNames) ? brandNames.join(', ') : (brandNames || ''),
+        drugClassId,
+        description: description || null,
+        mechanism: mechanism || null,
+        indications: Array.isArray(indications) ? indications.join('\n') : (indications || ''),
+        dosageAdult: dosageAdult || null,
+        dosagePediatric: dosagePediatric || null,
+        dosageElderly: dosageElderly || null,
+        contraindications: Array.isArray(contraindications) ? contraindications.join('\n') : (contraindications || ''),
+        warnings: Array.isArray(warnings) ? warnings.join('\n') : (warnings || ''),
+        sideEffectsCommon: Array.isArray(sideEffectsCommon) ? sideEffectsCommon.join('\n') : (sideEffectsCommon || ''),
+        sideEffectsSerious: Array.isArray(sideEffectsSerious) ? sideEffectsSerious.join('\n') : (sideEffectsSerious || ''),
+        sideEffectsRare: Array.isArray(sideEffectsRare) ? sideEffectsRare.join('\n') : (sideEffectsRare || ''),
+        interactions: Array.isArray(interactions) ? interactions.join('\n') : (interactions || ''),
+        monitoring: Array.isArray(monitoring) ? monitoring.join('\n') : (monitoring || ''),
+        storage: storage || null,
+        pregnancy: pregnancy || null,
+        administrationRoute: administrationRoute || null,
+        isActive,
       },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+      include: {
+        drugClass: {
+          select: { id: true, name: true, category: true }
+        }
+      }
+    });
 
     return NextResponse.json({
       success: true,
-      data: mockDrug
+      data: drug
     });
   } catch (error) {
     console.error('Error creating drug:', error);
@@ -123,22 +139,14 @@ export async function POST(request: NextRequest) {
 // PUT /api/admin/drugs - Update drug
 export async function PUT(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const body = await request.json()
-    const {
-      id,
-      name,
-      genericName,
-      brandNames,
-      drugClassId,
-      description,
-      mechanism,
-      indications,
-      dosageAdult,
-      dosagePediatric,
-      dosageElderly,
-      contraindications,
-      interactions
-    } = body
+    const { id, ...updateData } = body
 
     if (!id) {
       return NextResponse.json({
@@ -147,33 +155,33 @@ export async function PUT(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Return mock updated drug during build time
-    const updatedDrug = {
-      id,
-      name: name || 'Sample Drug',
-      genericName: genericName || 'Sample Generic Name',
-      brandNames: brandNames || [],
-      drugClassId: drugClassId || 'sample-class-id',
-      description: description || 'Sample drug description',
-      mechanism: mechanism || 'Sample mechanism of action',
-      indications: indications || [],
-      dosageAdult: dosageAdult || 'As directed',
-      dosagePediatric: dosagePediatric || 'As directed',
-      dosageElderly: dosageElderly || 'As directed',
-      contraindications: contraindications || [],
-      interactions: interactions || [],
-      drugClass: {
-        id: drugClassId || 'sample-class-id',
-        name: 'Sample Drug Class',
-        category: 'Sample Category',
-      },
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    // Process array fields to strings if they are arrays
+    const processedData: any = { ...updateData }
+    const arrayFields = [
+      'brandNames', 'indications', 'contraindications', 'warnings', 
+      'sideEffectsCommon', 'sideEffectsSerious', 'sideEffectsRare', 
+      'interactions', 'monitoring'
+    ]
+    
+    arrayFields.forEach(field => {
+      if (Array.isArray(processedData[field])) {
+        processedData[field] = processedData[field].join(field === 'brandNames' ? ', ' : '\n')
+      }
+    })
+
+    const drug = await prisma.drug.update({
+      where: { id },
+      data: processedData,
+      include: {
+        drugClass: {
+          select: { id: true, name: true, category: true }
+        }
+      }
+    });
 
     return NextResponse.json({
       success: true,
-      data: updatedDrug
+      data: drug
     });
   } catch (error) {
     console.error('Error updating drug:', error);
@@ -187,6 +195,12 @@ export async function PUT(request: NextRequest) {
 // DELETE /api/admin/drugs - Delete drug
 export async function DELETE(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
     const id = searchParams.get('id')
 
@@ -197,7 +211,10 @@ export async function DELETE(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Return success during build time
+    await prisma.drug.delete({
+      where: { id }
+    })
+
     return NextResponse.json({
       success: true,
       message: 'Drug deleted successfully'
