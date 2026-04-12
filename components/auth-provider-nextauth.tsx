@@ -63,61 +63,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  // useEffect(() => {
-  //   // Sync NextAuth session with our user state
-  //   const syncSession = async () => {
-  //     if (status === "authenticated" && session?.user) {
-  //       // Fetch full user data from database
-  //       try {
-  //         const response = await fetch('/api/users')
-  //         if (response.ok) {
-  //           const result = await response.json()
-  //           const dbUser = result.users.find((u: any) => u.email === session.user?.email)
+  useEffect(() => {
+    // Sync NextAuth session with our user state
+    const syncSession = async () => {
+      if (status === "authenticated" && session?.user) {
+        // Fetch full user data from database using our new profile API
+        try {
+          const response = await fetch('/api/user/profile')
+          if (response.ok) {
+            const result = await response.json()
+            if (result.success && result.data) {
+              const profileData = result.data
+              const userData: User = {
+                id: profileData.user.id,
+                name: profileData.user.name,
+                email: profileData.user.email,
+                role: profileData.user.role,
+                field: profileData.user.field,
+                avatar: profileData.user.avatarUrl,
+                level: profileData.gamification.level || 1,
+                points: profileData.gamification.points || 0,
+                streak: profileData.gamification.streak || 0,
+                badges: profileData.badges.map((b: any) => b.id) || [],
+              }
 
-  //           if (dbUser) {
-  //             const userData: User = {
-  //               id: dbUser.id,
-  //               name: dbUser.name,
-  //               email: dbUser.email,
-  //               role: dbUser.role,
-  //               field: dbUser.field,
-  //               level: dbUser.level || 1,
-  //               points: dbUser.points || 0,
-  //               streak: dbUser.streak || 0,
-  //               badges: dbUser.badges || [],
-  //             }
+              console.log('Synced user state with database profile')
+              setUser(userData)
+              localStorage.setItem("synapse-user", JSON.stringify(userData))
 
-  //             setUser(userData)
-  //             localStorage.setItem("synapse-user", JSON.stringify(userData))
+              // Set cookies for middleware
+              const userJson = JSON.stringify(userData)
+              const encodedUser = encodeURIComponent(userJson)
 
-  //             // Set cookies for middleware
-  //             const userJson = JSON.stringify(userData)
-  //             const encodedUser = encodeURIComponent(userJson)
+              // Clear legacy cookies
+              document.cookie = "synapse-user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+              
+              // Set fresh cookies
+              document.cookie = `synapse-user=${encodedUser}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`
+            }
+          }
+        } catch (error) {
+          console.error('Error syncing session with database:', error)
+        }
+      } else if (status === "unauthenticated") {
+        setUser(null)
+        localStorage.removeItem("synapse-user")
 
-  //             // Clear any existing auth cookies first
-  //             document.cookie = "synapse-user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
-  //             document.cookie = "auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+        // Clear cookies
+        document.cookie = "synapse-user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+        document.cookie = "auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+      }
+    }
 
-  //             // Set new cookies
-  //             document.cookie = `synapse-user=${encodedUser}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`
-  //             document.cookie = `auth-token=nextauth-token-${userData.id}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`
-  //           }
-  //         }
-  //       } catch (error) {
-  //         console.error('Error fetching user data:', error)
-  //       }
-  //     } else if (status === "unauthenticated") {
-  //       setUser(null)
-  //       localStorage.removeItem("synapse-user")
-
-  //       // Clear cookies
-  //       document.cookie = "synapse-user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
-  //       document.cookie = "auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
-  //     }
-  //   }
-
-  //   syncSession()
-  // }, [session, status])
+    syncSession()
+  }, [session, status])
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
@@ -195,9 +194,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem("synapse-user")
 
     // Clear cookies
-    document.cookie = "synapse-user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
-    document.cookie = "auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
-    window.location.href = "/"
+    if (typeof window !== 'undefined') {
+      document.cookie = "synapse-user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+      document.cookie = "auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+      window.location.href = "/"
+    }
   }
 
   const updateUser = (updates: Partial<User>) => {

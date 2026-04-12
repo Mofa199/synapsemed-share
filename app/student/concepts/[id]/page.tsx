@@ -59,11 +59,11 @@ interface Mnemonic {
   createdAt: Date;
 }
 
-export default function ConceptDetailPage() {
-  const params = useParams();
+import React from "react";
+
+export default function ConceptDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: conceptId } = React.use(params);
   const router = useRouter();
-  const { toast } = useToast();
-  const conceptId = params.id as string;
   const userId = "student-001"; // In real app, get from auth
   
   const [concept, setConcept] = useState<Concept | null>(null);
@@ -118,6 +118,7 @@ export default function ConceptDetailPage() {
   };
 
   const checkFavoriteStatus = () => {
+    if (typeof window === 'undefined') return;
     const stored = localStorage.getItem('conceptFavorites');
     if (stored) {
       const favorites = JSON.parse(stored);
@@ -174,14 +175,16 @@ export default function ConceptDetailPage() {
         setIsFavorited(data.favorited);
         
         // Update localStorage
-        const stored = localStorage.getItem('conceptFavorites');
-        let favorites = stored ? JSON.parse(stored) : [];
-        if (data.favorited) {
-          favorites.push(conceptId);
-        } else {
-          favorites = favorites.filter((id: string) => id !== conceptId);
+        if (typeof window !== 'undefined') {
+          const stored = localStorage.getItem('conceptFavorites');
+          let favorites = stored ? JSON.parse(stored) : [];
+          if (data.favorited) {
+            favorites.push(conceptId);
+          } else {
+            favorites = favorites.filter((id: string) => id !== conceptId);
+          }
+          localStorage.setItem('conceptFavorites', JSON.stringify(favorites));
         }
-        localStorage.setItem('conceptFavorites', JSON.stringify(favorites));
         
         toast({
           title: data.favorited ? "Added to favorites" : "Removed from favorites",
@@ -198,6 +201,8 @@ export default function ConceptDetailPage() {
   };
 
   const handleShare = async () => {
+    if (typeof window === 'undefined') return;
+
     const shareData = {
       title: concept?.title || "Concept",
       text: concept?.description || "",
@@ -205,7 +210,7 @@ export default function ConceptDetailPage() {
     };
 
     try {
-      if (navigator.share) {
+      if (typeof navigator !== 'undefined' && navigator.share) {
         await navigator.share(shareData);
       } else {
         await navigator.clipboard.writeText(shareData.url);

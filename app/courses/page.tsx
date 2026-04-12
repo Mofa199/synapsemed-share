@@ -215,7 +215,7 @@ export default function CoursesPage() {
   }
 
   // Filter curriculum by user's field
-  const userCurriculum = curricula.find(c => c.field === user.field) || curricula[0]
+  const userCurriculum = curricula.find(c => c.field === user?.field) || curricula[0]
 
   const getFieldIcon = (field: string) => {
     switch (field) {
@@ -543,7 +543,7 @@ export default function CoursesPage() {
                 <div className="text-3xl font-bold text-[#f3ab1b] mb-2">{user?.streak || 0}</div>
                 <p className="text-sm text-gray-600">Days in a row</p>
                 <Badge className="mt-2 bg-[#f3ab1b] text-[#213874]">
-                  {user?.streak > 5 ? "On Fire! 🔥" : "Keep Going! 💪"}
+                  {user && user.streak > 5 ? "On Fire! 🔥" : "Keep Going! 💪"}
                 </Badge>
               </div>
             </CardContent>

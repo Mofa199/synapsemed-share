@@ -11,10 +11,11 @@ import { BookOpen, Clock, Users, Award, Play, CheckCircle } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useParams } from "next/navigation"
 
-export default function TopicPage() {
+import React from "react";
+
+export default function TopicPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: topicId } = React.use(params);
   const { user } = useAuth()
-  const params = useParams()
-  const topicId = params.id as string
   const [topic, setTopic] = useState<any>(null)
   const [loading, setLoading] = useState(true)
 

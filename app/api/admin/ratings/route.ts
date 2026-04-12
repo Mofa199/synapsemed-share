@@ -5,11 +5,16 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     const resourceType = searchParams.get('resourceType')
+    const userId = searchParams.get('userId')
 
     let ratings = await getAllRatings()
 
     if (resourceType) {
-      ratings = ratings.filter(r => r.resourceType === resourceType)
+      ratings = ratings.filter((r: any) => r.resourceType === resourceType)
+    }
+
+    if (userId) {
+      ratings = ratings.filter((r: any) => r.userId === userId)
     }
 
     return NextResponse.json({

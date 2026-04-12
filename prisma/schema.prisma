@@ -120,6 +120,7 @@ model Article {
   authorUser  User?       @relation("ArticleAuthor", fields: [authorId], references: [id])
   bookmarks   Bookmark[]
   highlights  Highlight[]
+  progress    Progress[]
   ratings     Rating[]
 
   @@map("articles")
@@ -148,6 +149,7 @@ model Book {
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
   bookmarks       Bookmark[]
+  progress        Progress[]
   curriculum      Curriculum? @relation(fields: [curriculumId], references: [id])
   module          Module?     @relation(fields: [moduleId], references: [id])
   ratings         Rating[]
@@ -200,6 +202,7 @@ model Drug {
   createdAt                  DateTime   @default(now())
   updatedAt                  DateTime   @updatedAt
   bookmarks                  Bookmark[]
+  progress                   Progress[]
   drugClass                  DrugClass  @relation(fields: [drugClassId], references: [id], onDelete: Cascade)
   ratings                    Rating[]
 
@@ -382,10 +385,16 @@ model Progress {
   userId               String
   resourceType         ResourceType
   topicId              String?
+  articleId            String?
+  bookId               String?
+  videoId              String?
+  drugId               String?
   questionBankId       String?
   studyGuideId         String?
   flashcardSetId       String?
   simulationId         String?
+  magazineId           String?
+  conceptId            String?
   status               ProgressStatus @default(NOT_STARTED)
   completionPercentage Int            @default(0)
   timeSpent            Int            @default(0)
@@ -393,16 +402,24 @@ model Progress {
   completedAt          DateTime?
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
+
+  article              Article?       @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  book                 Book?          @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  video                Video?         @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  drug                 Drug?          @relation(fields: [drugId], references: [id], onDelete: Cascade)
   flashcardSet         FlashcardSet?  @relation(fields: [flashcardSetId], references: [id], onDelete: Cascade)
   questionBank         QuestionBank?  @relation(fields: [questionBankId], references: [id], onDelete: Cascade)
   simulation           Simulation?    @relation(fields: [simulationId], references: [id], onDelete: Cascade)
   studyGuide           StudyGuide?    @relation(fields: [studyGuideId], references: [id], onDelete: Cascade)
   topic                Topic?         @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  magazine             Magazine?      @relation(fields: [magazineId], references: [id], onDelete: Cascade)
+  concept              Concept?       @relation(fields: [conceptId], references: [id], onDelete: Cascade)
   user                 User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([userId, resourceType, topicId, questionBankId, studyGuideId, flashcardSetId, simulationId])
+  @@unique([userId, resourceType, topicId, articleId, bookId, videoId, drugId, questionBankId, studyGuideId, flashcardSetId, simulationId, magazineId, conceptId])
   @@map("progress")
 }
+
 
 model ChatMessage {
   id        String      @id @default(cuid())
@@ -490,6 +507,7 @@ model Magazine {
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
   bookmarks   Bookmark[]
+  progress    Progress[]
   articles    MagazineArticle[]
   ratings     Rating[]
 
@@ -529,6 +547,7 @@ model Video {
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   bookmarks    Bookmark[]
+  progress     Progress[]
   ratings      Rating[]
   curriculum   Curriculum? @relation(fields: [curriculumId], references: [id])
   module       Module?     @relation(fields: [moduleId], references: [id])
@@ -859,6 +878,7 @@ model Concept {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
   mnemonics   Mnemonic[]
+  progress    Progress[]
 
   @@map("concepts")
 }

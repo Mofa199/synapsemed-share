@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Loader2, Brain, FileText, HelpCircle, Star, Sparkles, X, MessageSquare, Calendar } from 'lucide-react'
+import { Loader2, Brain, FileText, HelpCircle, Star, Sparkles, X, MessageSquare, Calendar, CheckCircle2 } from 'lucide-react'
 import { toast } from "@/hooks/use-toast"
 
 interface FloatingAIAssistantProps {

@@ -51,10 +51,12 @@ interface Question {
   }[]
 }
 
-export default function QuestionDetailsPage() {
+import React from "react";
+
+export default function QuestionDetailsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = React.use(params);
   const { user } = useAuth()
   const router = useRouter()
-  const params = useParams()
   const { toast } = useToast()
   const [question, setQuestion] = useState<Question | null>(null)
   const [loading, setLoading] = useState(true)
@@ -70,10 +72,10 @@ export default function QuestionDetailsPage() {
       return
     }
 
-    if (params.id) {
-      fetchQuestion(params.id as string)
+    if (id) {
+      fetchQuestion(id)
     }
-  }, [user, router, params.id])
+  }, [user, router, id])
 
   const fetchQuestion = async (id: string) => {
     try {

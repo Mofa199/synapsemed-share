@@ -54,7 +54,7 @@ export default function EditUserPage() {
   })
 
   useEffect(() => {
-    if (user?.role === "admin" && params.id) {
+    if ((user?.role === "SUPER_ADMIN" || user?.role === "LECTURER" || user?.role === "EDITOR") && params.id) {
       fetchUser()
     }
   }, [user, params.id])
@@ -141,7 +141,7 @@ export default function EditUserPage() {
     }
   }
 
-  if (user?.role !== "admin") {
+  if (user?.role !== "SUPER_ADMIN" && user?.role !== "LECTURER" && user?.role !== "EDITOR") {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">

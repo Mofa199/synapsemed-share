@@ -97,7 +97,10 @@ interface PatientCase {
   score?: number;
 }
 
-export default function TriageSimulationCasePage({ params }: { params: { id: string } }) {
+import React from "react";
+
+export default function TriageSimulationCasePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = React.use(params);
   const router = useRouter();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("triage");
@@ -110,7 +113,7 @@ export default function TriageSimulationCasePage({ params }: { params: { id: str
   
   // Mock case data - in a real app, this would come from an API
   const caseData: PatientCase = {
-    id: params.id,
+    id: id,
     title: "Acute Myocardial Infarction (STEMI)",
     patientAge: 58,
     patientGender: "Male",

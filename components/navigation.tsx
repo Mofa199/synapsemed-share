@@ -19,13 +19,14 @@ import {
 import { Search, Menu, X, User, Settings, LogOut, BookOpen, GraduationCap, ChevronDown } from "lucide-react"
 import { Logo } from "@/components/logo"
 
+import dynamic from 'next/dynamic'
+
 // Dynamically import heavy components for better performance
-const DynamicSearchComponent = dynamic(() => import('@/components/search-component'), {
+const DynamicSearchComponent = dynamic(() => import('@/components/search-component').then(mod => mod.SearchComponent), {
   loading: () => <div className="h-10 w-64 bg-gray-200 rounded animate-pulse"></div>,
   ssr: false
 })
 
-import dynamic from 'next/dynamic'
 
 export function Navigation() {
   const { user, logout } = useAuth()

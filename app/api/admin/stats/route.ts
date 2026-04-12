@@ -7,9 +7,9 @@ import { authOptions } from '@/lib/auth'
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)
-    const adminRoles = [UserRole.SUPER_ADMIN, UserRole.LECTURER, UserRole.EDITOR]
+    const adminRoles: string[] = [UserRole.SUPER_ADMIN, UserRole.LECTURER, UserRole.EDITOR]
     
-    if (!session || !adminRoles.includes(session.user.role as UserRole)) {
+    if (!session || !session.user.role || !adminRoles.includes(session.user.role)) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 

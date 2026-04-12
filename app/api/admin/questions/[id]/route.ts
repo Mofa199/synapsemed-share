@@ -52,13 +52,12 @@ export async function PUT(
 
     const question = await updateQuestion(params.id, {
       questionBankId,
-      text,
+      question: text,
       type,
       options,
       correctAnswer,
       explanation,
       difficulty,
-      points: points ? parseInt(points) : undefined,
       tags,
     })
 

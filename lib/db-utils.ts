@@ -1,5 +1,5 @@
 // Conditionally import Prisma client to handle build time
-let prisma: any;
+export let prisma: any;
 
 try {
   // Attempt to import the Prisma client

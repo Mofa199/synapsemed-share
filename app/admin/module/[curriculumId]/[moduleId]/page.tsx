@@ -7,14 +7,13 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/components/auth-provider"
 import { Clock, Users, Edit, Plus, Eye, Star } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import Link from "next/link"
-import { useParams } from "next/navigation"
+import React from "react"
 
-export default function AdminModulePage() {
+export default function AdminModulePage({ params }: { params: Promise<{ curriculumId: string, moduleId: string }> }) {
+  const { curriculumId, moduleId } = React.use(params)
   const { user } = useAuth()
-  const params = useParams()
-  const curriculumId = params.curriculumId as string
-  const moduleId = params.moduleId as string
 
   if (user?.role !== "SUPER_ADMIN") {
     return (

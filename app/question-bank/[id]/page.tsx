@@ -51,11 +51,12 @@ interface UserProgress {
   completedSessions: number
 }
 
-export default function QuestionBankPage() {
+import React from "react";
+
+export default function QuestionBankPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: questionBankId } = React.use(params);
   const { user } = useAuth()
-  const params = useParams()
   const router = useRouter()
-  const questionBankId = params?.id as string
 
   const [questionBank, setQuestionBank] = useState<QuestionBank | null>(null)
   const [userProgress, setUserProgress] = useState<UserProgress>({

@@ -8,13 +8,12 @@ import { Progress } from "@/components/ui/progress"
 import { useAuth } from "@/components/auth-provider"
 import { Heart, Users, Pill, BookOpen, Award, Edit, Plus, Eye, Loader2 } from "lucide-react"
 import Link from "next/link"
-import { useParams } from "next/navigation"
 import { useState, useEffect } from "react"
+import React from "react"
 
-export default function AdminCurriculumPage() {
+export default function AdminCurriculumPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: curriculumId } = React.use(params)
   const { user } = useAuth()
-  const params = useParams()
-  const curriculumId = params.id as string
   const [curriculum, setCurriculum] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

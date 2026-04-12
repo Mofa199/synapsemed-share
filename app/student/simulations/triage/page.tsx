@@ -369,20 +369,23 @@ export default function TriageSimulationPage() {
   };
 
   const handleShare = (caseItem: SimulationCase) => {
+    if (typeof window === 'undefined') return;
+    
+    const url = window.location.href + `/${caseItem.id}`;
     if (navigator.share) {
       navigator.share({
         title: caseItem.title,
         text: caseItem.description,
-        url: window.location.href + `/${caseItem.id}`
+        url: url
       }).catch(() => {
-        navigator.clipboard.writeText(window.location.href + `/${caseItem.id}`);
+        navigator.clipboard.writeText(url);
         toast({
           title: "Link copied!",
           description: "Case link copied to clipboard"
         });
       });
     } else {
-      navigator.clipboard.writeText(window.location.href + `/${caseItem.id}`);
+      navigator.clipboard.writeText(url);
       toast({
         title: "Link copied!",
         description: "Case link copied to clipboard"

@@ -123,6 +123,7 @@ export default function ConceptsPage() {
   };
 
   const fetchFavorites = async () => {
+    if (typeof window === 'undefined') return;
     // In a real implementation, create GET endpoint for concept favorites
     // For now, we'll use localStorage as fallback
     const stored = localStorage.getItem('conceptFavorites');
@@ -191,7 +192,9 @@ export default function ConceptsPage() {
         if (data.favorited) {
           const updated = [...favoritedConcepts, conceptId.toString()];
           setFavoritedConcepts(updated);
-          localStorage.setItem('conceptFavorites', JSON.stringify(updated));
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('conceptFavorites', JSON.stringify(updated));
+          }
           toast({
             title: "Added to favorites",
             description: "Concept has been added to your favorites",
@@ -199,7 +202,9 @@ export default function ConceptsPage() {
         } else {
           const updated = favoritedConcepts.filter(id => id !== conceptId.toString());
           setFavoritedConcepts(updated);
-          localStorage.setItem('conceptFavorites', JSON.stringify(updated));
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('conceptFavorites', JSON.stringify(updated));
+          }
           toast({
             title: "Removed from favorites",
             description: "Concept has been removed from your favorites",
@@ -219,7 +224,7 @@ export default function ConceptsPage() {
     const shareData = {
       title: concept.title,
       text: concept.description,
-      url: `${window.location.origin}/student/concepts/${concept.id}`
+      url: typeof window !== 'undefined' ? `${window.location.origin}/student/concepts/${concept.id}` : ""
     };
 
     try {

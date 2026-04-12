@@ -35,7 +35,7 @@ export default function ModuleTopicsPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    if (user?.role !== "admin") {
+    if (user?.role !== "SUPER_ADMIN" && user?.role !== "LECTURER" && user?.role !== "EDITOR") {
       router.push("/admin")
       return
     }
@@ -72,7 +72,7 @@ export default function ModuleTopicsPage() {
     }
   }
 
-  if (user?.role !== "admin") {
+  if (user?.role !== "SUPER_ADMIN" && user?.role !== "LECTURER" && user?.role !== "EDITOR") {
     return null
   }
 

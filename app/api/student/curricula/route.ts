@@ -19,14 +19,10 @@ export async function GET(request: NextRequest) {
           orderBy: { order: 'asc' },
           include: {
             topics: { select: { id: true, title: true, type: true } },
-            videos: { select: { id: true, title: true } },
-            questionBanks: { select: { id: true, title: true } }
+            videos: { select: { id: true, title: true } }
           }
         },
         books: { select: { id: true, title: true } },
-        articles: { select: { id: true, title: true } },
-        studyGuides: { select: { id: true, title: true } },
-        simulations: { select: { id: true, title: true } },
       },
       orderBy: { createdAt: 'desc' }
     })

@@ -1,4 +1,9 @@
-import { prisma } from './prisma'
+import { Difficulty } from '@prisma/client'
+import { prisma } from '@/lib/db-utils';
+// Example:
+// difficulty: Difficulty.INTERMEDIATE,
+// and similarly for other entries
+
 
 // Word of the Day service without cron (better for serverless)
 class WordOfTheDayService {
@@ -82,7 +87,7 @@ class WordOfTheDayService {
         select: { word: true },
       })
 
-      const recentWordList = recentWords.map(w => w.word.toLowerCase())
+      const recentWordList = recentWords.map((w: { word: string }) => w.word.toLowerCase())
 
       // Get available words not used recently
       const availableWords = await prisma.wordOfTheDay.findMany({
@@ -123,7 +128,7 @@ class WordOfTheDayService {
             definition: 'A rapid heart rate, typically over 100 beats per minute in adults.',
             pronunciation: '/ˌtækɪˈkɑrdiə/',
             category: 'Cardiology',
-            difficulty: 'INTERMEDIATE',
+            difficulty: Difficulty.INTERMEDIATE,
             example: 'The patient presented with tachycardia following the administration of epinephrine.',
           },
           {
@@ -131,7 +136,7 @@ class WordOfTheDayService {
             definition: 'A slow heart rate, typically under 60 beats per minute in adults.',
             pronunciation: '/ˌbreɪdɪˈkɑrdiə/',
             category: 'Cardiology',
-            difficulty: 'INTERMEDIATE',
+            difficulty: Difficulty.INTERMEDIATE,
             example: 'Athletes commonly exhibit bradycardia due to their conditioned cardiovascular system.',
           },
           {
@@ -139,10 +144,10 @@ class WordOfTheDayService {
             definition: 'High blood pressure, defined as blood pressure readings consistently above 140/90 mmHg.',
             pronunciation: '/ˌhaɪpərˈtɛnʃən/',
             category: 'Cardiovascular',
-            difficulty: 'BEGINNER',
+            difficulty: Difficulty.BEGINNER,
             example: 'Uncontrolled hypertension can lead to serious complications including stroke and heart disease.',
           },
-        ]
+        ];
 
         const randomDefault = defaultWords[Math.floor(Math.random() * defaultWords.length)]
 
@@ -180,7 +185,7 @@ class WordOfTheDayService {
           pronunciation: '/ˌmaɪoʊˈkɑrdiəl/',
           etymology: 'From Greek myo- (muscle) + kardia (heart)',
           category: 'Cardiology',
-          difficulty: 'INTERMEDIATE',
+          difficulty: Difficulty.INTERMEDIATE,
           example: 'A myocardial infarction occurs when blood flow to part of the heart muscle is blocked.',
         },
         {
@@ -189,7 +194,7 @@ class WordOfTheDayService {
           pronunciation: '/nuˈmoʊniə/',
           etymology: 'From Greek pneumon (lung) + -ia (condition)',
           category: 'Respiratory',
-          difficulty: 'BEGINNER',
+          difficulty: Difficulty.BEGINNER,
           example: 'Bacterial pneumonia is commonly treated with antibiotics.',
         },
         {
@@ -198,7 +203,7 @@ class WordOfTheDayService {
           pronunciation: '/ˌɔskəlˈteɪʃən/',
           etymology: 'From Latin auscultare (to listen)',
           category: 'Clinical Skills',
-          difficulty: 'INTERMEDIATE',
+          difficulty: Difficulty.INTERMEDIATE,
           example: 'Auscultation revealed a heart murmur in the patient.',
         },
         {
@@ -207,7 +212,7 @@ class WordOfTheDayService {
           pronunciation: '/ˌproʊfəˈlæksɪs/',
           etymology: 'From Greek prophylaxis (to guard before)',
           category: 'Preventive Medicine',
-          difficulty: 'ADVANCED',
+          difficulty: Difficulty.ADVANCED,
           example: 'Antibiotic prophylaxis was administered before the surgical procedure.',
         },
         {
@@ -216,7 +221,7 @@ class WordOfTheDayService {
           pronunciation: '/əˈnimiə/',
           etymology: 'From Greek an- (without) + haima (blood)',
           category: 'Hematology',
-          difficulty: 'BEGINNER',
+          difficulty: Difficulty.BEGINNER,
           example: 'Iron deficiency anemia is the most common type of anemia worldwide.',
         },
       ]

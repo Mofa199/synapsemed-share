@@ -9,6 +9,7 @@ import { Clock, Star, Download, Share, Bookmark, Eye, User } from "lucide-react"
 import { useParams } from "next/navigation"
 import { useState, useEffect } from "react"
 import { useAuth } from "@/components/auth-provider"
+import React from "react"
 
 interface Article {
   id: string
@@ -47,10 +48,9 @@ interface Bookmark {
   createdAt: string
 }
 
-export default function ArticlePage() {
+export default function ArticlePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: articleId } = React.use(params)
   const { user } = useAuth()
-  const params = useParams()
-  const articleId = params.id as string
   
   const [article, setArticle] = useState<Article | null>(null)
   const [isBookmarked, setIsBookmarked] = useState(false)
@@ -171,7 +171,9 @@ export default function ArticlePage() {
   }
 
   const handleShare = async () => {
-    if (navigator.share && article) {
+    if (typeof window === 'undefined') return
+
+    if (typeof navigator !== 'undefined' && navigator.share && article) {
       try {
         await navigator.share({
           title: article.title,
@@ -183,14 +185,16 @@ export default function ArticlePage() {
       }
     } else {
       // Fallback: copy to clipboard
-      navigator.clipboard.writeText(window.location.href)
-      alert("Link copied to clipboard!")
+      if (typeof navigator !== 'undefined') {
+        navigator.clipboard.writeText(window.location.href)
+        if (typeof window !== 'undefined') window.alert("Link copied to clipboard!")
+      }
     }
   }
 
   const handleDownload = () => {
     // In a real implementation, this would download the article as PDF
-    alert("Download functionality would be implemented here")
+    if (typeof window !== 'undefined') window.alert("Download functionality would be implemented here")
   }
 
   if (loading) {

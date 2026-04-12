@@ -215,7 +215,7 @@ export default function PatientSimulationsPage() {
       navigator.share({
         title: sim.title,
         text: sim.description,
-        url: window.location.href + `/${sim.id}`
+      url: typeof window !== 'undefined' ? window.location.href + `/${sim.id}` : ""
       }).catch(() => {
         copyToClipboard(sim);
       });
@@ -225,7 +225,7 @@ export default function PatientSimulationsPage() {
   };
 
   const copyToClipboard = (sim: typeof simulations[0]) => {
-    const url = window.location.href + `/${sim.id}`;
+    const url = typeof window !== 'undefined' ? window.location.href + `/${sim.id}` : "";
     navigator.clipboard.writeText(url);
     toast({
       title: "Link copied!",

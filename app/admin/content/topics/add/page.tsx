@@ -44,7 +44,7 @@ export default function AddTopicPage() {
 
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  if (user?.role !== "admin") {
+  if (user?.role !== "SUPER_ADMIN" && user?.role !== "LECTURER" && user?.role !== "EDITOR") {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">

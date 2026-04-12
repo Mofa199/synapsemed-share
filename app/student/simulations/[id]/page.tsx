@@ -26,14 +26,17 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-export default function SimulationCasePage({ params }: { params: { id: string } }) {
+import React from "react";
+
+export default function SimulationCasePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = React.use(params);
   const router = useRouter();
   const { toast } = useToast();
   const [isFavorite, setIsFavorite] = useState(false);
 
   // Mock case data - would come from API in production
   const caseData = {
-    id: params.id,
+    id: id,
     title: "Acute Myocardial Infarction",
     specialty: "Cardiology",
     difficulty: "Advanced",
@@ -109,20 +112,23 @@ export default function SimulationCasePage({ params }: { params: { id: string } 
   };
 
   const handleShare = () => {
+    if (typeof window === 'undefined') return;
+    
+    const url = window.location.href;
     if (navigator.share) {
       navigator.share({
         title: caseData.title,
         text: caseData.description,
-        url: window.location.href
+        url: url
       }).catch(() => {
-        navigator.clipboard.writeText(window.location.href);
+        navigator.clipboard.writeText(url);
         toast({
           title: "Link copied!",
           description: "Case link copied to clipboard"
         });
       });
     } else {
-      navigator.clipboard.writeText(window.location.href);
+      navigator.clipboard.writeText(url);
       toast({
         title: "Link copied!",
         description: "Case link copied to clipboard"

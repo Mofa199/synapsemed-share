@@ -11,7 +11,8 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuth } from "@/components/auth-provider"
 import { useToast } from "@/hooks/use-toast"
-import { useRouter, useParams } from "next/navigation"
+import { useRouter } from "next/navigation"
+import React from "react"
 import { 
   BookOpen, 
   Save, 
@@ -21,12 +22,11 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 
-export default function AddModulePage() {
+export default function AddModulePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: curriculumId } = React.use(params)
   const { user } = useAuth()
   const { toast } = useToast()
   const router = useRouter()
-  const params = useParams()
-  const curriculumId = params.id as string
   
   const [formData, setFormData] = useState({
     name: "",

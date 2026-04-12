@@ -8,12 +8,13 @@ import { Input } from "@/components/ui/input"
 import { useAuth } from "@/components/auth-provider"
 import { Search, Plus, BookOpen, Clock, Edit, Trash2, ArrowLeft, Loader2 } from "lucide-react"
 import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
+import React from "react"
 
-export default function CurriculumModulesPage() {
+export default function CurriculumModulesPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = React.use(params)
   const { user } = useAuth()
-  const params = useParams()
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [curriculum, setCurriculum] = useState<any>(null)
@@ -27,14 +28,14 @@ export default function CurriculumModulesPage() {
       return
     }
     fetchCurriculumAndModules()
-  }, [user, params.id])
+  }, [user, id])
 
   const fetchCurriculumAndModules = async () => {
     try {
       setLoading(true)
       const [curriculumRes, modulesRes] = await Promise.all([
-        fetch(`/api/admin/curriculums/${params.id}`),
-        fetch(`/api/admin/curriculum/${params.id}/modules`),
+        fetch(`/api/admin/curriculums/${id}`),
+        fetch(`/api/admin/curriculum/${id}/modules`),
       ])
 
       const curriculumData = await curriculumRes.json()
@@ -112,7 +113,7 @@ export default function CurriculumModulesPage() {
             <h1 className="text-3xl font-bold text-[#213874] mb-2">{curriculum?.name || "Curriculum"} - Modules</h1>
             <p className="text-gray-600">Manage modules for this curriculum</p>
           </div>
-          <Link href={`/admin/curriculum/${params.id}/modules/add`}>
+          <Link href={`/admin/curriculum/${id}/modules/add`}>
             <Button className="bg-[#213874] hover:bg-[#1a6ac3]">
               <Plus className="h-4 w-4 mr-2" />
               Add Module
@@ -165,13 +166,13 @@ export default function CurriculumModulesPage() {
                     </div>
 
                     <div className="flex gap-2">
-                      <Link href={`/admin/curriculum/${params.id}/modules/${module.id}/edit`} className="flex-1">
+                      <Link href={`/admin/curriculum/${id}/modules/${module.id}/edit`} className="flex-1">
                         <Button variant="outline" size="sm" className="w-full bg-transparent">
                           <Edit className="h-3 w-3 mr-1" />
                           Edit
                         </Button>
                       </Link>
-                      <Link href={`/admin/curriculum/${params.id}/modules/${module.id}/topics`} className="flex-1">
+                      <Link href={`/admin/curriculum/${id}/modules/${module.id}/topics`} className="flex-1">
                         <Button variant="outline" size="sm" className="w-full bg-transparent">
                           <BookOpen className="h-3 w-3 mr-1" />
                           View Topics
@@ -195,7 +196,7 @@ export default function CurriculumModulesPage() {
             <p className="text-gray-500 mb-4">
               {searchQuery ? "Try adjusting your search terms" : "Get started by creating your first module"}
             </p>
-            <Link href={`/admin/curriculum/${params.id}/modules/add`}>
+            <Link href={`/admin/curriculum/${id}/modules/add`}>
               <Button className="bg-[#213874] hover:bg-[#1a6ac3]">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Module

@@ -49,7 +49,7 @@ export default function EditTeamMemberPage() {
   })
 
   useEffect(() => {
-    if (user?.role === "admin" && params.id) {
+    if ((user?.role === "SUPER_ADMIN" || user?.role === "LECTURER" || user?.role === "EDITOR") && params.id) {
       fetchTeamMember()
     }
   }, [user, params.id])
@@ -134,7 +134,7 @@ export default function EditTeamMemberPage() {
     }
   }
 
-  if (user?.role !== "admin") {
+  if (user?.role !== "SUPER_ADMIN" && user?.role !== "LECTURER" && user?.role !== "EDITOR") {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">

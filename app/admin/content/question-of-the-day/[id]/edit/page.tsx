@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useAuth } from "@/components/auth-provider"
-import { useRouter, useParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -26,10 +26,12 @@ interface Question {
   isActive: boolean
 }
 
-export default function EditQuestionPage() {
+import React from "react"
+
+export default function EditQuestionPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = React.use(params)
   const { user } = useAuth()
   const router = useRouter()
-  const params = useParams()
   const { toast } = useToast()
   const [loading, setLoading] = useState(true)
   const [formData, setFormData] = useState({
@@ -55,10 +57,10 @@ export default function EditQuestionPage() {
       return
     }
 
-    if (params.id) {
-      fetchQuestion(params.id as string)
+    if (id) {
+      fetchQuestion(id as string)
     }
-  }, [user, router, params.id])
+  }, [user, router, id])
 
   const fetchQuestion = async (id: string) => {
     try {
@@ -139,7 +141,7 @@ export default function EditQuestionPage() {
           title: "Question Updated",
           description: "The question has been updated successfully"
         })
-        router.push(`/admin/content/question-of-the-day/${params.id}`)
+        router.push(`/admin/content/question-of-the-day/${id}`)
       } else {
         throw new Error(result.error)
       }
@@ -153,7 +155,7 @@ export default function EditQuestionPage() {
   }
 
   const handleBack = () => {
-    router.push(`/admin/content/question-of-the-day/${params.id}`)
+    router.push(`/admin/content/question-of-the-day/${id}`)
   }
 
   if (loading) {

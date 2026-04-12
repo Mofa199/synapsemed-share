@@ -61,11 +61,11 @@ interface QuizQuestion {
   explanation: string;
 }
 
-export default function VideoPlayerPage() {
-  const params = useParams();
+import React from "react";
+
+export default function VideoPlayerPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: videoId } = React.use(params);
   const router = useRouter();
-  const { toast } = useToast();
-  const videoId = params.id as string;
   const userId = "student-001"; // In real app, get from auth
   
   const [video, setVideo] = useState<Video | null>(null);
@@ -194,7 +194,7 @@ export default function VideoPlayerPage() {
   };
 
   const handleShare = async () => {
-    if (!video) return;
+    if (!video || typeof window === 'undefined') return;
 
     const shareData = {
       title: video.title,
@@ -203,7 +203,7 @@ export default function VideoPlayerPage() {
     };
 
     try {
-      if (navigator.share) {
+      if (typeof navigator !== 'undefined' && navigator.share) {
         await navigator.share(shareData);
       } else {
         await navigator.clipboard.writeText(shareData.url);

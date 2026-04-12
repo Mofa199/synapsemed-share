@@ -3,15 +3,21 @@ import { v4 as uuidv4 } from 'uuid'
 import fs from 'fs'
 import path from 'path'
 import { PrismaClient } from '@prisma/client'
-import { verifyTokenFromRequest } from '@/lib/db-utils'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
 const prisma = new PrismaClient()
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await verifyTokenFromRequest(request)
-    if (!user) {
+    const session = await getServerSession(authOptions)
+    if (!session || !session.user?.email) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const user = await prisma.user.findUnique({ where: { email: session.user.email } })
+    if (!user) {
+      return NextResponse.json({ success: false, error: 'User not found' }, { status: 404 })
     }
 
     const formData = await request.formData()

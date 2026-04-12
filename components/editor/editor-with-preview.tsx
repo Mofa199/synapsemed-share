@@ -60,6 +60,7 @@ export function EditorWithPreview({
   }
 
   const stripHtml = (html: string) => {
+    if (typeof document === 'undefined') return ''
     const tmp = document.createElement('div')
     tmp.innerHTML = html
     return tmp.textContent || tmp.innerText || ''
@@ -67,7 +68,7 @@ export function EditorWithPreview({
 
   const getWordCount = () => {
     const text = stripHtml(content)
-    return text.trim().split(/\\s+/).filter(word => word.length > 0).length
+    return text.trim().split(/\s+/).filter(word => word.length > 0).length
   }
 
   const getCharCount = () => {
@@ -75,17 +76,17 @@ export function EditorWithPreview({
   }
 
   return (
-    <div className=\"space-y-4\">
+    <div className="space-y-4">
       {/* Header */}
-      <div className=\"flex justify-between items-center\">
+      <div className="flex justify-between items-center">
         <div>
-          <h2 className=\"text-2xl font-bold text-[#213874]\">{title}</h2>
-          <div className=\"flex items-center gap-4 mt-2\">
-            <Badge variant=\"outline\" className=\"text-xs\">
-              <FileText className=\"h-3 w-3 mr-1\" />
+          <h2 className="text-2xl font-bold text-[#213874]">{title}</h2>
+          <div className="flex items-center gap-4 mt-2">
+            <Badge variant="outline" className="text-xs">
+              <FileText className="h-3 w-3 mr-1" />
               {getWordCount()} words
             </Badge>
-            <Badge variant=\"outline\" className=\"text-xs\">
+            <Badge variant="outline" className="text-xs">
               {getCharCount()} characters
             </Badge>
             {!readOnly && (
@@ -96,21 +97,21 @@ export function EditorWithPreview({
           </div>
         </div>
         
-        <div className=\"flex items-center gap-2\">
+        <div className="flex items-center gap-2">
           {showPreview && (
             <Button
-              variant=\"outline\"
+              variant="outline"
               onClick={() => setIsPreview(!isPreview)}
-              className=\"flex items-center gap-2\"
+              className="flex items-center gap-2"
             >
               {isPreview ? (
                 <>
-                  <Edit className=\"h-4 w-4\" />
+                  <Edit className="h-4 w-4" />
                   Edit
                 </>
               ) : (
                 <>
-                  <Eye className=\"h-4 w-4\" />
+                  <Eye className="h-4 w-4" />
                   Preview
                 </>
               )}
@@ -121,16 +122,16 @@ export function EditorWithPreview({
             <Button
               onClick={handleSave}
               disabled={isSaving || content === initialContent}
-              className=\"bg-[#213874] hover:bg-[#1a6ac3] flex items-center gap-2\"
+              className="bg-[#213874] hover:bg-[#1a6ac3] flex items-center gap-2"
             >
-              <Save className=\"h-4 w-4\" />
+              <Save className="h-4 w-4" />
               {isSaving ? 'Saving...' : 'Save'}
             </Button>
           )}
           
           {onCancel && (
             <Button
-              variant=\"outline\"
+              variant="outline"
               onClick={onCancel}
               disabled={isSaving}
             >
@@ -142,16 +143,16 @@ export function EditorWithPreview({
 
       {/* Editor/Preview */}
       <Card>
-        <CardHeader className=\"pb-3\">
-          <CardTitle className=\"text-lg flex items-center gap-2\">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
             {isPreview ? (
               <>
-                <Eye className=\"h-5 w-5\" />
+                <Eye className="h-5 w-5" />
                 Preview
               </>
             ) : (
               <>
-                <Edit className=\"h-5 w-5\" />
+                <Edit className="h-5 w-5" />
                 Editor
               </>
             )}
@@ -160,9 +161,9 @@ export function EditorWithPreview({
         <CardContent>
           {isPreview ? (
             <div 
-              className=\"prose prose-lg max-w-none\"
+              className="prose prose-lg max-w-none"
               style={{ minHeight: `${height}px` }}
-              dangerouslySetInnerHTML={{ __html: content || '<p class=\"text-gray-500 italic\">No content to preview</p>' }}
+              dangerouslySetInnerHTML={{ __html: content || '<p class="text-gray-500 italic">No content to preview</p>' }}
             />
           ) : (
             <CKEditor
@@ -204,10 +205,10 @@ export function EditorWithPreview({
 
       {/* Editor Guidelines for Medical Content */}
       {!readOnly && !isPreview && (
-        <Card className=\"bg-blue-50 border-blue-200\">
-          <CardContent className=\"p-4\">
-            <h3 className=\"text-sm font-semibold text-blue-900 mb-2\">Writing Guidelines for Medical Content</h3>
-            <div className=\"text-xs text-blue-800 space-y-1\">
+        <Card className="bg-blue-50 border-blue-200">
+          <CardContent className="p-4">
+            <h3 className="text-sm font-semibold text-blue-900 mb-2">Writing Guidelines for Medical Content</h3>
+            <div className="text-xs text-blue-800 space-y-1">
               <p>• Use clear, professional medical terminology</p>
               <p>• Structure content with appropriate headings and subheadings</p>
               <p>• Include relevant examples and case studies where appropriate</p>

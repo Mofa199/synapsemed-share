@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Logo } from "@/components/logo"
 import Link from "next/link"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { signIn } from "next-auth/react"
 import {
   User,
   Lock,
@@ -83,9 +84,9 @@ export function AuthPage() {
           localStorage.setItem("synapse-user", JSON.stringify(user))
 
           if (['SUPER_ADMIN', 'LECTURER', 'EDITOR'].includes(user.role)) {
-            window.location.href = '/admin'
+            if (typeof window !== 'undefined') window.location.href = '/admin'
           } else {
-            window.location.href = '/dashboard'
+            if (typeof window !== 'undefined') window.location.href = '/dashboard'
           }
 
           toast({ title: "Success", description: "Welcome back!" })
@@ -132,9 +133,9 @@ export function AuthPage() {
           // Redirect to profile page to complete profile if indicated
           setTimeout(() => {
             if (result.redirectToProfile) {
-              window.location.href = '/profile'
+              if (typeof window !== 'undefined') window.location.href = '/profile'
             } else {
-              window.location.href = '/dashboard'
+              if (typeof window !== 'undefined') window.location.href = '/dashboard'
             }
           }, 500)
         } else {
@@ -160,9 +161,9 @@ export function AuthPage() {
         title: "OAuth Login",
         description: `Redirecting to ${provider} login...`,
       })
-
-      // Redirect to NextAuth OAuth provider
-      window.location.href = `/api/auth/signin/${provider}`
+      // Use NextAuth signIn utility for OAuth flow
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      signIn(provider)
     } catch (error) {
       toast({
         title: "Error",

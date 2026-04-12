@@ -10,13 +10,14 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useAuth } from "@/components/auth-provider"
 import { BookOpen, Save, ArrowLeft } from "lucide-react"
-import { useRouter, useParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import Link from "next/link"
+import React from "react"
 
-export default function EditCurriculumPage() {
+export default function EditCurriculumPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = React.use(params)
   const { user } = useAuth()
   const router = useRouter()
-  const params = useParams()
   const [isLoading, setIsLoading] = useState(false)
   const [loadingData, setLoadingData] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -36,15 +37,15 @@ export default function EditCurriculumPage() {
       return
     }
     
-    if (params.id) {
+    if (id) {
       fetchCurriculum()
     }
-  }, [user, params.id])
+  }, [user, id])
 
   const fetchCurriculum = async () => {
     try {
       setLoadingData(true)
-      const response = await fetch(`/api/admin/curriculums/${params.id}`)
+      const response = await fetch(`/api/admin/curriculums/${id}`)
       const data = await response.json()
       
       if (data.success) {
@@ -77,7 +78,7 @@ export default function EditCurriculumPage() {
     setIsLoading(true)
 
     try {
-      const response = await fetch(`/api/admin/curriculums/${params.id}`, {
+      const response = await fetch(`/api/admin/curriculums/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -88,7 +89,7 @@ export default function EditCurriculumPage() {
       if (response.ok) {
         const data = await response.json()
         if (data.success) {
-          alert("Curriculum updated successfully!")
+          if (typeof window !== 'undefined') window.alert("Curriculum updated successfully!")
           router.push("/admin/curriculum")
         } else {
           throw new Error(data.error || "Failed to update curriculum")
@@ -98,7 +99,7 @@ export default function EditCurriculumPage() {
       }
     } catch (error) {
       console.error("Error updating curriculum:", error)
-      alert("Failed to update curriculum. Please try again.")
+      if (typeof window !== 'undefined') window.alert("Failed to update curriculum. Please try again.")
     } finally {
       setIsLoading(false)
     }

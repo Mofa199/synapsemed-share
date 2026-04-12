@@ -60,14 +60,14 @@ export default function AddCurriculumPage() {
       })
 
       if (response.ok) {
-        alert("Curriculum added successfully!")
+        if (typeof window !== 'undefined') window.alert("Curriculum added successfully!")
         router.push("/admin/curriculum")
       } else {
         throw new Error("Failed to add curriculum")
       }
     } catch (error) {
       console.error("Error adding curriculum:", error)
-      alert("Failed to add curriculum. Please try again.")
+      if (typeof window !== 'undefined') window.alert("Failed to add curriculum. Please try again.")
     } finally {
       setIsLoading(false)
     }

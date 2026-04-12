@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     let progress = await getAllProgress()
 
     if (userId) {
-      progress = progress.filter(p => p.userId === userId)
+      progress = progress.filter((p: any) => p.userId === userId)
     }
 
     return NextResponse.json({

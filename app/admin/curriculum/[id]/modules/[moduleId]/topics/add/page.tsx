@@ -12,8 +12,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/components/auth-provider"
 import { ArrowLeft, Save, Loader2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import React from "react"
 
-export default function AddTopicPage() {
+export default function AddTopicPage({ params }: { params: Promise<{ id: string, moduleId: string }> }) {
+  const { id: curriculumId, moduleId } = React.use(params)
   const { user } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
@@ -61,9 +63,6 @@ export default function AddTopicPage() {
       formDataToSend.append("category", formData.category)
       formDataToSend.append("tags", JSON.stringify(formData.tags.split(",").map(tag => tag.trim()).filter(tag => tag)))
       formDataToSend.append("isPublished", formData.isPublished.toString())
-      // Get module ID from URL params instead of window.location
-      const urlParams = window?.location?.pathname.split("/") || [];
-      const moduleId = urlParams[5] || "";
       formDataToSend.append("moduleId", moduleId)
 
       const response = await fetch(`/api/admin/modules/${moduleId}/topics`, {
@@ -79,7 +78,6 @@ export default function AddTopicPage() {
           description: "Topic created successfully",
         })
         // Redirect back to module topics page
-        const curriculumId = urlParams[3] || "";
         router.push(`/admin/curriculum/${curriculumId}/modules/${moduleId}`)
       } else {
         toast({
@@ -100,7 +98,7 @@ export default function AddTopicPage() {
     }
   }
 
-  if (user?.role !== "admin") {
+  if (user?.role !== "SUPER_ADMIN" && user?.role !== "LECTURER" && user?.role !== "EDITOR") {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">

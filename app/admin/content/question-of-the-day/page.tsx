@@ -194,7 +194,7 @@ export default function QuestionOfTheDayAdmin() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this question?')) return
+    if (typeof window !== 'undefined' && !window.confirm('Are you sure you want to delete this question?')) return
     
     try {
       const response = await fetch(`/api/admin/question-of-the-day/${id}`, {

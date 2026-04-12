@@ -218,7 +218,7 @@ export default function VideosPage() {
     const shareData = {
       title: video.title,
       text: video.description,
-      url: `${window.location.origin}/student/videos/${video.id}`
+      url: typeof window !== 'undefined' ? `${window.location.origin}/student/videos/${video.id}` : ""
     };
 
     try {

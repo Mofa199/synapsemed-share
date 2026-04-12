@@ -9,7 +9,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Sparkles } from "lucide-react";
 
-export default function EditMnemonicPage({ params }: { params: { id: string } }) {
+import React from "react";
+
+export default function EditMnemonicPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = React.use(params);
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
@@ -29,11 +32,11 @@ export default function EditMnemonicPage({ params }: { params: { id: string } })
   useEffect(() => {
     const fetchMnemonic = async () => {
       try {
-        const response = await fetch(`/api/admin/mnemonics?id=${params.id}`);
+        const response = await fetch(`/api/admin/mnemonics?id=${id}`);
         if (response.ok) {
           const data = await response.json();
           // Find the specific mnemonic by ID
-          const mnemonic = data.find((m: any) => m.id === params.id);
+          const mnemonic = data.find((m: any) => m.id === id);
           if (mnemonic) {
             setFormData({
               conceptId: mnemonic.conceptId,
@@ -58,10 +61,10 @@ export default function EditMnemonicPage({ params }: { params: { id: string } })
       }
     };
 
-    if (params.id) {
+    if (id) {
       fetchMnemonic();
     }
-  }, [params.id]);
+  }, [id]);
 
   const handleGenerateWithAI = async () => {
     if (!formData.title) {
@@ -128,7 +131,7 @@ export default function EditMnemonicPage({ params }: { params: { id: string } })
     setLoading(true);
 
     try {
-      const response = await fetch(`/api/admin/mnemonics/${params.id}`, {
+      const response = await fetch(`/api/admin/mnemonics/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)

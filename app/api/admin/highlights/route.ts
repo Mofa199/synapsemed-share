@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     let highlights = await getAllHighlights()
 
     if (userId) {
-      highlights = highlights.filter(h => h.userId === userId)
+      highlights = highlights.filter((h: any) => h.userId === userId)
     }
 
     return NextResponse.json({

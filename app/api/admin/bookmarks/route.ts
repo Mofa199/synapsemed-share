@@ -10,11 +10,11 @@ export async function GET(request: NextRequest) {
     let bookmarks = await getAllBookmarks()
 
     if (userId) {
-      bookmarks = bookmarks.filter(b => b.userId === userId)
+      bookmarks = bookmarks.filter((b: any) => b.userId === userId)
     }
 
     if (resourceType) {
-      bookmarks = bookmarks.filter(b => b.resourceType === resourceType)
+      bookmarks = bookmarks.filter((b: any) => b.resourceType === resourceType)
     }
 
     return NextResponse.json({

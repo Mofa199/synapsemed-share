@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { BookOpen, Star, Download, Share, Bookmark, Eye } from "lucide-react"
-import { useParams } from "next/navigation"
 import { useState, useEffect } from "react"
 import { useAuth } from "@/components/auth-provider"
+import React from "react"
 
 interface Book {
   id: string
@@ -39,10 +39,9 @@ interface Bookmark {
   createdAt: string
 }
 
-export default function BookPage() {
+export default function BookPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: bookId } = React.use(params)
   const { user } = useAuth()
-  const params = useParams()
-  const bookId = params.id as string
   
   const [book, setBook] = useState<Book | null>(null)
   const [isBookmarked, setIsBookmarked] = useState(false)
@@ -129,7 +128,9 @@ export default function BookPage() {
   }
 
   const handleShare = async () => {
-    if (navigator.share && book) {
+    if (typeof window === 'undefined') return
+
+    if (typeof navigator !== 'undefined' && navigator.share && book) {
       try {
         await navigator.share({
           title: book.title,
@@ -141,19 +142,21 @@ export default function BookPage() {
       }
     } else {
       // Fallback: copy to clipboard
-      navigator.clipboard.writeText(window.location.href)
-      alert("Link copied to clipboard!")
+      if (typeof navigator !== 'undefined') {
+        navigator.clipboard.writeText(window.location.href)
+        if (typeof window !== 'undefined') window.alert("Link copied to clipboard!")
+      }
     }
   }
 
   const handleDownload = () => {
     // In a real implementation, this would download the book as PDF
-    alert("Download functionality would be implemented here")
+    if (typeof window !== 'undefined') window.alert("Download functionality would be implemented here")
   }
 
   const handleStartReading = () => {
     // In a real implementation, this would open the book reader
-    alert("Book reader would be implemented here")
+    if (typeof window !== 'undefined') window.alert("Book reader would be implemented here")
   }
 
   if (loading) {

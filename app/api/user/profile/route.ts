@@ -1,27 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-import { verifyTokenFromRequest } from '@/lib/db-utils'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 
 // GET /api/user/profile - Get current user profile with gamification data
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const user = await verifyTokenFromRequest(request)
-    if (!user) {
+    const session = await getServerSession(authOptions)
+    if (!session) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
     // Fetch full user profile from database
     const fullUser = await prisma.user.findUnique({
-      where: { id: user.id },
+      where: { email: session.user.email as string },
       include: {
         userBadges: {
           include: {
             badge: true
           }
         },
-        progress: true,
+        progress: {
+          orderBy: { lastAccessedAt: 'desc' },
+          take: 5
+        },
       }
     })
 
@@ -37,8 +39,12 @@ export async function GET(request: NextRequest) {
     const progressToNextLevel = ((currentPoints - pointsForCurrentLevel) / (pointsForNextLevel - pointsForCurrentLevel)) * 100
 
     // Calculate completion statistics
-    const completedItems = fullUser.progress ? fullUser.progress.filter(p => p.status === 'COMPLETED').length : 0
-    const totalItems = fullUser.progress ? fullUser.progress.length : 0
+    const completedItems = await prisma.progress.count({
+      where: { userId: fullUser.id, status: 'COMPLETED' }
+    })
+    const totalItems = await prisma.progress.count({
+      where: { userId: fullUser.id }
+    })
     const completionRate = totalItems > 0 ? (completedItems / totalItems) * 100 : 0
 
     return NextResponse.json({
@@ -61,7 +67,7 @@ export async function GET(request: NextRequest) {
           level: currentLevel,
           points: currentPoints,
           pointsForNextLevel,
-          progressToNextLevel: Math.round(progressToNextLevel),
+          progressToNextLevel: Math.round(Math.max(0, Math.min(100, progressToNextLevel))),
           streak: fullUser.streak,
           totalBadges: fullUser.userBadges?.length || 0,
           completionRate: Math.round(completionRate),
@@ -77,6 +83,7 @@ export async function GET(request: NextRequest) {
           category: ub.badge.category,
           earnedAt: ub.earnedAt
         })) || [],
+        recentProgress: fullUser.progress
       }
     })
   } catch (error) {
@@ -91,8 +98,8 @@ export async function GET(request: NextRequest) {
 // PUT /api/user/profile - Update user profile
 export async function PUT(request: NextRequest) {
   try {
-    const user = await verifyTokenFromRequest(request)
-    if (!user) {
+    const session = await getServerSession(authOptions)
+    if (!session) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -101,11 +108,11 @@ export async function PUT(request: NextRequest) {
 
     // Update user in database
     const updatedUser = await prisma.user.update({
-      where: { id: user.id },
+      where: { email: session.user.email as string },
       data: {
-        name: name !== undefined ? name : undefined,
-        avatarUrl: avatarUrl !== undefined ? avatarUrl : undefined,
-        field: field !== undefined ? field : undefined,
+        ...(name !== undefined && { name }),
+        ...(avatarUrl !== undefined && { avatarUrl }),
+        ...(field !== undefined && { field }),
       }
     })
 
@@ -123,7 +130,6 @@ export async function PUT(request: NextRequest) {
 }
 
 // Helper function to calculate points needed for a specific level
-// Helper function to calculate points needed for a specific level
 function calculatePointsForLevel(level: number): number {
   return Math.floor(100 * Math.pow(level, 1.5))
-}
+}

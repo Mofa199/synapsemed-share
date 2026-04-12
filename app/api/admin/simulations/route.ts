@@ -47,9 +47,9 @@ export async function POST(request: NextRequest) {
       data: {
         title,
         description: description || null,
-        content,
-        type,
+        scenario: content,
         difficulty: (difficulty as Difficulty) || Difficulty.BEGINNER,
+        chiefComplaint: body.chiefComplaint || "", // Chief complaint is required but missing in incoming body?
         estimatedTime: estimatedTime ? estimatedTime.toString() : null,
         tags: Array.isArray(tags) ? tags.join(', ') : (tags || ""),
         isPublished: !!isPublished,
@@ -80,6 +80,12 @@ export async function PUT(request: NextRequest) {
     }
 
     const processedData: any = { ...updateData }
+    if (processedData.content) {
+      processedData.scenario = processedData.content
+      delete processedData.content
+    }
+    if (processedData.type) delete processedData.type
+    
     if (Array.isArray(processedData.tags)) processedData.tags = processedData.tags.join(', ')
     if (processedData.estimatedTime) processedData.estimatedTime = processedData.estimatedTime.toString()
 

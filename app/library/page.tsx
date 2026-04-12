@@ -170,13 +170,13 @@ export default function LibraryPage() {
   const [searchQuery, setSearchQuery] = useState("")
 
   // Content state
-  const [articles, setArticles] = useState<Article[]>([])
-  const [books, setBooks] = useState<Book[]>([])
+  const [articles, setArticles] = useState<ContentItem[]>([])
+  const [books, setBooks] = useState<ContentItem[]>([])
   const [magazines, setMagazines] = useState<any[]>([])
-  const [videos, setVideos] = useState<Video[]>([])
-  const [studyGuides, setStudyGuides] = useState<StudyGuide[]>([])
-  const [questionBanks, setQuestionBanks] = useState<QuestionBank[]>([])
-  const [flashcardSets, setFlashcardSets] = useState<FlashcardSet[]>([])
+  const [videos, setVideos] = useState<ContentItem[]>([])
+  const [studyGuides, setStudyGuides] = useState<ContentItem[]>([])
+  const [questionBanks, setQuestionBanks] = useState<ContentItem[]>([])
+  const [flashcardSets, setFlashcardSets] = useState<ContentItem[]>([])
   const [transformedArticles, setTransformedArticles] = useState<ContentItem[]>([])
   const [transformedBooks, setTransformedBooks] = useState<ContentItem[]>([])
   const [stats, setStats] = useState<LibraryStats | null>(null)
@@ -305,9 +305,22 @@ export default function LibraryPage() {
       setQuestionBanks(transformedQuestionBanks)
       setFlashcardSets(transformedFlashcardSets)
 
-      // Set transformed data for popular items section
-      setTransformedArticles(transformedArticles)
-      setTransformedBooks(transformedBooks)
+      // Set popular items by sorting combined content by views
+      const allContent = [
+        ...transformedArticles,
+        ...transformedBooks,
+        ...transformedVideos,
+        ...transformedStudyGuides,
+        ...transformedQuestionBanks,
+        ...transformedFlashcardSets
+      ]
+      
+      const sortedByViews = [...allContent].sort((a, b) => (b.views || 0) - (a.views || 0))
+      setTransformedArticles(sortedByViews.filter(i => articles.some(a => a.id === i.id))) // Keep for backward compat if needed
+      setTransformedBooks(sortedByViews.filter(i => books.some(b => b.id === i.id))) // Keep for backward compat if needed
+      
+      // We will use a more direct popularItems state if we had one, 
+      // but for now we will just use the sortedByViews in the render.
 
       // Calculate stats
       const libraryStats: LibraryStats = {
@@ -358,15 +371,6 @@ export default function LibraryPage() {
 
       return matchesCategory && matchesCurriculum && matchesSearch && item.isPublished
     })
-  }
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'BEGINNER': return 'bg-green-100 text-green-800'
-      case 'INTERMEDIATE': return 'bg-yellow-100 text-yellow-800'
-      case 'ADVANCED': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
   }
 
   if (loading) {
@@ -679,17 +683,25 @@ export default function LibraryPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {[...transformedArticles, ...transformedBooks].slice(0, 5).map((item, index) => (
-                    <div key={`popular-${item.id}-${index}`} className="flex items-start gap-3">
-                      <span className="text-xs font-bold text-gray-400 mt-1">{index + 1}</span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{item.title}</p>
-                        {item.author && (
-                          <p className="text-xs text-gray-600">{item.author}</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                  {[...articles, ...books, ...videos, ...studyGuides, ...questionBanks, ...flashcardSets]
+                    .sort((a, b) => (b.views || 0) - (a.views || 0))
+                    .slice(0, 5)
+                    .map((item, index) => (
+                      <Link key={`popular-${item.id}-${index}`} href={`/${articles.some(a => a.id === item.id) ? 'article' : books.some(b => b.id === item.id) ? 'book' : videos.some(v => v.id === item.id) ? 'video' : 'topic'}/${item.id}`}>
+                        <div className="flex items-start gap-3 hover:bg-slate-50 p-1 rounded transition-colors group">
+                          <span className="text-xs font-bold text-gray-400 mt-1">{index + 1}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate group-hover:text-blue-600 transition-colors">{item.title}</p>
+                            <div className="flex items-center justify-between mt-0.5">
+                              {item.author && (
+                                <p className="text-[10px] text-gray-500 truncate max-w-[100px]">{item.author}</p>
+                              )}
+                              <span className="text-[10px] text-blue-500 font-semibold">{item.views?.toLocaleString()} views</span>
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
                 </div>
               </CardContent>
             </Card>
@@ -700,6 +712,15 @@ export default function LibraryPage() {
       <AIHelper />
     </div>
   )
+}
+
+const getDifficultyColor = (difficulty: string) => {
+  switch (difficulty) {
+    case 'BEGINNER': return 'bg-green-100 text-green-800'
+    case 'INTERMEDIATE': return 'bg-yellow-100 text-yellow-800'
+    case 'ADVANCED': return 'bg-red-100 text-red-800'
+    default: return 'bg-gray-100 text-gray-800'
+  }
 }
 
 // Content Card Component
@@ -825,13 +846,4 @@ function EmptyState({ icon: Icon, title }: { icon: any, title: string }) {
       <p className="text-gray-500">Try adjusting your filters or search terms</p>
     </div>
   )
-}
-
-function getDifficultyColor(difficulty: string) {
-  switch (difficulty) {
-    case 'BEGINNER': return 'bg-green-100 text-green-800'
-    case 'INTERMEDIATE': return 'bg-yellow-100 text-yellow-800'
-    case 'ADVANCED': return 'bg-red-100 text-red-800'
-    default: return 'bg-gray-100 text-gray-800'
-  }
 }

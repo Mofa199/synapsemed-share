@@ -65,10 +65,11 @@ interface Bookmark {
   createdAt: string
 }
 
-export default function TopicPage() {
+import React from "react";
+
+export default function TopicPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id: topicId } = React.use(params);
   const { user } = useAuth()
-  const params = useParams()
-  const topicId = params.id as string
   
   const [topic, setTopic] = useState<Topic | null>(null)
   const [userProgress, setUserProgress] = useState<UserProgress | null>(null)
@@ -188,6 +189,8 @@ export default function TopicPage() {
   }
 
   const handleShare = async () => {
+    if (typeof window === 'undefined') return
+    
     if (navigator.share) {
       try {
         await navigator.share({
@@ -201,7 +204,7 @@ export default function TopicPage() {
     } else {
       // Fallback: copy to clipboard
       navigator.clipboard.writeText(window.location.href)
-      alert("Link copied to clipboard!")
+      if (typeof window !== 'undefined') window.alert("Link copied to clipboard!")
     }
   }
 

@@ -53,7 +53,7 @@ export default function EditTopicPage() {
   })
 
   useEffect(() => {
-    if (user?.role === "admin" && params.id) {
+    if ((user?.role === "SUPER_ADMIN" || user?.role === "LECTURER" || user?.role === "EDITOR") && params.id) {
       fetchTopic()
     }
   }, [user, params.id])
@@ -142,7 +142,7 @@ export default function EditTopicPage() {
     }
   }
 
-  if (user?.role !== "admin") {
+  if (user?.role !== "SUPER_ADMIN" && user?.role !== "LECTURER" && user?.role !== "EDITOR") {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">

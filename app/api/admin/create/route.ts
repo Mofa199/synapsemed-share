@@ -1,6 +1,7 @@
 import { runStartup } from "@/lib/startup"
+import { NextResponse } from "next/server"
 
 export async function GET() {
     await runStartup()
-    return Response.json({ ok: true })
+    return NextResponse.json({ ok: true })
 }
