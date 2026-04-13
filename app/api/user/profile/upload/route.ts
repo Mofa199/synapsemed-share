@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 import fs from 'fs'
 import path from 'path'
 import { PrismaClient } from '@prisma/client'
-import { getServerSession } from 'next-auth'
+import { getServerSession } from '@/lib/server-auth'
 import { authOptions } from '@/lib/auth'
 
 const prisma = new PrismaClient()
