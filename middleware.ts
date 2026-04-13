@@ -60,7 +60,8 @@ export function middleware(request: NextRequest) {
   }
 
   // Get user info from cookies
-  const token = request.cookies.get('auth-token')
+  const nextAuthToken = request.cookies.get('next-auth.session-token') || request.cookies.get('__Secure-next-auth.session-token')
+  const token = request.cookies.get('auth-token') || nextAuthToken
   const user = request.cookies.get('synapse-user')
 
   // Debug logging for admin routes
@@ -110,7 +111,7 @@ export function middleware(request: NextRequest) {
 
     if (!user || !token) {
       console.log('Redirecting to login - no auth')
-      return NextResponse.redirect(new URL('/login', request.url))
+      return NextResponse.redirect(new URL('/auth', request.url))
     }
 
     // Parse user data if available
@@ -121,7 +122,7 @@ export function middleware(request: NextRequest) {
         console.log('Parsed user data:', userData)
       } catch (e) {
         console.log('Failed to parse user cookie, redirecting to login')
-        return NextResponse.redirect(new URL('/login', request.url))
+        return NextResponse.redirect(new URL('/auth', request.url))
       }
     }
 
