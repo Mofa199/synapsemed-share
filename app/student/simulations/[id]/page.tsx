@@ -29,7 +29,7 @@ import Link from "next/link";
 import React from "react";
 
 export default function SimulationCasePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = React.use(params);
+  const { id } = (React.use(params) as any);
   const router = useRouter();
   const { toast } = useToast();
   const [isFavorite, setIsFavorite] = useState(false);

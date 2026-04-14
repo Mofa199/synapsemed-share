@@ -12,7 +12,7 @@ import { ArrowLeft, Sparkles } from "lucide-react";
 import React from "react";
 
 export default function EditMnemonicPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = React.use(params);
+  const { id } = (React.use(params) as any);
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);

@@ -40,7 +40,7 @@ interface Bookmark {
 }
 
 export default function BookPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: bookId } = React.use(params)
+  const { id: bookId } = (React.use(params) as any)
   const { user } = useAuth()
   
   const [book, setBook] = useState<Book | null>(null)

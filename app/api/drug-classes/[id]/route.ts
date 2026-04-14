@@ -1,9 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { prisma } from '@/lib/prisma'
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const drugClassId = params.id
+    const drugClassId = (await params).id
     
     // Fetch drug class from database
     const drugClass = await prisma.drugClass.findUnique({

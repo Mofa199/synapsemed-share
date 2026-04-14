@@ -1,3 +1,4 @@
+import React from "react";
 "use client"
 
 import { useState, useEffect } from "react"
@@ -146,7 +147,7 @@ export default function StudyResourcePage() {
 
   useEffect(() => {
     if (params.slug) {
-      const foundResource = studyResources.find(res => res.slug === params.slug)
+      const foundResource = studyResources.find(res => res.slug === (React.use(params) as any).slug)
       setResource(foundResource)
     }
   }, [params.slug])

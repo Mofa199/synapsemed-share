@@ -14,24 +14,25 @@ export async function getServerSession(authOptions?: any) {
     const cookieStore = await cookies()
     
     // 1. Identify all possible auth tokens
-    const nextAuthToken = cookieStore.get('next-auth.session-token')?.value || 
-                          cookieStore.get('__Secure-next-auth.session-token')?.value
+    const secureToken = cookieStore.get('__Secure-next-auth.session-token')?.value
+    const normalToken = cookieStore.get('next-auth.session-token')?.value
     const legacyToken = cookieStore.get('auth-token')?.value
     const userCookie = cookieStore.get('synapse-user')?.value
 
-    const token = nextAuthToken || legacyToken
-
-    if (!token) {
-      return null
-    }
+    // Determine the active NextAuth token and its corresponding salt
+    const nextAuthToken = secureToken || normalToken
+    const salt = secureToken ? '__Secure-next-auth.session-token' : 'next-auth.session-token'
 
     // 2. Try decoding NextAuth token if it exists
     if (nextAuthToken && process.env.NEXTAUTH_SECRET) {
       try {
         const decoded = await decode({ 
           token: nextAuthToken, 
-          secret: process.env.NEXTAUTH_SECRET 
+          secret: process.env.NEXTAUTH_SECRET,
+          // NextAuth uses the cookie name as the salt for JWT encryption
+          salt: salt
         })
+        
         if (decoded) {
           return {
             user: {
@@ -44,7 +45,8 @@ export async function getServerSession(authOptions?: any) {
           }
         }
       } catch (e) {
-        console.error('NextAuth Decode Error:', e)
+        // Only log error if not a fallback situation
+        console.error(`NextAuth Decode Error (Salt: ${salt}):`, e)
       }
     }
 
@@ -55,11 +57,11 @@ export async function getServerSession(authOptions?: any) {
         if (decodedLegacy) {
           return {
             user: {
-              id: decodedLegacy.userId,
+              id: decodedLegacy.userId || decodedLegacy.id,
               email: decodedLegacy.email,
               role: decodedLegacy.role,
-              name: undefined,
-              field: undefined
+              name: decodedLegacy.name,
+              field: decodedLegacy.field
             }
           }
         }
@@ -68,14 +70,14 @@ export async function getServerSession(authOptions?: any) {
       }
     }
 
-    // 4. FINAL FALLBACK: Database Check (The "Ultimate Fix")
-    // If we have a token (proving a session exists) AND a user info cookie (client data),
-    // we verify the email in the database to be 100% sure the user is valid.
-    if (userCookie) {
+    // 4. FINAL FALLBACK: Database Verify (The "Ultimate Fix")
+    // If the browser has a NextAuth session cookie + a user info cookie,
+    // we take the email from the user cookie and verify it in the DB.
+    // This solves cases where JWT decoding is blocked by proxy/salt issues but the user is legit.
+    if (userCookie && (nextAuthToken || legacyToken)) {
       try {
         const userData = JSON.parse(decodeURIComponent(userCookie))
         if (userData && userData.email) {
-          // Verify user still exists and role matches in database
           const dbUser = await prisma.user.findUnique({
             where: { email: userData.email },
             select: { id: true, email: true, name: true, role: true, field: true }

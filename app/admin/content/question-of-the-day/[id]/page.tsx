@@ -54,7 +54,7 @@ interface Question {
 import React from "react";
 
 export default function QuestionDetailsPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = React.use(params);
+  const { id } = (React.use(params) as any);
   const { user } = useAuth()
   const router = useRouter()
   const { toast } = useToast()

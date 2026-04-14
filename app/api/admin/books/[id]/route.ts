@@ -5,7 +5,7 @@ import { verifyTokenFromRequest } from '@/lib/db-utils'
 // GET /api/admin/books/[id] - Get specific book
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await verifyTokenFromRequest(request)
@@ -37,7 +37,7 @@ export async function GET(
 // PUT /api/admin/books/[id] - Update book
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await verifyTokenFromRequest(request)
@@ -88,7 +88,7 @@ export async function PUT(
 // DELETE /api/admin/books/[id] - Delete book
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await verifyTokenFromRequest(request)

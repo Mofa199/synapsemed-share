@@ -1,9 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { prisma } from '@/lib/prisma'
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const questionBankId = params.id
+    const questionBankId = (await params).id
     
     // Fetch question bank from database
     const questionBank = await prisma.questionBank.findUnique({

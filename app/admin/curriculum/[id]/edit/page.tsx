@@ -15,7 +15,7 @@ import Link from "next/link"
 import React from "react"
 
 export default function EditCurriculumPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = React.use(params)
+  const { id } = (React.use(params) as any)
   const { user } = useAuth()
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)

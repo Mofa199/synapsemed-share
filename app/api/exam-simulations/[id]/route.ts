@@ -95,10 +95,10 @@ const mockExamQuestions: Record<string, any[]> = {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const examId = params.id;
+    const examId = (await params).id;
 
     // Get questions for this exam
     const questions = mockExamQuestions[examId] || mockExamQuestions['1'];
@@ -119,10 +119,10 @@ export async function GET(
 // POST - Submit exam attempt
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const examId = params.id;
+    const examId = (await params).id;
     const { userId, answers, timeUsed } = await request.json();
     
     const questions = mockExamQuestions[examId] || mockExamQuestions['1'];

@@ -1,3 +1,4 @@
+import React from "react";
 "use client"
 
 import { useState, useEffect } from "react"
@@ -86,7 +87,7 @@ export default function DrugClassPage() {
 
   useEffect(() => {
     if (params.id) {
-      const foundClass = drugClassesData.find(cls => cls.id === params.id)
+      const foundClass = drugClassesData.find(cls => cls.id === (React.use(params) as any).id)
       setDrugClass(foundClass)
     }
   }, [params.id])

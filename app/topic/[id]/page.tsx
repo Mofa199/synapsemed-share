@@ -68,7 +68,7 @@ interface Bookmark {
 import React from "react";
 
 export default function TopicPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: topicId } = React.use(params);
+  const { id: topicId } = (React.use(params) as any);
   const { user } = useAuth()
   
   const [topic, setTopic] = useState<Topic | null>(null)

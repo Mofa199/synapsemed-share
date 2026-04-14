@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 // Build-safe implementation that returns mock data during build
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // Return mock data during build time
   const mockArticle = {
@@ -23,7 +23,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const body = await request.json();
@@ -47,7 +47,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   // Return success during build time
   return NextResponse.json({ success: true, message: 'Article deleted successfully' });

@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 
 // Build-safe implementation that returns mock data during build
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   // Return mock data during build time
   const mockTopics = [
     {
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   return NextResponse.json({ success: true, data: mockTopics });
 }
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const formData = await request.formData()
 
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
     const category = formData.get("category") as string || undefined
     const tags = JSON.parse((formData.get("tags") as string) || "[]")
     const isPublished = formData.get("isPublished") === "true"
-    const moduleId = params.id
+    const moduleId = (await params).id
 
     if (!title || !description || !content || !difficulty) {
       return NextResponse.json(

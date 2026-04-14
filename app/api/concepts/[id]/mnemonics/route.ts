@@ -6,10 +6,10 @@ const prisma = new PrismaClient();
 // GET - Get mnemonics for a concept
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const conceptId = params.id;
+    const conceptId = (await params).id;
 
     const mnemonics = await prisma.mnemonic.findMany({
       where: { conceptId },
@@ -29,10 +29,10 @@ export async function GET(
 // POST - Add new mnemonic
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const conceptId = params.id;
+    const conceptId = (await params).id;
     const body = await request.json();
     const { title, mnemonic, explanation, example, category, userId } = body;
 
@@ -71,7 +71,7 @@ export async function POST(
 // PATCH - Vote on mnemonic
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const body = await request.json();

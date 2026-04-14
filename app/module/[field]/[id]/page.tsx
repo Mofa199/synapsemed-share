@@ -1,3 +1,4 @@
+import React from "react";
 "use client"
 
 import { Navigation } from "@/components/navigation"
@@ -48,8 +49,8 @@ interface Module {
 export default function ModulePage() {
   const { user } = useAuth()
   const params = useParams()
-  const field = params.field as string
-  const moduleId = params.id as string
+  const field = (React.use(params) as any).field as string
+  const moduleId = (React.use(params) as any).id as string
 
   const [moduleData, setModuleData] = useState<Module | null>(null)
   const [loading, setLoading] = useState(true)

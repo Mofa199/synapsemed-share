@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 // GET /api/admin/question-of-the-day/[id] - Get specific question
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const question = await prisma.questionOfTheDay.findUnique({
@@ -65,7 +65,7 @@ export async function GET(
 // PUT /api/admin/question-of-the-day/[id] - Update question
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const body = await request.json()
@@ -131,7 +131,7 @@ export async function PUT(
 // DELETE /api/admin/question-of-the-day/[id] - Delete question
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Delete related answers first

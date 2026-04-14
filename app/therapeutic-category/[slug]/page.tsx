@@ -1,3 +1,4 @@
+import React from "react";
 "use client"
 
 import { useState, useEffect } from "react"
@@ -94,7 +95,7 @@ export default function TherapeuticCategoryPage() {
 
   useEffect(() => {
     if (params.slug) {
-      const foundCategory = therapeuticCategories.find(cat => cat.slug === params.slug)
+      const foundCategory = therapeuticCategories.find(cat => cat.slug === (React.use(params) as any).slug)
       setCategory(foundCategory)
     }
   }, [params.slug])

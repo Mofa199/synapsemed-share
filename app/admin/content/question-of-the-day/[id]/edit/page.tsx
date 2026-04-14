@@ -29,7 +29,7 @@ interface Question {
 import React from "react"
 
 export default function EditQuestionPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = React.use(params)
+  const { id } = (React.use(params) as any)
   const { user } = useAuth()
   const router = useRouter()
   const { toast } = useToast()
@@ -125,7 +125,7 @@ export default function EditQuestionPage({ params }: { params: Promise<{ id: str
     e.preventDefault()
     
     try {
-      const response = await fetch(`/api/admin/question-of-the-day/${params.id}`, {
+      const response = await fetch(`/api/admin/question-of-the-day/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

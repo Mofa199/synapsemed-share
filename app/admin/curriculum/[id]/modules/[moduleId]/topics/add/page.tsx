@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast"
 import React from "react"
 
 export default function AddTopicPage({ params }: { params: Promise<{ id: string, moduleId: string }> }) {
-  const { id: curriculumId, moduleId } = React.use(params)
+  const { id: curriculumId, moduleId } = (React.use(params) as any)
   const { user } = useAuth()
   const router = useRouter()
   const { toast } = useToast()

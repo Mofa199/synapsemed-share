@@ -6,10 +6,10 @@ const prisma = new PrismaClient();
 // GET - Get concept details
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const conceptId = params.id;
+    const conceptId = (await params).id;
 
     let concept = await prisma.concept.findUnique({
       where: { id: conceptId },

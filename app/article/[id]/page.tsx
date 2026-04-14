@@ -49,7 +49,7 @@ interface Bookmark {
 }
 
 export default function ArticlePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: articleId } = React.use(params)
+  const { id: articleId } = (React.use(params) as any)
   const { user } = useAuth()
   
   const [article, setArticle] = useState<Article | null>(null)

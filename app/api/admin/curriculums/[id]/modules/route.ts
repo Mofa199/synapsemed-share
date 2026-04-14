@@ -3,7 +3,7 @@ import { getModulesByCurriculum, createModule } from '@/lib/db-utils'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const modules = await getModulesByCurriculum(params.id)
@@ -24,7 +24,7 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const data = await request.json()

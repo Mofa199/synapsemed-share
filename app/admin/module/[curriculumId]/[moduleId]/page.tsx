@@ -12,7 +12,7 @@ import Link from "next/link"
 import React from "react"
 
 export default function AdminModulePage({ params }: { params: Promise<{ curriculumId: string, moduleId: string }> }) {
-  const { curriculumId, moduleId } = React.use(params)
+  const { curriculumId, moduleId } = (React.use(params) as any)
   const { user } = useAuth()
 
   if (user?.role !== "SUPER_ADMIN") {

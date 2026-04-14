@@ -65,27 +65,30 @@ export function middleware(request: NextRequest) {
   const user = request.cookies.get('synapse-user')
 
   // Debug logging for admin routes
-  if (pathname.startsWith('/admin')) {
-    console.log('=== MIDDLEWARE ADMIN ACCESS DEBUG ===')
+  if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
+    console.log('=== MIDDLEWARE AUTH DEBUG ===')
     console.log('Path:', pathname)
-    console.log('Has auth-token cookie:', !!token)
-    console.log('Has synapse-user cookie:', !!user)
+    
+    const secureNextAuth = request.cookies.get('__Secure-next-auth.session-token')
+    const normalNextAuth = request.cookies.get('next-auth.session-token')
+    const authToken = request.cookies.get('auth-token')
+    const userCookie = request.cookies.get('synapse-user')
 
-    if (token) {
-      console.log('Token value:', token.value)
-    }
+    console.log('Cookies detected:')
+    console.log('- __Secure-next-auth.session-token:', !!secureNextAuth)
+    console.log('- next-auth.session-token:', !!normalNextAuth)
+    console.log('- auth-token:', !!authToken)
+    console.log('- synapse-user:', !!userCookie)
 
-    if (user) {
+    if (userCookie) {
       try {
-        const userData = JSON.parse(decodeURIComponent(user.value))
-        console.log('User data:', userData)
-        console.log('User role:', userData.role)
-        console.log('Is admin role?', ['SUPER_ADMIN', 'LECTURER', 'EDITOR'].includes(userData.role))
+        const userData = JSON.parse(decodeURIComponent(userCookie.value))
+        console.log('User Role:', userData.role)
       } catch (e) {
-        console.log('Failed to parse user cookie:', e)
+        console.log('Failed to parse user cookie')
       }
     }
-    console.log('=======================================')
+    console.log('===============================')
   }
 
   // Admin routes that require admin privileges (Super Admin, Lecturer, Editor)

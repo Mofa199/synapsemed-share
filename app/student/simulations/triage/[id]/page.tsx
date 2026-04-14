@@ -100,7 +100,7 @@ interface PatientCase {
 import React from "react";
 
 export default function TriageSimulationCasePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = React.use(params);
+  const { id } = (React.use(params) as any);
   const router = useRouter();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("triage");

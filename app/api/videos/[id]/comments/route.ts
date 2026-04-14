@@ -6,10 +6,10 @@ const prisma = new PrismaClient();
 // GET - Get video comments
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const videoId = params.id;
+    const videoId = (await params).id;
 
     const comments = await prisma.videoComment.findMany({
       where: { 
@@ -28,7 +28,7 @@ export async function GET(
       {
         id: '1',
         userId: 'user1',
-        videoId: params.id,
+        videoId: videoId,
         userName: 'Sarah Johnson',
         userAvatar: null,
         comment: 'Great explanation of the cardiac cycle! This really helped me understand the relationship between pressure and volume.',
@@ -40,7 +40,7 @@ export async function GET(
       {
         id: '2',
         userId: 'user2',
-        videoId: params.id,
+        videoId: videoId,
         userName: 'Michael Chen',
         userAvatar: null,
         comment: 'Could you make a follow-up video on cardiac pathophysiology? Would love to see how these concepts apply to disease states.',
@@ -52,7 +52,7 @@ export async function GET(
       {
         id: '3',
         userId: 'user3',
-        videoId: params.id,
+        videoId: videoId,
         userName: 'Emily Rodriguez',
         userAvatar: null,
         comment: 'The animations are really helpful for visualizing the electrical conduction system. Thank you!',
@@ -68,10 +68,10 @@ export async function GET(
 // POST - Add comment
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const videoId = params.id;
+    const videoId = (await params).id;
     const body = await request.json();
     const { userId, userName, userAvatar, comment, parentId } = body;
 

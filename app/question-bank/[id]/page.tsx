@@ -54,7 +54,7 @@ interface UserProgress {
 import React from "react";
 
 export default function QuestionBankPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: questionBankId } = React.use(params);
+  const { id: questionBankId } = (React.use(params) as any);
   const { user } = useAuth()
   const router = useRouter()
 

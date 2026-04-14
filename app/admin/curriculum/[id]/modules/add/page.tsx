@@ -23,7 +23,7 @@ import {
 import Link from "next/link"
 
 export default function AddModulePage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: curriculumId } = React.use(params)
+  const { id: curriculumId } = (React.use(params) as any)
   const { user } = useAuth()
   const { toast } = useToast()
   const router = useRouter()

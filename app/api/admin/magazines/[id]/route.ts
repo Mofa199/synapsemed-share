@@ -5,7 +5,7 @@ import { verifyTokenFromRequest } from '@/lib/db-utils'
 // GET /api/admin/magazines/[id] - Get specific magazine
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await verifyTokenFromRequest(request)
@@ -36,7 +36,7 @@ export async function GET(
 // PUT /api/admin/magazines/[id] - Update magazine
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await verifyTokenFromRequest(request)
@@ -73,7 +73,7 @@ export async function PUT(
 // DELETE /api/admin/magazines/[id] - Delete magazine
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await verifyTokenFromRequest(request)

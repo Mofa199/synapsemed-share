@@ -62,8 +62,9 @@ interface Mnemonic {
 import React from "react";
 
 export default function ConceptDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: conceptId } = React.use(params);
+  const { id: conceptId } = (React.use(params) as any);
   const router = useRouter();
+  const { toast } = useToast();
   const userId = "student-001"; // In real app, get from auth
   
   const [concept, setConcept] = useState<Concept | null>(null);

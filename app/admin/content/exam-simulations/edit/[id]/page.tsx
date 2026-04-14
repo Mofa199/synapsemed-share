@@ -1,3 +1,4 @@
+import React from "react";
 "use client"
 
 import { useState, useEffect } from "react"
@@ -58,7 +59,7 @@ export default function EditExamSimulationPage() {
       const response = await fetch('/api/exam-simulations')
       if (response.ok) {
         const exams: ExamSimulation[] = await response.json()
-        const exam = exams.find(e => e.id === params.id)
+        const exam = exams.find(e => e.id === (React.use(params) as any).id)
         
         if (exam) {
           setExam(exam)

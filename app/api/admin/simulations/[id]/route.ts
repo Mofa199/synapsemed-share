@@ -4,10 +4,10 @@ import { prisma } from "@/lib/prisma"
 // GET /api/admin/simulations/[id]
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id  } = await params
 
     // Fetch the simulation
     const simulation = await prisma.topic.findUnique({
@@ -37,10 +37,10 @@ export async function GET(
 // PUT /api/admin/simulations/[id]
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id  } = await params
     const body = await req.json()
     
     const { 
@@ -84,10 +84,10 @@ export async function PUT(
 // DELETE /api/admin/simulations/[id]
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params
+    const { id  } = await params
 
     // Delete the simulation
     await prisma.topic.delete({

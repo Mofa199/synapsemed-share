@@ -5,7 +5,7 @@ import { verifyTokenFromRequest } from '@/lib/db-utils'
 // GET /api/admin/videos/[id] - Get specific video
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await verifyTokenFromRequest(request)
@@ -38,7 +38,7 @@ export async function GET(
 // PUT /api/admin/videos/[id] - Update video
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await verifyTokenFromRequest(request)
@@ -79,7 +79,7 @@ export async function PUT(
 // DELETE /api/admin/videos/[id] - Delete video
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await verifyTokenFromRequest(request)

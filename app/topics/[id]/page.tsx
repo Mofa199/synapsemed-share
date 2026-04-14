@@ -14,7 +14,7 @@ import { useParams } from "next/navigation"
 import React from "react";
 
 export default function TopicPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: topicId } = React.use(params);
+  const { id: topicId } = (React.use(params) as any);
   const { user } = useAuth()
   const [topic, setTopic] = useState<any>(null)
   const [loading, setLoading] = useState(true)

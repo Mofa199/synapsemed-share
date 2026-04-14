@@ -23,7 +23,7 @@ import {
 import Link from "next/link"
 
 export default function EditModulePage({ params }: { params: Promise<{ id: string; moduleId: string }> }) {
-  const { id: curriculumId, moduleId } = React.use(params)
+  const { id: curriculumId, moduleId } = (React.use(params) as any)
   const { user } = useAuth()
   const { toast } = useToast()
   const router = useRouter()

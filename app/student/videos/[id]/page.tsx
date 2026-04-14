@@ -64,8 +64,9 @@ interface QuizQuestion {
 import React from "react";
 
 export default function VideoPlayerPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: videoId } = React.use(params);
+  const { id: videoId } = (React.use(params) as any);
   const router = useRouter();
+  const { toast } = useToast();
   const userId = "student-001"; // In real app, get from auth
   
   const [video, setVideo] = useState<Video | null>(null);

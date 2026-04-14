@@ -6,10 +6,10 @@ const prisma = new PrismaClient();
 // GET - Get quiz for video
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const videoId = params.id;
+    const videoId = (await params).id;
 
     const quiz = await prisma.videoQuiz.findFirst({
       where: { videoId },
@@ -113,10 +113,10 @@ export async function GET(
 // POST - Submit quiz attempt
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const videoId = params.id;
+    const videoId = (await params).id;
     const body = await request.json();
     const { userId, quizId, answers } = body;
 

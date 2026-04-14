@@ -5,11 +5,11 @@ import { prisma } from '@/lib/prisma'
 // GET /api/user/profile/[id] - Get user profile data
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await stackServerApp.getUser()
-    if (!user || user.id !== params.id) {
+    if (!user || user.id !== (await params).id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -59,11 +59,11 @@ export async function GET(
 // PUT /api/user/profile/[id] - Update user profile
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await stackServerApp.getUser()
-    if (!user || user.id !== params.id) {
+    if (!user || user.id !== (await params).id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

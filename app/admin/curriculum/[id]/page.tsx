@@ -12,7 +12,7 @@ import { useState, useEffect } from "react"
 import React from "react"
 
 export default function AdminCurriculumPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id: curriculumId } = React.use(params)
+  const { id: curriculumId } = (React.use(params) as any)
   const { user } = useAuth()
   const [curriculum, setCurriculum] = useState<any>(null)
   const [loading, setLoading] = useState(true)
