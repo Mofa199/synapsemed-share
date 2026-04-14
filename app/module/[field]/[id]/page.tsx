@@ -1,5 +1,5 @@
-import React from "react";
 "use client"
+import React from "react";
 
 import { Navigation } from "@/components/navigation"
 import { AIHelper } from "@/components/ai-helper"
