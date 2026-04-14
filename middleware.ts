@@ -16,6 +16,7 @@ export function middleware(request: NextRequest) {
     '/login',
     '/debug-auth',
     '/auth-debug',
+    '/api/debug-auth',
     '/api/auth/login',
     '/api/auth/signup',
     '/api/auth/logout',
@@ -165,11 +166,12 @@ export const config = {
     /*
      * Match all request paths except for the ones starting with:
      * - api/auth (auth API routes)
+     * - api/debug-auth (public debug route)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public folder
      */
-    '/((?!api/auth|_next/static|_next/image|favicon.ico|public).*)',
+    '/((?!api/auth|api/debug-auth|_next/static|_next/image|favicon.ico|public).*)',
   ],
 }
