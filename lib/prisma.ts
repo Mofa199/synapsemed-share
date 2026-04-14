@@ -34,6 +34,7 @@ function createPrismaClient(): PrismaClient {
     return new PrismaClient()
   } catch (e) {
     // If Prisma client creation fails (likely during build), return a mock client
+    console.error('CRITICAL: Prisma Client initialization failed. Using mock client.', e)
     return new Proxy({}, {
       get(target: any, prop: string) {
         if (prop === '$connect' || prop === '$disconnect' || prop === '$transaction' || prop === '$use') {
