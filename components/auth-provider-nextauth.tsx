@@ -66,8 +66,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Sync NextAuth session with our user state
     const syncSession = async () => {
+      // 1. If authenticated, fetch profile to ensure we have fresh data
       if (status === "authenticated" && session?.user) {
-        // Fetch full user data from database using our new profile API
         try {
           const response = await fetch('/api/user/profile')
           if (response.ok) {
@@ -91,27 +91,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               setUser(userData)
               localStorage.setItem("synapse-user", JSON.stringify(userData))
 
-              // Set cookies for middleware
+              // Set cookies for middleware with Path=/ to be accessible everywhere
               const userJson = JSON.stringify(userData)
               const encodedUser = encodeURIComponent(userJson)
 
-              // Clear legacy cookies
-              document.cookie = "synapse-user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
-              
-              // Set fresh cookies
-              document.cookie = `synapse-user=${encodedUser}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`
+              // Set fresh cookies (Secure if on HTTPS, SameSite=Lax for compatibility)
+              const cookieOptions = `; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax${window.location.protocol === 'https:' ? '; Secure' : ''}`
+              document.cookie = `synapse-user=${encodedUser}${cookieOptions}`
             }
           }
         } catch (error) {
           console.error('Error syncing session with database:', error)
+          // Don't log out on fetch error - keep current state
         }
-      } else if (status === "unauthenticated") {
-        setUser(null)
-        localStorage.removeItem("synapse-user")
+      } 
+      // 2. ONLY clear session if NextAuth says unauthenticated AND we have no user cookie
+      // This prevents the "instant logout" if NextAuth client-side briefly loses the session
+      else if (status === "unauthenticated") {
+        const hasBackupCookie = document.cookie.split('; ').some(row => row.startsWith('synapse-user='))
+        
+        if (!hasBackupCookie) {
+          console.log('Clearing local session - no cookies found')
+          setUser(null)
+          localStorage.removeItem("synapse-user")
 
-        // Clear cookies
-        document.cookie = "synapse-user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
-        document.cookie = "auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+          // Clear cookies
+          document.cookie = "synapse-user=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+          document.cookie = "auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+        } else {
+          console.log('Waiting for NextAuth - keeping local session active via cookie')
+        }
       }
     }
 
