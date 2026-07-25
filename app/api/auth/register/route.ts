@@ -9,139 +9,78 @@ export async function POST(request: NextRequest) {
     const { name, email, password, field } = await request.json()
 
     if (!name || !email || !password || !field) {
-      return NextResponse.json(
-        { error: 'All fields are required' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'All fields are required' }, { status: 400 })
     }
 
-    // Validate field
     if (!['MEDICAL', 'NURSING', 'PHARMACY'].includes(field)) {
-      return NextResponse.json(
-        { error: 'Invalid field selection' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid field selection' }, { status: 400 })
     }
 
-    // Create user
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString()
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000) // 10 minutes
+
+    // Create user (temporarily unverified - stored in resetToken for OTP)
     const user = await createUser({
       name,
       email,
       password,
       field,
-      role: 'STUDENT', // Default role for new registrations
+      role: 'STUDENT', 
     })
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Email already exists or registration failed' },
-        { status: 409 }
-      )
+      return NextResponse.json({ error: 'Email already exists or registration failed' }, { status: 409 })
     }
 
-    // Add user to email subscription list
-    try {
-      // @ts-ignore
-      await prismaClient.emailSubscription.upsert({
-        where: { email: user.email },
-        update: { 
-          isActive: true,
-          name: user.name,
-          source: 'signup'
-        },
-        create: {
-          email: user.email,
-          name: user.name,
-          source: 'signup',
-          isActive: true
-        }
-      })
-    } catch (subscriptionError) {
-      console.error('Failed to add user to email subscription:', subscriptionError)
-      // Continue even if subscription fails
-    }
+    // Save OTP to the user's otpCode fields
+    // @ts-ignore
+    await prismaClient.user.update({
+      where: { id: user.id },
+      data: { otpCode: otp, otpExpiry: otpExpiry, isVerified: false }
+    })
 
-    // Send welcome email
+    // Send OTP via Email
     try {
-      await sendWelcomeEmail(user.email, user.name)
+      await sendWelcomeEmail(user.email, user.name, otp)
     } catch (emailError) {
-      console.error('Failed to send welcome email:', emailError)
-      // Continue even if email fails
+      console.error('Failed to send OTP email:', emailError)
     }
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { 
-        userId: user.id, 
-        email: user.email, 
-        role: user.role 
-      },
-      process.env.JWT_SECRET!,
-      { expiresIn: '7d' }
-    )
+    // Send OTP via WhatsApp Custom Server
+    try {
+      const whatsappServer = process.env.WHATSAPP_SERVER_URL || 'http://localhost:8000';
+      // Assume a custom endpoint for sending messages
+      fetch(`${whatsappServer}/api/send-message`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phone: "user_phone_number_placeholder", // The user model would need a phone number
+          message: `Your SynapseMed verification code is: ${otp}`
+        })
+      }).catch(() => console.log("WhatsApp server not connected yet."));
+    } catch (waError) {
+      console.error('Failed to send WhatsApp OTP:', waError)
+    }
 
-    // Create response
-    const response = NextResponse.json({
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        field: user.field,
-        level: user.level,
-        points: user.points,
-        streak: user.streak,
-      },
+    // Return response demanding OTP verification, without setting the login cookies yet
+    return NextResponse.json({
       success: true,
-      message: 'Registration successful. Please complete your profile.',
-      redirectToProfile: true // Flag to indicate redirection to profile
+      requireOtp: true,
+      message: 'Registration successful. Please verify your OTP to continue.',
+      userId: user.id
     })
-
-    // Set httpOnly cookie
-    response.cookies.set('auth-token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60, // 7 days
-    })
-
-    // Also set a non-httpOnly cookie for client-side user data
-    response.cookies.set('synapse-user', JSON.stringify({
-      id: user.id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      field: user.field,
-      level: user.level,
-      points: user.points,
-      streak: user.streak,
-    }), {
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 7 * 24 * 60 * 60, // 7 days
-    })
-
-    return response
   } catch (error) {
     console.error('Registration error:', error)
-    
-    // Handle duplicate email error
     if (error instanceof Error && error.message.includes('Unique constraint')) {
-      return NextResponse.json(
-        { error: 'Email already exists' },
-        { status: 409 }
-      )
+      return NextResponse.json({ error: 'Email already exists' }, { status: 409 })
     }
-    
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
 // Helper function to send welcome email
-async function sendWelcomeEmail(email: string, name: string) {
+async function sendWelcomeEmail(email: string, name: string, otp: string) {
   // Check if email configuration exists
   if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASSWORD) {
     console.warn('Email configuration not found. Skipping welcome email.')
@@ -162,7 +101,7 @@ async function sendWelcomeEmail(email: string, name: string) {
     const mailOptions = {
       from: process.env.SMTP_USER,
       to: email,
-      subject: 'Welcome to SynapseMed!',
+      subject: 'Verify your SynapseMed Account',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <div style="background: #213874; color: white; padding: 20px; text-align: center;">
@@ -171,13 +110,11 @@ async function sendWelcomeEmail(email: string, name: string) {
           <div style="padding: 20px;">
             <p>Dear ${name},</p>
             <p>Welcome to SynapseMed, your comprehensive medical education platform!</p>
-            <p>Here are some things you can do to get started:</p>
-            <ul>
-              <li>Complete your profile setup</li>
-              <li>Explore our extensive course library</li>
-              <li>Join study groups and discussions</li>
-              <li>Take practice exams and simulations</li>
-            </ul>
+            <p>To verify your account, please use the following One-Time Password (OTP):</p>
+            <div style="font-size: 24px; font-weight: bold; text-align: center; margin: 20px 0; letter-spacing: 2px;">
+              ${otp}
+            </div>
+            <p>This code will expire in 10 minutes.</p>
             <p>If you have any questions, don't hesitate to reach out to our support team at support@synapsemed.co.tz.</p>
             <p>Best regards,<br>The SynapseMed Team</p>
           </div>

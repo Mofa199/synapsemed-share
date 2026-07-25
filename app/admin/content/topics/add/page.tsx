@@ -22,6 +22,7 @@ import {
   ArrowLeft
 } from "lucide-react"
 import Link from "next/link"
+import { CurriculumModuleSelect } from "@/components/curriculum-module-select"
 
 export default function AddTopicPage() {
   const { user } = useAuth()
@@ -37,8 +38,8 @@ export default function AddTopicPage() {
     duration: "",
     category: "",
     tags: "",
-    curriculum: "",
-    module: "",
+    curriculumId: "",
+    moduleId: "",
     isPublished: false
   })
 
@@ -88,8 +89,8 @@ export default function AddTopicPage() {
       form.append('difficulty', formData.difficulty.toUpperCase())
       form.append('duration', formData.duration || '')
       form.append('category', formData.category || '')
-      form.append('moduleId', formData.module || '')
-      form.append('curriculumId', formData.curriculum || '')
+      form.append('moduleId', formData.moduleId || '')
+      form.append('curriculumId', formData.curriculumId || '')
       form.append('tags', JSON.stringify(formData.tags.split(',').map(tag => tag.trim()).filter(Boolean)))
       form.append('isPublished', formData.isPublished.toString())
 
@@ -186,37 +187,12 @@ export default function AddTopicPage() {
                     />
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="curriculum">Curriculum *</Label>
-                      <Select value={formData.curriculum} onValueChange={(value) => handleInputChange('curriculum', value)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select curriculum" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="medical">Medical</SelectItem>
-                          <SelectItem value="nursing">Nursing</SelectItem>
-                          <SelectItem value="pharmacy">Pharmacy</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="module">Module *</Label>
-                      <Select value={formData.module} onValueChange={(value) => handleInputChange('module', value)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select module" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="anatomy">Anatomy & Physiology</SelectItem>
-                          <SelectItem value="pathology">Pathology</SelectItem>
-                          <SelectItem value="pharmacology">Pharmacology</SelectItem>
-                          <SelectItem value="microbiology">Microbiology</SelectItem>
-                          <SelectItem value="biochemistry">Biochemistry</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
+                  <CurriculumModuleSelect
+                    curriculumId={formData.curriculumId}
+                    moduleId={formData.moduleId}
+                    onCurriculumChange={(val) => handleInputChange('curriculumId', val)}
+                    onModuleChange={(val) => handleInputChange('moduleId', val)}
+                  />
 
                   <div className="grid md:grid-cols-3 gap-4">
                     <div className="space-y-2">

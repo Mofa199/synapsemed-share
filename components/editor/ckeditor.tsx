@@ -47,6 +47,8 @@ export function CKEditor({
         versionCheck: false,
         extraPlugins: 'uploadimage,image2,codesnippet,justify,colorbutton,font',
         removeButtons: 'About',
+        filebrowserUploadUrl: '/api/upload',
+        filebrowserUploadMethod: 'form',
         ...config
       }
 

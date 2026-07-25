@@ -13,7 +13,8 @@
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset",
     "prod": "pm2 start npm --name synapsemed -- run start",
-    "pm2-dev": "pm2 start npm --name synapsemed -- run dev"
+    "pm2-dev": "pm2 start npm --name synapsemed -- run dev",
+    "cron": "pm2 start npx --name synapsemed-cron -- ts-node scripts/cron.ts"
   },
   "dependencies": {
     "@ckeditor/ckeditor5-react": "^11.1.0",
@@ -66,7 +67,7 @@
     "input-otp": "1.4.1",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.454.0",
-    "next": "15.2.4",
+    "next": "16.2.4",
     "next-auth": "^4.24.11",
     "next-themes": "latest",
     "node-cron": "^3.0.3",
@@ -97,6 +98,6 @@
     "eslint-config-next": "^16.1.6",
     "tailwindcss": "^4.1.13",
     "ts-node": "^10.9.2",
-    "typescript": "^5"
+    "typescript": "^6.0.3"
   }
 }

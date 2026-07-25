@@ -28,38 +28,12 @@ import Link from "next/link"
 
 export default function AboutPage() {
   const features = [
-    {
-      icon: Brain,
-      title: "AI-Powered Learning",
-      description:
-        "Advanced AI assistant powered by DeepSeek to help with complex medical concepts and personalized study guidance.",
-    },
-    {
-      icon: BookOpen,
-      title: "Comprehensive Library",
-      description:
-        "Extensive collection of medical textbooks, research papers, and educational resources for all healthcare fields.",
-    },
-    {
-      icon: Users,
-      title: "Collaborative Platform",
-      description: "Connect with peers, share knowledge, and learn together in a supportive community environment.",
-    },
-    {
-      icon: Target,
-      title: "Personalized Learning",
-      description: "Adaptive learning paths tailored to your field of study and individual learning preferences.",
-    },
-    {
-      icon: Award,
-      title: "Gamified Experience",
-      description: "Earn points, unlock badges, and track your progress with our engaging gamification system.",
-    },
-    {
-      icon: Shield,
-      title: "Secure & Reliable",
-      description: "Enterprise-grade security ensuring your data and learning progress are always protected.",
-    },
+    { icon: Brain, title: "AI-Powered Learning", description: "Advanced AI assistant powered by DeepSeek to help with complex medical concepts and personalized study guidance." },
+    { icon: BookOpen, title: "Comprehensive Library", description: "Extensive collection of medical textbooks, research papers, and educational resources for all healthcare fields." },
+    { icon: Users, title: "Collaborative Platform", description: "Connect with peers, share knowledge, and learn together in a supportive community environment." },
+    { icon: Target, title: "Personalized Learning", description: "Adaptive learning paths tailored to your field of study and individual learning preferences." },
+    { icon: Award, title: "Gamified Experience", description: "Earn points, unlock badges, and track your progress with our engaging gamification system." },
+    { icon: Shield, title: "Secure & Reliable", description: "Enterprise-grade security ensuring your data and learning progress are always protected." },
   ]
 
   const [team, setTeam] = useState<any[]>([])
@@ -86,391 +60,197 @@ export default function AboutPage() {
     { number: "24/7", label: "AI Support" },
   ]
 
-  const values = [
-    {
-      icon: Heart,
-      title: "Patient-Centered Care",
-      description: "Everything we do is focused on improving patient outcomes through better healthcare education.",
-    },
-    {
-      icon: Lightbulb,
-      title: "Innovation",
-      description: "We continuously innovate to provide the most effective and engaging learning experiences.",
-    },
-    {
-      icon: Users,
-      title: "Collaboration",
-      description: "We believe in the power of collaborative learning and knowledge sharing.",
-    },
-    {
-      icon: Target,
-      title: "Excellence",
-      description: "We strive for excellence in everything we do, from content quality to user experience.",
-    },
-  ]
-
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-mesh text-[#213874] selection:bg-primary/20">
       <Navigation />
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-[#213874] to-[#1a6ac3] text-white py-20 animate-in fade-in duration-1000">
-        <div className="container mx-auto px-4 text-center">
-          <div className="max-w-4xl mx-auto">
-            <h1 className="text-5xl font-bold mb-6 animate-in slide-in-from-bottom duration-1000 delay-200">
-              Revolutionizing Medical Education
+      <section className="relative pt-40 pb-20 overflow-hidden">
+        <div className="container mx-auto px-6 relative z-10 text-center">
+          <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in zoom-in duration-1000">
+            <Badge className="bg-[#213874]/5 text-[#213874] border-[#213874]/20 px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest">
+               Next-Generation Education
+            </Badge>
+            <h1 className="text-5xl md:text-7xl font-bold tracking-tighter leading-none text-[#213874]">
+              Revolutionizing <span className="text-[#1a6ac3]">Medical Learning.</span>
             </h1>
-            <p className="text-xl mb-8 text-blue-100 animate-in slide-in-from-bottom duration-1000 delay-400">
-              Synapse Med is the premier digital learning platform designed specifically for medical, nursing, and
-              pharmacy students. We combine cutting-edge AI technology with comprehensive educational resources to
-              create an unparalleled learning experience.
+            <p className="text-xl text-gray-500 leading-relaxed font-semibold">
+              SynapseMed is the premier digital learning platform designed specifically for medical, nursing, and pharmacy students. We combine cutting-edge AI technology with comprehensive educational resources.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-in slide-in-from-bottom duration-1000 delay-600">
-              <Button asChild size="lg" className="bg-[#f3ab1b] text-[#213874] hover:bg-[#f3ab1b]/90">
+            <div className="flex flex-col sm:flex-row gap-6 justify-center">
+              <Button asChild size="xl" className="bg-[#213874] text-white font-bold rounded-2xl px-10 hover:scale-105 hover:bg-[#1a6ac3] transition-all shadow-xl shadow-blue-900/10">
                 <Link href="/auth">
                   Get Started Today
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Link>
               </Button>
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="border-white text-white hover:bg-white hover:text-[#213874] bg-transparent"
-              >
-                <Link href="/courses">Explore Courses</Link>
+              <Button asChild variant="outline" size="xl" className="border-gray-200 text-gray-600 font-bold rounded-2xl px-10 glass hover:bg-white hover:border-[#1a6ac3]/20 shadow-sm">
+                <Link href="/courses">Explore Library</Link>
               </Button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-16 bg-white animate-in slide-in-from-bottom duration-1000 delay-800">
-        <div className="container mx-auto px-4">
-          <div className="grid md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="text-4xl font-bold text-[#213874] mb-2">{stat.number}</div>
-                <div className="text-gray-600">{stat.label}</div>
+      {/* Stats Matrix */}
+      <section className="py-20">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-in slide-in-from-bottom-20 duration-1000">
+            {stats.map((stat, i) => (
+              <div key={i} className="glass-card p-8 text-center group">
+                <div className="text-4xl font-bold text-[#213874] mb-2 group-hover:scale-110 transition-all">{stat.number}</div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{stat.label}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Founder Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center mb-16">
-            <h2 className="text-4xl font-bold text-[#213874] mb-4">Our Founder</h2>
-            <p className="text-xl text-gray-600">
-              Meet the visionary behind Synapse Med's revolutionary approach to medical education.
-            </p>
-          </div>
-          <div className="max-w-4xl mx-auto">
-            <Card className="overflow-hidden">
-              <div className="md:flex">
-                <div className="md:w-1/3 flex items-center justify-center p-8 bg-gray-50">
-                  {/* Founder image without frame/border */}
-                  <div className="relative">
-                    <img
-                      src="/placeholder.svg?height=300&width=300&text=MF"
-                      alt="Mohamed Faisal MD"
-                      className="w-64 h-64 object-cover"
-                    />
-                  </div>
-                </div>
-                <div className="md:w-2/3 p-8">
-                  <CardHeader className="p-0 mb-6">
-                    <CardTitle className="text-3xl text-[#213874] mb-2">Mohamed Faisal, MD</CardTitle>
-                    <CardDescription className="text-xl text-[#f3ab1b]">
-                      Founder & CEO, Synapse Med
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <div className="prose max-w-none">
-                      <p className="text-gray-700 mb-4">
-                        Dr. Mohamed Faisal is a medical student at St Joseph University College of Health and Allied Sciences
-                      </p>
-                      <Button asChild className="bg-[#213874] hover:bg-[#1a6ac3]">
-                        <Link href="/about/mohamed-faisal">
-                          Read Full Biography
-                          <ArrowRight className="ml-2 w-4 h-4" />
-                        </Link>
-                      </Button>
-                    </div>
-                  </CardContent>
-                </div>
-              </div>
-            </Card>
-          </div>
-        </div>
-      </section>
 
-      {/* Mission Section */}
-      <section className="py-20 animate-in slide-in-from-bottom duration-1000 delay-1000">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl font-bold text-[#213874] mb-8">Our Mission</h2>
-            <p className="text-xl text-gray-700 mb-12 leading-relaxed">
-              To empower the next generation of healthcare professionals with innovative digital learning tools,
-              comprehensive educational resources, and AI-powered assistance that enhances understanding, retention, and
-              practical application of medical knowledge.
-            </p>
-            <div className="grid md:grid-cols-2 gap-8">
-              <Card className="text-left hover:shadow-lg transition-shadow duration-300">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Rocket className="w-6 h-6 text-[#f3ab1b]" />
-                    Our Vision
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700">
-                    To become the global leader in medical education technology, transforming how healthcare
-                    professionals learn, collaborate, and advance their careers through innovative digital solutions.
-                  </p>
-                </CardContent>
-              </Card>
-              <Card className="text-left hover:shadow-lg transition-shadow duration-300">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Target className="w-6 h-6 text-[#f3ab1b]" />
-                    Our Goal
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700">
-                    To improve patient outcomes worldwide by providing healthcare students and professionals with the
-                    most effective, accessible, and engaging educational experiences possible.
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Features Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-[#213874] mb-4">Why Choose Synapse Med?</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Our platform combines the latest in educational technology with proven learning methodologies to deliver
-              an exceptional learning experience.
-            </p>
+      {/* Features Grid */}
+      <section className="py-32 bg-gray-50 border-y border-gray-100">
+        <div className="container mx-auto px-6">
+          <div className="text-center mb-20 space-y-4">
+            <h2 className="text-4xl font-bold tracking-tighter text-[#213874]">Why Choose SynapseMed?</h2>
+            <p className="text-gray-500 font-medium max-w-2xl mx-auto">Our platform integrates the latest pedagogical science with advanced neural architectures.</p>
           </div>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <Card
-                key={index}
-                className="hover:shadow-lg transition-all duration-300 transform hover:scale-105 animate-in slide-in-from-bottom duration-500"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <CardHeader>
-                  <div className="w-12 h-12 bg-[#213874]/10 rounded-lg flex items-center justify-center mb-4">
-                    <feature.icon className="w-6 h-6 text-[#213874]" />
-                  </div>
-                  <CardTitle className="text-xl">{feature.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600">{feature.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Values Section */}
-      <section className="py-20 bg-gray-100">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-[#213874] mb-4">Our Core Values</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              These values guide everything we do and shape our commitment to excellence in medical education.
-            </p>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {values.map((value, index) => (
-              <div
-                key={index}
-                className="text-center animate-in slide-in-from-bottom duration-500"
-                style={{ animationDelay: `${index * 150}ms` }}
-              >
-                <div className="w-16 h-16 bg-[#f3ab1b] rounded-full flex items-center justify-center mx-auto mb-4">
-                  <value.icon className="w-8 h-8 text-[#213874]" />
+            {features.map((feature, i) => (
+              <div key={i} className="glass-card p-10 space-y-8 group hover:-translate-y-2 transition-all text-left">
+                <div className="w-16 h-16 bg-white border border-gray-100 rounded-2xl flex items-center justify-center group-hover:bg-[#213874] transition-all">
+                  <feature.icon className="w-8 h-8 text-[#213874] group-hover:text-white transition-all" />
                 </div>
-                <h3 className="text-xl font-semibold text-[#213874] mb-2">{value.title}</h3>
-                <p className="text-gray-600">{value.description}</p>
+                <div className="space-y-4">
+                  <h3 className="text-2xl font-bold text-[#213874]">{feature.title}</h3>
+                  <p className="text-gray-500 font-medium text-sm leading-relaxed">{feature.description}</p>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Team Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-[#213874] mb-4">Meet Our Expert Team</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Our team consists of leading medical professionals, educators, and technology experts dedicated to
-              advancing healthcare education.
-            </p>
-          </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {team.length === 0 ? (
-              <div className="col-span-full text-center text-gray-500 py-8">
-                Loading team members...
+      {/* Mission & Vision Bento */}
+      <section className="py-32">
+        <div className="container mx-auto px-6">
+           <div className="grid lg:grid-cols-2 gap-8 text-left">
+              <div className="glass-card p-12 space-y-8 relative overflow-hidden group">
+                 <div className="absolute top-0 right-0 w-64 h-64 bg-[#213874]/5 blur-[100px] rounded-full -mr-20 -mt-20" />
+                 <div className="relative z-10 space-y-6">
+                    <Rocket className="w-12 h-12 text-[#f3ab1b]" />
+                    <h3 className="text-3xl font-bold tracking-tighter text-[#213874]">Our Vision</h3>
+                    <p className="text-gray-500 font-medium leading-relaxed text-lg">To become the global leader in medical education technology, transforming how healthcare professionals learn, collaborate, and advance their careers through innovative digital solutions.</p>
+                 </div>
               </div>
-            ) : (
-              team.map((member, index) => (
-                <Card
-                  key={member.id || index}
-                  className="text-center hover:shadow-lg transition-all duration-300 transform hover:scale-105 animate-in slide-in-from-bottom duration-500"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <CardContent className="p-6">
-                    <Avatar className="w-24 h-24 mx-auto mb-4">
-                      <AvatarImage src={member.avatar || "/placeholder.svg"} alt={member.name} />
-                      <AvatarFallback className="bg-[#213874] text-white text-xl">
-                        {member.name
-                          ? member.name.split(" ").map((n: string) => n[0]).join("")
-                          : "?"}
-                      </AvatarFallback>
-                    </Avatar>
-                    <h3 className="text-xl font-semibold text-[#213874] mb-1">{member.name}</h3>
-                    <p className="text-[#f3ab1b] font-medium mb-1">{member.position}</p>
-                    <Badge variant="outline" className="mb-3">
-                      {(member.department || 'Unknown').replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, (l: string) => l.toUpperCase())}
-                    </Badge>
-                    <p className="text-gray-600 text-sm">{member.bio || ''}</p>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
+              <div className="glass-card p-12 space-y-8 relative overflow-hidden group bg-gray-50/50">
+                 <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#1a6ac3]/5 blur-[100px] rounded-full -ml-20 -mb-20" />
+                 <div className="relative z-10 space-y-6">
+                    <Target className="w-12 h-12 text-[#213874]" />
+                    <h3 className="text-3xl font-bold tracking-tighter text-[#213874]">Our Goal</h3>
+                    <p className="text-gray-500 font-medium leading-relaxed text-lg">To improve patient outcomes worldwide by providing healthcare students and professionals with the most effective, accessible, and engaging educational experiences possible.</p>
+                 </div>
+              </div>
+           </div>
         </div>
       </section>
 
-      {/* Technology Section */}
-      <section className="py-20 bg-gradient-to-br from-[#213874] to-[#1a6ac3] text-white">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-4xl font-bold mb-8">Cutting-Edge Technology</h2>
-            <p className="text-xl mb-12 text-blue-100">
-              We leverage the latest advancements in artificial intelligence, machine learning, and educational
-              technology to create the most effective learning platform.
-            </p>
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="text-center animate-in slide-in-from-bottom duration-500 delay-200">
-                <div className="w-16 h-16 bg-[#f3ab1b] rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Brain className="w-8 h-8 text-[#213874]" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">DeepSeek AI</h3>
-                <p className="text-blue-100">Advanced AI assistant for personalized learning support</p>
-              </div>
-              <div className="text-center animate-in slide-in-from-bottom duration-500 delay-400">
-                <div className="w-16 h-16 bg-[#f3ab1b] rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Zap className="w-8 h-8 text-[#213874]" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Real-time Analytics</h3>
-                <p className="text-blue-100">Track progress and optimize learning paths instantly</p>
-              </div>
-              <div className="text-center animate-in slide-in-from-bottom duration-500 delay-600">
-                <div className="w-16 h-16 bg-[#f3ab1b] rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Globe className="w-8 h-8 text-[#213874]" />
-                </div>
-                <h3 className="text-xl font-semibold mb-2">Global Access</h3>
-                <p className="text-blue-100">Learn anywhere, anytime with our cloud-based platform</p>
-              </div>
+      {/* Team Stream */}
+      <section className="py-32 bg-gray-50 border-y border-gray-100">
+        <div className="container mx-auto px-6 text-center mb-16 space-y-4">
+          <h2 className="text-4xl font-bold tracking-tighter text-[#213874]">Expert Intelligence Team</h2>
+          <p className="text-gray-500 font-medium max-w-2xl mx-auto">Leading medical professionals and engineers dedicated to advancing clinical knowledge.</p>
+        </div>
+        <div className="container mx-auto px-6 grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {team.map((member, i) => (
+            <div key={i} className="glass-card p-8 text-center group hover:scale-105 transition-all bg-white">
+               <Avatar className="w-24 h-24 mx-auto mb-6 border-2 border-gray-50 group-hover:border-[#213874] transition-all p-1">
+                  <AvatarImage src={member.avatar || "/placeholder.svg"} className="rounded-full" />
+                  <AvatarFallback className="bg-[#213874] text-white font-black text-xl">
+                    {member.name?.split(" ").map((n:any) => n[0]).join("")}
+                  </AvatarFallback>
+               </Avatar>
+               <h3 className="text-xl font-bold text-[#213874] group-hover:text-[#1a6ac3] transition-colors">{member.name}</h3>
+               <p className="text-[#f3ab1b] text-[10px] font-bold uppercase tracking-widest mt-2">{member.position}</p>
+               <p className="text-gray-400 font-bold text-[10px] uppercase tracking-tighter mt-4 line-clamp-2">{member.bio}</p>
             </div>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* Contact Section */}
-      <section className="py-20 bg-gray-100">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-[#213874] mb-4">Get in Touch</h2>
-              <p className="text-xl text-gray-600">Have questions about our platform? We'd love to hear from you.</p>
-            </div>
-            <div className="grid md:grid-cols-2 gap-12">
-              <div className="space-y-8">
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-[#213874] rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Mail className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-[#213874] mb-2">Email Us</h3>
-                    <p className="text-gray-600 mb-2">Get in touch with our support team</p>
-                    <p className="text-[#213874] font-medium">contact@synapsemedical.com</p>
-                  </div>
+      {/* Technology Synthesis */}
+      <section className="py-32 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[#213874]/5 blur-[200px] rounded-full" />
+        <div className="container mx-auto px-6 text-center relative z-10">
+           <h2 className="text-4xl font-bold tracking-tighter mb-20 text-[#213874]">Cutting-Edge Technology Grid</h2>
+           <div className="grid md:grid-cols-3 gap-12 max-w-5xl mx-auto">
+              {[
+                { icon: Brain, title: "DeepSeek AI", desc: "Advanced neural assistant for clinical support." },
+                { icon: Zap, title: "Real-time Sync", desc: "Instant analytics and adaptive pathways." },
+                { icon: Globe, title: "Global Grid", desc: "Access archives from anywhere on the planet." },
+              ].map((tech, i) => (
+                <div key={i} className="space-y-6 group">
+                   <div className="w-20 h-20 bg-white border border-gray-100 shadow-sm rounded-3xl flex items-center justify-center mx-auto group-hover:bg-[#213874] transition-all">
+                      <tech.icon className="w-10 h-10 text-[#213874] group-hover:text-white transition-all" />
+                   </div>
+                   <h3 className="text-xl font-bold text-[#213874]">{tech.title}</h3>
+                   <p className="text-gray-500 font-medium text-sm leading-relaxed">{tech.desc}</p>
                 </div>
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-[#213874] rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Phone className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-[#213874] mb-2">Call Us</h3>
-                    <p className="text-gray-600 mb-2">Speak with our team directly</p>
-                    <p className="text-[#213874] font-medium">+255 768 924 035</p>
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 bg-[#213874] rounded-lg flex items-center justify-center flex-shrink-0">
-                    <MapPin className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-[#213874] mb-2">Visit Us</h3>
-                    <p className="text-gray-600 mb-2">Our headquarters location</p>
-                    <p className="text-[#213874] font-medium">
-                      SJUCHAS
-                      <br />
-                      Dar es salaam Tanzania
-                    </p>
-                  </div>
-                </div>
+              ))}
+           </div>
+        </div>
+      </section>
+
+      {/* Contact Node */}
+      <section className="py-32 bg-white border-t border-gray-100">
+        <div className="container mx-auto px-6">
+           <div className="grid lg:grid-cols-2 gap-20 items-center text-left">
+              <div className="space-y-12">
+                 <div className="space-y-4">
+                    <h2 className="text-4xl font-bold tracking-tighter text-[#213874]">Initialize Contact.</h2>
+                    <p className="text-gray-500 font-semibold text-lg">Have inquiries regarding the grid? Our support nodes are ready to synchronize.</p>
+                 </div>
+                 <div className="space-y-8">
+                    {[
+                      { icon: Mail, title: "Email Interface", val: "contact@synapsemedical.com" },
+                      { icon: Phone, title: "Voice Line", val: "+255 768 924 035" },
+                      { icon: MapPin, title: "Geo Location", val: "SJUCHAS, Dar es Salaam, Tanzania" },
+                    ].map((item, i) => (
+                      <div key={i} className="flex items-center gap-6 group">
+                         <div className="w-14 h-14 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-center text-[#213874] group-hover:bg-[#213874] group-hover:text-white transition-all shadow-sm">
+                            <item.icon className="h-6 w-6" />
+                         </div>
+                         <div>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{item.title}</p>
+                            <p className="text-xl font-bold text-[#213874] group-hover:text-[#1a6ac3] transition-colors">{item.val}</p>
+                         </div>
+                      </div>
+                    ))}
+                 </div>
               </div>
-              <Card className="p-8">
-                <CardHeader className="p-0 mb-6">
-                  <CardTitle className="text-2xl text-[#213874]">Ready to Get Started?</CardTitle>
-                  <CardDescription className="text-lg">
-                    Join thousands of healthcare students already learning with Synapse Med.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="p-0 space-y-4">
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle className="w-5 h-5" />
-                    <span>Free 14-day trial</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle className="w-5 h-5" />
-                    <span>No credit card required</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle className="w-5 h-5" />
-                    <span>Full access to all features</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-green-600">
-                    <CheckCircle className="w-5 h-5" />
-                    <span>24/7 AI support</span>
-                  </div>
-                  <Button asChild className="w-full bg-[#213874] hover:bg-[#1a6ac3] mt-6" size="lg">
-                    <Link href="/auth">
-                      Start Your Free Trial
-                      <ArrowRight className="ml-2 w-5 h-5" />
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+              <div className="glass-card p-12 space-y-8 bg-gray-50 border-gray-100">
+                 <div className="space-y-4">
+                    <h3 className="text-3xl font-bold text-[#213874]">Initiate Trial</h3>
+                    <p className="text-gray-500 font-medium">Join thousands of clinical pioneers already learning with the SynapseMed grid.</p>
+                 </div>
+                 <div className="space-y-4">
+                    {[
+                      "Verified 14-day discovery session",
+                      "No credit synchronization required",
+                      "Full archive layer access",
+                      "24/7 Neural support nodes",
+                    ].map((tick, i) => (
+                      <div key={i} className="flex items-center gap-3 text-sm font-semibold text-gray-600">
+                         <CheckCircle className="h-5 w-5 text-green-500" />
+                         {tick}
+                      </div>
+                    ))}
+                 </div>
+                 <Button asChild className="w-full h-16 bg-[#213874] text-white font-bold rounded-2xl hover:bg-[#1a6ac3] transition-all shadow-lg shadow-blue-900/10" size="lg">
+                    <Link href="/auth">Start Trial Session <ArrowRight className="ml-2 h-5 w-5" /></Link>
+                 </Button>
+              </div>
+           </div>
         </div>
       </section>
     </div>

@@ -15,8 +15,9 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const video = await prisma.video.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         curriculum: { select: { name: true } },
         module: { select: { name: true } },
@@ -48,11 +49,12 @@ export async function PUT(
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const body = await request.json()
     const { title, description, url, thumbnail, duration, category, difficulty, tags, curriculumId, moduleId, topicId, isPublished } = body
 
     const video = await prisma.video.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(title && { title }),
         ...(description !== undefined && { description }),
@@ -87,8 +89,9 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     await prisma.video.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({ success: true, message: 'Video deleted successfully' })

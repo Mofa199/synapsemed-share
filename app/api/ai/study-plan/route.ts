@@ -21,10 +21,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", generationConfig: { responseMimeType: "application/json" } });
+    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest", generationConfig: { responseMimeType: "application/json" } });
 
     const prompt = `
-You are SynapseMedAI, a master medical education strategist.
+You are SynapseMed Neural AI, a master medical education strategist powered by Google Gemini.
 Create a personalized study plan for a medical student.
 Topic: ${topic}
 Duration: ${duration || '4 weeks'}

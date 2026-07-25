@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { title, description, category, difficulty, tags, isPublished } = body
+    const { title, description, category, difficulty, tags, isPublished, curriculumId, moduleId } = body
 
     if (!title) {
       return NextResponse.json({ success: false, error: 'Title is required' }, { status: 400 })
@@ -53,6 +53,8 @@ export async function POST(request: NextRequest) {
         difficulty: (difficulty as Difficulty) || Difficulty.BEGINNER,
         tags: Array.isArray(tags) ? tags.join(', ') : (tags || ""),
         isPublished: !!isPublished,
+        curriculumId: curriculumId || null,
+        moduleId: moduleId || null,
       }
     })
 

@@ -13,6 +13,7 @@ import { useAuth } from "@/components/auth-provider"
 import { useToast } from "@/hooks/use-toast"
 import { ArrowLeft, Save, Loader2, FileText } from "lucide-react"
 import Link from "next/link"
+import { CurriculumModuleSelect } from "@/components/curriculum-module-select"
 
 interface Article {
   id: string
@@ -29,6 +30,8 @@ interface Article {
   readTime?: string
   difficulty: string
   isPublished: boolean
+  curriculumId?: string
+  moduleId?: string
 }
 
 export default function EditArticlePage() {
@@ -54,6 +57,8 @@ export default function EditArticlePage() {
     readTime: "",
     difficulty: "",
     isPublished: false,
+    curriculumId: "",
+    moduleId: "",
   })
 
   useEffect(() => {
@@ -84,6 +89,8 @@ export default function EditArticlePage() {
           readTime: article.readTime || "",
           difficulty: article.difficulty || "",
           isPublished: article.isPublished || false,
+          curriculumId: article.curriculumId || "",
+          moduleId: article.moduleId || "",
         })
       } else {
         toast({
@@ -118,8 +125,10 @@ export default function EditArticlePage() {
         },
         body: JSON.stringify({
           ...formData,
-          keywords: formData.keywords.split(',').map(k => k.trim()).filter(Boolean),
-          references: formData.references.split('\n').filter(r => r.trim()),
+          keywords: formData.keywords.split(',').map((k: string) => k.trim()).filter(Boolean),
+          references: formData.references.split('\n').filter((r: string) => r.trim()),
+          curriculumId: formData.curriculumId || undefined,
+          moduleId: formData.moduleId || undefined,
         }),
       })
 
@@ -240,6 +249,13 @@ export default function EditArticlePage() {
                   />
                 </div>
               </div>
+
+              <CurriculumModuleSelect
+                curriculumId={formData.curriculumId}
+                moduleId={formData.moduleId}
+                onCurriculumChange={(val) => setFormData(prev => ({ ...prev, curriculumId: val }))}
+                onModuleChange={(val) => setFormData(prev => ({ ...prev, moduleId: val }))}
+              />
 
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">

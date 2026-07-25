@@ -22,75 +22,6 @@ import {
   BookmarkCheck
 } from "lucide-react";
 
-const contentItems = [
-  { 
-    id: 1, 
-    title: "Cardiac Anatomy Overview", 
-    type: "Video", 
-    duration: "12:45",
-    progress: 100,
-    lastAccessed: "2025-09-20",
-    tags: ["Anatomy", "Cardiology", "Basics"],
-    bookmarked: true
-  },
-  { 
-    id: 2, 
-    title: "ECG Interpretation Basics", 
-    type: "Video", 
-    duration: "18:30",
-    progress: 75,
-    lastAccessed: "2025-09-18",
-    tags: ["Cardiology", "Diagnostics", "ECG"],
-    bookmarked: true
-  },
-  { 
-    id: 3, 
-    title: "Pharmacokinetics Principles", 
-    type: "Concept", 
-    duration: "15 min read",
-    progress: 0,
-    lastAccessed: "2025-09-15",
-    tags: ["Pharmacology", "Drug Metabolism"],
-    bookmarked: false
-  },
-  { 
-    id: 4, 
-    title: "Cardiology Question Bank", 
-    type: "Question Bank", 
-    duration: "30 questions",
-    progress: 60,
-    lastAccessed: "2025-09-17",
-    tags: ["Cardiology", "Practice", "USMLE"],
-    bookmarked: true
-  },
-  { 
-    id: 5, 
-    title: "Neuroanatomy: Brain Structures", 
-    type: "Video", 
-    duration: "22:15",
-    progress: 0,
-    lastAccessed: "2025-09-10",
-    tags: ["Anatomy", "Neurology"],
-    bookmarked: false
-  },
-  { 
-    id: 6, 
-    title: "Acid-Base Balance", 
-    type: "Concept", 
-    duration: "12 min read",
-    progress: 100,
-    lastAccessed: "2025-09-12",
-    tags: ["Biochemistry", "Physiology"],
-    bookmarked: true
-  },
-];
-
-const contentTypes = [
-  { name: "All", count: contentItems.length },
-  { name: "Videos", count: contentItems.filter(i => i.type === "Video").length },
-  { name: "Concepts", count: contentItems.filter(i => i.type === "Concept").length },
-  { name: "Question Banks", count: contentItems.filter(i => i.type === "Question Bank").length },
-];
 
 export default function MyContentPage() {
   const router = useRouter()
@@ -117,102 +48,26 @@ export default function MyContentPage() {
       }
     } catch (error) {
       console.error('Error fetching content:', error)
-      // Fallback to mock data
-      setContentItems(mockContent)
+      setContentItems([])
     } finally {
       setLoading(false)
     }
   }
 
-  // Mock data as fallback
-  const mockContent = [
-    { 
-      id: "1", 
-      title: "Cardiac Anatomy Overview", 
-      type: "Video", 
-      resourceType: "VIDEO",
-      resourceId: "video-1",
-      duration: "12:45",
-      progress: 100,
-      lastAccessed: "2025-09-20",
-      tags: ["Anatomy", "Cardiology", "Basics"],
-      bookmarked: true,
-      url: "/student/videos"
-    },
-    { 
-      id: "2", 
-      title: "ECG Interpretation Basics", 
-      type: "Video", 
-      resourceType: "VIDEO",
-      resourceId: "video-2",
-      duration: "18:30",
-      progress: 75,
-      lastAccessed: "2025-09-18",
-      tags: ["Cardiology", "Diagnostics", "ECG"],
-      bookmarked: true,
-      url: "/student/videos"
-    },
-    { 
-      id: "3", 
-      title: "Pharmacokinetics Principles", 
-      type: "Concept", 
-      resourceType: "TOPIC",
-      resourceId: "topic-1",
-      duration: "15 min read",
-      progress: 0,
-      lastAccessed: "2025-09-15",
-      tags: ["Pharmacology", "Drug Metabolism"],
-      bookmarked: false,
-      url: "/student/concepts"
-    },
-    { 
-      id: "4", 
-      title: "Cardiology Question Bank", 
-      type: "Question Bank", 
-      resourceType: "QUESTION_BANK",
-      resourceId: "qb-1",
-      duration: "30 questions",
-      progress: 60,
-      lastAccessed: "2025-09-17",
-      tags: ["Cardiology", "Practice", "USMLE"],
-      bookmarked: true,
-      url: "/student/questions"
-    },
-    { 
-      id: "5", 
-      title: "Neuroanatomy: Brain Structures", 
-      type: "Video", 
-      resourceType: "VIDEO",
-      resourceId: "video-3",
-      duration: "22:15",
-      progress: 0,
-      lastAccessed: "2025-09-10",
-      tags: ["Anatomy", "Neurology"],
-      bookmarked: false,
-      url: "/student/videos"
-    },
-    { 
-      id: "6", 
-      title: "Acid-Base Balance", 
-      type: "Concept", 
-      resourceType: "TOPIC",
-      resourceId: "topic-2",
-      duration: "12 min read",
-      progress: 100,
-      lastAccessed: "2025-09-12",
-      tags: ["Biochemistry", "Physiology"],
-      bookmarked: true,
-      url: "/student/concepts"
-    },
-  ]
+  const contentTypes = [
+    { name: "All", count: contentItems.length },
+    { name: "Videos", count: contentItems.filter(i => i.type === "Video" || i.resourceType === "VIDEO").length },
+    { name: "Concepts", count: contentItems.filter(i => i.type === "Concept" || i.resourceType === "TOPIC").length },
+    { name: "Question Banks", count: contentItems.filter(i => i.type === "Question Bank" || i.resourceType === "QUESTION_BANK").length },
+  ];
 
   const filteredContent = contentItems.filter(item => {
-    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          item.tags.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesSearch = item.title?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          (item.tags && item.tags.some((tag: string) => tag.toLowerCase().includes(searchQuery.toLowerCase())));
     const matchesType = selectedType === "All" || 
-                       (selectedType === "Videos" && item.type === "Video") ||
-                       (selectedType === "Concepts" && item.type === "Concept") ||
-                       (selectedType === "Question Banks" && item.type === "Question Bank");
+                       (selectedType === "Videos" && (item.type === "Video" || item.resourceType === "VIDEO")) ||
+                       (selectedType === "Concepts" && (item.type === "Concept" || item.resourceType === "TOPIC")) ||
+                       (selectedType === "Question Banks" && (item.type === "Question Bank" || item.resourceType === "QUESTION_BANK"));
     return matchesSearch && matchesType;
   });
 
@@ -386,7 +241,7 @@ export default function MyContentPage() {
                       )}
                     </div>
                     <div className="flex flex-wrap gap-1 mt-2">
-                      {item.tags.map((tag: string, index: number) => (
+                      {item.tags && item.tags.map((tag: string, index: number) => (
                         <span key={index} className="text-xs px-2 py-1 bg-gray-100 rounded">
                           {tag}
                         </span>
@@ -394,7 +249,7 @@ export default function MyContentPage() {
                     </div>
                     <div className="flex justify-between items-center mt-3">
                       <span className="text-sm text-gray-600">
-                        Last accessed: {new Date(item.lastAccessed).toLocaleDateString()}
+                        Last accessed: {item.lastAccessed ? new Date(item.lastAccessed).toLocaleDateString() : 'N/A'}
                       </span>
                       <div className="flex space-x-2">
                         <Button 

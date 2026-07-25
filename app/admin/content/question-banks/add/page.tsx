@@ -22,6 +22,7 @@ import {
   Trash2
 } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { CurriculumModuleSelect } from "@/components/curriculum-module-select"
 
 export default function AddQuestionBankPage() {
   const { user } = useAuth()
@@ -287,27 +288,12 @@ export default function AddQuestionBankPage() {
                     </div>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="curriculumId">Curriculum ID (optional)</Label>
-                      <Input
-                        id="curriculumId"
-                        placeholder="Enter curriculum ID"
-                        value={formData.curriculumId}
-                        onChange={(e) => handleInputChange('curriculumId', e.target.value)}
-                      />
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <Label htmlFor="moduleId">Module ID (optional)</Label>
-                      <Input
-                        id="moduleId"
-                        placeholder="Enter module ID"
-                        value={formData.moduleId}
-                        onChange={(e) => handleInputChange('moduleId', e.target.value)}
-                      />
-                    </div>
-                  </div>
+                  <CurriculumModuleSelect
+                    curriculumId={formData.curriculumId}
+                    moduleId={formData.moduleId}
+                    onCurriculumChange={(val) => handleInputChange('curriculumId', val)}
+                    onModuleChange={(val) => handleInputChange('moduleId', val)}
+                  />
 
                   <div className="space-y-2">
                     <Label>Tags</Label>

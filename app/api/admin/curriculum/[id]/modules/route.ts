@@ -1,35 +1,35 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
 
-// Build-safe implementation that returns mock data during build
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  // Return mock data during build time
-  const mockModules = [
-    {
-      id: '1',
-      name: 'Sample Module',
-      description: 'Sample module description',
-      curriculumId: params.id,
-      isActive: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }
-  ];
-  
-  return NextResponse.json(mockModules);
+  try {
+    const { id } = await params;
+    const modules = await prisma.module.findMany({
+      where: { curriculumId: id },
+      include: {
+        _count: {
+          select: { topics: true }
+        }
+      },
+      orderBy: { createdAt: 'asc' }
+    });
+    
+    return NextResponse.json(modules);
+  } catch (error) {
+    console.error("Error fetching modules:", error);
+    return NextResponse.json({ success: false, error: "Failed to fetch modules" }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const { id } = await params;
     const body = await request.json()
 
     const moduleData = {
-      name: body.name,
+      name: body.title || body.name,
       description: body.description,
-      duration: body.duration,
-      difficulty: body.difficulty,
-      prerequisites: body.prerequisites,
-      objectives: body.objectives,
-      curriculumId: params.id,
+      curriculumId: id,
       isActive: body.isActive !== undefined ? body.isActive : true,
     }
 
@@ -40,17 +40,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
       }
     })
 
-    // Create mock module during build time
-    const mockModule = {
-      id: Math.random().toString(36).substring(7),
-      ...moduleData,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+    const newModule = await prisma.module.create({
+      data: moduleData
+    });
 
     return NextResponse.json({
       success: true,
-      data: mockModule,
+      data: newModule,
       message: "Module created successfully",
     });
   } catch (error) {

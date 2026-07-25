@@ -1,14 +1,47 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export function middleware(request: NextRequest) {
+// Simple in-memory rate limiter for custom server deployments
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const limit = 100; // 100 requests per minute
+  const windowMs = 60 * 1000;
+
+  const record = rateLimitMap.get(ip);
+  if (!record || now > record.resetTime) {
+    rateLimitMap.set(ip, { count: 1, resetTime: now + windowMs });
+    return true; // Allowed
+  }
+
+  if (record.count >= limit) {
+    return false; // Rate limited
+  }
+
+  record.count += 1;
+  return true; // Allowed
+}
+
+export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+  
+  // Rate Limit API routes
+  if (pathname.startsWith('/api/')) {
+    const ip = request.ip ?? request.headers.get('x-forwarded-for') ?? 'unknown';
+    if (ip !== 'unknown' && !checkRateLimit(ip)) {
+      return new NextResponse(JSON.stringify({ error: "Too Many Requests" }), {
+        status: 429,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+  }
 
   // Public routes that don't require authentication
   const publicRoutes = [
     '/',
     '/about',
+    '/privacy',
     '/courses',
     '/library',
     '/pharmacology',
@@ -150,7 +183,7 @@ export function middleware(request: NextRequest) {
 
     // Check student access
     if (isStudentRoute && userData) {
-      const studentRoles = ['STUDENT', 'MEDICAL', 'NURSING', 'PHARMACY']
+      const studentRoles = ['STUDENT', 'MEDICAL', 'NURSING', 'PHARMACY', 'SUPER_ADMIN', 'LECTURER', 'EDITOR']
       if (!studentRoles.includes(userData.role)) {
         console.log('Redirecting to home - insufficient student privileges')
         return NextResponse.redirect(new URL('/', request.url))

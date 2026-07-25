@@ -39,7 +39,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { 
       title, issue, volume, description, coverUrl, 
-      category, tags, isPublished, publishedAt
+      category, tags, isPublished, publishedAt,
+      curriculumId, moduleId
     } = body
 
     if (!title) {
@@ -57,6 +58,8 @@ export async function POST(request: NextRequest) {
         tags: Array.isArray(tags) ? tags.join(', ') : (tags || ""),
         isPublished: !!isPublished,
         publishedAt: publishedAt ? new Date(publishedAt) : (isPublished ? new Date() : null),
+        curriculumId: curriculumId || null,
+        moduleId: moduleId || null,
       }
     })
 

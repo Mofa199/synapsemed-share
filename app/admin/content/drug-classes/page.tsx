@@ -200,12 +200,12 @@ export default function AdminDrugClassesPage() {
                 <Beaker className="w-5 h-5 mr-2" />
                 Seed Database
               </Button>
-              <Link href="/admin/content/drug-classes/add">
-                <Button size="lg" className="bg-[#213874] hover:bg-[#1a6ac3]">
+              <Button size="lg" className="bg-[#213874] hover:bg-[#1a6ac3]" asChild>
+                <Link href="/admin/content/drug-classes/add">
                   <Plus className="w-5 h-5 mr-2" />
                   Add Drug Class
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -356,13 +356,11 @@ export default function AdminDrugClassesPage() {
 
                 <div className="flex items-center justify-between pt-4 border-t">
                   <div className="flex gap-2">
-                    <Button size="sm" variant="outline">
-                      <Eye className="w-4 h-4 mr-1" />
-                      View
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      <Edit className="w-4 h-4 mr-1" />
-                      Edit
+                    <Button size="sm" variant="outline" asChild>
+                      <Link href={`/admin/content/drug-classes/edit/${drugClass.id}`}>
+                        <Edit className="w-4 h-4 mr-1" />
+                        Edit
+                      </Link>
                     </Button>
                   </div>
                   

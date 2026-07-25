@@ -54,9 +54,12 @@ import {
   User,
   Calendar,
   Check,
-  X
+  X,
+  Loader2
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Navigation } from "@/components/navigation";
+import { AIPatient } from "@/components/ai-patient";
 
 interface PatientFinding {
   id: string;
@@ -107,6 +110,8 @@ export default function DKASimulationCasePage() {
   const [problemRepresentation, setProblemRepresentation] = useState("");
   const [selectedFindings, setSelectedFindings] = useState<PatientFinding[]>([]);
   const [differentialDiagnoses, setDifferentialDiagnoses] = useState<DiagnosticEntry[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [gradingResult, setGradingResult] = useState<any>(null);
   
   // Mock case data for Diabetic Ketoacidosis
   const caseData: PatientCase = {
@@ -412,6 +417,39 @@ export default function DKASimulationCasePage() {
     });
   };
 
+  const submitDiagnosis = async () => {
+    if (selectedFindings.length === 0 || !problemRepresentation || differentialDiagnoses.length === 0) {
+      toast({ title: "Incomplete", description: "Please complete the diagnostic pad.", variant: "destructive" });
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("/api/student/simulations/grade", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          caseData,
+          selectedFindings,
+          problemRepresentation,
+          differentialDiagnoses
+        })
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setGradingResult(data);
+        toast({ title: "Case Graded!", description: `You earned ${data.xpAwarded} XP!` });
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to grade diagnosis.", variant: "destructive" });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const getCategoryFindings = () => {
     return findings.filter(f => 
       f.category === activeCategory && 
@@ -468,6 +506,14 @@ export default function DKASimulationCasePage() {
                     abdominal pain, and altered mental status. Patient is confused, dehydrated, and breathing deeply. 
                     Family reports she has not taken insulin for several days due to illness.
                   </p>
+                </div>
+                
+                <div className="mt-8">
+                  <h3 className="font-semibold text-lg mb-4 text-[#213874] flex items-center gap-2">
+                    <User className="h-5 w-5" />
+                    Interview Patient
+                  </h3>
+                  <AIPatient caseData={caseData} />
                 </div>
               </div>
             </CardContent>
@@ -744,7 +790,7 @@ export default function DKASimulationCasePage() {
                   </h3>
                   <Textarea
                     placeholder="Summarize the patient's presentation..."
-                    value="19-year-old female with type 1 diabetes presenting with 2-day history of nausea, vomiting, abdominal pain, and altered mental status. Patient is confused, dehydrated, and breathing deeply with fruity breath odor. Laboratory findings show severe hyperglycemia (650 mg/dL), ketonemia, and metabolic acidosis (pH 7.22). Physical findings consistent with severe dehydration."
+                    defaultValue="19-year-old female with type 1 diabetes presenting with 2-day history of nausea, vomiting, abdominal pain, and altered mental status. Patient is confused, dehydrated, and breathing deeply with fruity breath odor. Laboratory findings show severe hyperglycemia (650 mg/dL), ketonemia, and metabolic acidosis (pH 7.22). Physical findings consistent with severe dehydration."
                     className="min-h-[120px]"
                   />
                 </div>
@@ -990,6 +1036,7 @@ export default function DKASimulationCasePage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <Navigation />
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
@@ -1129,6 +1176,45 @@ export default function DKASimulationCasePage() {
                   </Button>
                 </div>
                 
+                {gradingResult ? (
+                  <div className="space-y-4 animate-in fade-in zoom-in duration-500">
+                    <div className="text-center p-6 bg-gradient-to-br from-[#213874] to-blue-600 rounded-xl text-white">
+                      <h2 className="text-4xl font-black mb-2">{gradingResult.grade.score}%</h2>
+                      <p className="text-sm opacity-90 font-medium">Final Score</p>
+                      <Badge className="mt-4 bg-yellow-400 text-yellow-900 border-none font-bold">
+                        +{gradingResult.xpAwarded} XP Earned!
+                      </Badge>
+                    </div>
+                    
+                    <div className="space-y-3 mt-4">
+                      <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                        <h4 className="font-semibold text-green-800 mb-2 flex items-center gap-2">
+                          <CheckCircle className="h-4 w-4" /> Strengths
+                        </h4>
+                        <ul className="text-sm text-green-700 space-y-1 list-disc list-inside">
+                          {gradingResult.grade.strengths.map((s: string, i: number) => <li key={i}>{s}</li>)}
+                        </ul>
+                      </div>
+
+                      <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                        <h4 className="font-semibold text-orange-800 mb-2 flex items-center gap-2">
+                          <AlertTriangle className="h-4 w-4" /> Areas for Improvement
+                        </h4>
+                        <ul className="text-sm text-orange-700 space-y-1 list-disc list-inside">
+                          {gradingResult.grade.areasForImprovement.map((s: string, i: number) => <li key={i}>{s}</li>)}
+                        </ul>
+                      </div>
+                      
+                      <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                        <h4 className="font-semibold text-gray-800 mb-1">Instructor Feedback</h4>
+                        <p className="text-sm text-gray-600">{gradingResult.grade.feedback}</p>
+                      </div>
+                    </div>
+                    <Button className="w-full mt-4" onClick={() => router.push('/dashboard')}>
+                      Return to Dashboard
+                    </Button>
+                  </div>
+                ) : (
                 <div className="space-y-4">
                   <div>
                     <h4 className="text-sm font-medium text-gray-700 mb-2">Selected Findings ({selectedFindings.length})</h4>
@@ -1191,12 +1277,17 @@ export default function DKASimulationCasePage() {
                   </div>
                   
                   <div className="pt-4 border-t border-gray-200">
-                    <Button className="w-full" variant="outline">
-                      <Share2 className="h-4 w-4 mr-2" />
-                      Submit Diagnosis
+                    <Button 
+                      className="w-full" 
+                      onClick={submitDiagnosis} 
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Share2 className="h-4 w-4 mr-2" />}
+                      {isSubmitting ? "Grading..." : "Submit Diagnosis"}
                     </Button>
                   </div>
                 </div>
+                )}
               </div>
             )}
           </div>

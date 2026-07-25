@@ -25,6 +25,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
+import { CurriculumModuleSelect } from "@/components/curriculum-module-select"
 
 export default function AddMagazinePage() {
   const { user } = useAuth()
@@ -43,7 +44,9 @@ export default function AddMagazinePage() {
     tags: "",
     isPublished: false,
     coverUrl: "",
-    fileUrl: ""
+    fileUrl: "",
+    curriculumId: "",
+    moduleId: ""
   })
 
   const [coverFile, setCoverFile] = useState<File | null>(null)
@@ -126,7 +129,9 @@ export default function AddMagazinePage() {
         tags: formData.tags ? formData.tags.split(',').map(tag => tag.trim()).filter(Boolean) : [],
         isPublished: formData.isPublished,
         coverUrl: currentCoverUrl,
-        fileUrl: currentFileUrl
+        fileUrl: currentFileUrl,
+        curriculumId: formData.curriculumId || undefined,
+        moduleId: formData.moduleId || undefined
       }
 
       const response = await fetch('/api/admin/magazines', {
@@ -299,6 +304,13 @@ export default function AddMagazinePage() {
                       />
                     </div>
                   </div>
+
+                  <CurriculumModuleSelect
+                    curriculumId={formData.curriculumId}
+                    moduleId={formData.moduleId}
+                    onCurriculumChange={(val) => handleInputChange('curriculumId', val)}
+                    onModuleChange={(val) => handleInputChange('moduleId', val)}
+                  />
 
                   <div className="space-y-2">
                     <Label htmlFor="tags">Tags</Label>

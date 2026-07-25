@@ -51,6 +51,8 @@ export async function POST(request: NextRequest) {
       readTime,
       difficulty,
       isPublished,
+      curriculumId,
+      moduleId,
     } = data
 
     if (!title || !author || !content) {
@@ -76,6 +78,8 @@ export async function POST(request: NextRequest) {
         difficulty: (difficulty as Difficulty) || Difficulty.BEGINNER,
         isPublished: !!isPublished,
         publishedAt: isPublished ? new Date() : null,
+        curriculumId: curriculumId || null,
+        moduleId: moduleId || null,
       },
     });
 

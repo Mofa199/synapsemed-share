@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -12,44 +12,52 @@ import {
 } from 'recharts'
 import {
   Users, BookOpen, TrendingUp, Target, Award, CheckCircle,
-  BarChart3, Eye, Plus, Search, Filter
+  BarChart3, Eye, Plus, Search, Filter, Loader2
 } from "lucide-react"
 
 export default function EducatorDashboardPage() {
   const [activeTab, setActiveTab] = useState("overview")
+  const [isLoading, setIsLoading] = useState(true)
   
-  const metrics = {
-    totalLearners: 156,
-    activeCases: 12,
-    completionRate: 78.5,
-    avgScore: 82.3,
-    totalCompletions: 1247
-  }
+  const [metrics, setMetrics] = useState({
+    totalLearners: 0,
+    activeCases: 0,
+    completionRate: 0,
+    avgScore: 0,
+    totalCompletions: 0
+  })
   
-  const chartData = [
-    { name: 'Heart Failure', score: 84.2, attempts: 89 },
-    { name: 'Acute MI', score: 79.1, attempts: 67 },
-    { name: 'Pneumonia', score: 88.7, attempts: 124 }
-  ]
-  
-  const learners = [
-    {
-      name: "Alice Johnson",
-      cohort: "Year 3",
-      casesCompleted: 7,
-      casesAttempted: 8,
-      avgFinalDxScore: 91.2,
-      status: "Excellent"
-    },
-    {
-      name: "Marcus Chen", 
-      cohort: "Year 3",
-      casesCompleted: 5,
-      casesAttempted: 6,
-      avgFinalDxScore: 78.9,
-      status: "Good"
+  const [chartData, setChartData] = useState<any[]>([])
+  const [learners, setLearners] = useState<any[]>([])
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const response = await fetch('/api/educator/dashboard')
+        if (response.ok) {
+          const data = await response.json()
+          setMetrics(data.metrics)
+          setChartData(data.chartData)
+          setLearners(data.learners)
+        }
+      } catch (error) {
+        console.error("Failed to fetch educator dashboard data", error)
+      } finally {
+        setIsLoading(false)
+      }
     }
-  ]
+
+    fetchDashboardData()
+  }, [])
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <Loader2 className="h-8 w-8 animate-spin text-[#213874]" />
+        <span className="ml-2 text-[#213874] font-medium">Loading Dashboard...</span>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

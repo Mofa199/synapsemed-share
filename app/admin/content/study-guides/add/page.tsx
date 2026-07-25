@@ -22,6 +22,7 @@ import {
   Trash2
 } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { CurriculumModuleSelect } from "@/components/curriculum-module-select"
 
 interface Chapter {
   title: string
@@ -43,7 +44,9 @@ export default function AddStudyGuidePage() {
     isActive: true,
     prerequisites: [""],
     learningObjectives: [""],
-    resources: [""]
+    resources: [""],
+    curriculumId: "",
+    moduleId: ""
   })
 
   const [chapters, setChapters] = useState<Chapter[]>([
@@ -137,7 +140,9 @@ export default function AddStudyGuidePage() {
           ...chapter,
           duration: parseInt(chapter.duration),
           topics: parseInt(chapter.topics)
-        }))
+        })),
+        curriculumId: formData.curriculumId || undefined,
+        moduleId: formData.moduleId || undefined
       }
 
       const response = await fetch('/api/admin/study-guides', {
@@ -285,6 +290,13 @@ export default function AddStudyGuidePage() {
                       />
                     </div>
                   </div>
+
+                  <CurriculumModuleSelect
+                    curriculumId={formData.curriculumId}
+                    moduleId={formData.moduleId}
+                    onCurriculumChange={(val) => handleInputChange('curriculumId', val)}
+                    onModuleChange={(val) => handleInputChange('moduleId', val)}
+                  />
                 </CardContent>
               </Card>
 

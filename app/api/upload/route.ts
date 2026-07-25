@@ -1,58 +1,71 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { verifyTokenFromRequest } from '@/lib/db-utils'
-import { writeFile, mkdir } from 'fs/promises'
-import path from 'path'
-import { v4 as uuidv4 } from 'uuid'
+import { NextRequest, NextResponse } from "next/server";
+import { writeFile, mkdir } from "fs/promises";
+import { join } from "path";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
-// POST /api/upload - General file upload
 export async function POST(request: NextRequest) {
   try {
-    const user = await verifyTokenFromRequest(request)
-    if (!user) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
+    // Optionally verify session to prevent unauthorized uploads
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json(
+        { error: "Unauthorized" },
+        { status: 401 }
+      );
     }
 
-    const formData = await request.formData()
-    const file = formData.get('file') as File
-    const folder = formData.get('folder') as string || 'uploads'
+    const formData = await request.formData();
+    // CKEditor uses 'upload' field, other parts of the app might use 'file'
+    const file = (formData.get("upload") || formData.get("file")) as File | null;
 
     if (!file) {
-      return NextResponse.json({ success: false, error: 'No file provided' }, { status: 400 })
+      return NextResponse.json(
+        { uploaded: 0, error: { message: "No file uploaded" } },
+        { status: 400 }
+      );
     }
 
-    // Check file size (limit to 10MB)
-    const maxSize = 10 * 1024 * 1024 // 10MB
-    if (file.size > maxSize) {
-      return NextResponse.json({ 
-        success: false, 
-        error: `File too large. Maximum size is 10MB. Your file is ${(file.size / 1024 / 1024).toFixed(2)}MB`
-      }, { status: 413 })
-    }
+    // Read file bytes
+    const bytes = await file.arrayBuffer();
+    const buffer = Buffer.from(bytes);
 
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
+    // Create unique filename
+    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    const originalName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, ""); // Sanitize filename
+    const filename = `${uniqueSuffix}-${originalName}`;
 
     // Ensure upload directory exists
-    const uploadDir = path.join(process.cwd(), 'public', folder)
+    const uploadDir = join(process.cwd(), "public", "uploads");
     try {
-      await mkdir(uploadDir, { recursive: true })
+      await mkdir(uploadDir, { recursive: true });
     } catch (e) {
-      // Ignore if directory already exists
+      // Directory might already exist
     }
 
-    const filename = `${uuidv4()}-${file.name}`
-    const filepath = path.join(uploadDir, filename)
+    // Write file to public/uploads
+    const filepath = join(uploadDir, filename);
+    await writeFile(filepath, buffer);
 
-    await writeFile(filepath, buffer)
+    // Return the public URL
+    const fileUrl = `/uploads/${filename}`;
 
+    // CKEditor 4 expects specific JSON format: { uploaded: 1, fileName: '...', url: '...' }
     return NextResponse.json({
+      uploaded: 1,
+      fileName: filename,
+      url: fileUrl,
+      // Keep these for non-CKEditor consumers
       success: true,
-      url: `/${folder}/${filename}`,
-      name: file.name,
-      size: file.size
-    })
+      size: file.size,
+      type: file.type
+    });
+
   } catch (error) {
-    console.error('Upload error:', error)
-    return NextResponse.json({ success: false, error: 'Upload failed' }, { status: 500 })
+    console.error("Upload error:", error);
+    return NextResponse.json(
+      { error: "Failed to upload file" },
+      { status: 500 }
+    );
   }
 }

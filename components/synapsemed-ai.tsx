@@ -20,7 +20,8 @@ import {
   MessageCircle,
   Minimize2,
   Maximize2,
-  Loader2
+  Loader2,
+  Zap
 } from "lucide-react"
 
 interface Message {
@@ -47,7 +48,7 @@ export function SynapseMedAI({
     {
       id: '1',
       role: 'assistant',
-      content: `👋 Hello! I'm **SYNAPSEMED**, your AI study companion.\n\nHow can I help you today?\n\n💡 **Quick Actions:**\n- Ask clinical or conceptual questions\n- Generate flashcards or quizzes\n- Create a study plan\n- Search for resources\n- Get explanations`,
+      content: `👋 Welcome to **Neural Sync**. I'm your Gemini-powered clinical assistant.\n\nHow can I help you master medicine today?`,
       timestamp: new Date()
     }
   ])
@@ -62,15 +63,6 @@ export function SynapseMedAI({
   useEffect(() => {
     scrollToBottom()
   }, [messages])
-
-  const quickActions = [
-    { icon: FileText, label: 'Generate Flashcards', action: 'flashcards' },
-    { icon: Brain, label: 'Create Quiz', action: 'quiz' },
-    { icon: Calendar, label: 'Study Plan', action: 'plan' },
-    { icon: Search, label: 'Find Resources', action: 'search' },
-    { icon: Lightbulb, label: 'Explain Concept', action: 'explain' },
-    { icon: BookOpen, label: 'Summarize', action: 'summarize' }
-  ]
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isLoading) return
@@ -87,7 +79,6 @@ export function SynapseMedAI({
     setIsLoading(true)
 
     try {
-      // TODO: Replace with actual AI API call
       const response = await fetch('/api/ai/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -113,48 +104,16 @@ export function SynapseMedAI({
         throw new Error('AI service unavailable')
       }
     } catch (error) {
-      // Mock response for now
-      const mockResponse: Message = {
+      const errorMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: `🤖 **SYNAPSEMED AI**
-
-I'm currently in setup mode. Once the AI backend is connected, I'll be able to:
-
-✅ Answer your medical questions
-✅ Generate personalized study materials
-✅ Create custom lesson plans
-✅ Provide real-time coaching
-✅ Offer exam mentoring
-
-Your question: "${inputValue}"
-
-*AI service is being configured...*`,
+        content: `⚠️ Sync Error: Unable to reach Gemini core. Please check your connectivity.`,
         timestamp: new Date()
       }
-      setMessages(prev => [...prev, mockResponse])
+      setMessages(prev => [...prev, errorMsg])
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const handleQuickAction = (action: string) => {
-    const actionPrompts: Record<string, string> = {
-      flashcards: currentTopic 
-        ? `Generate 10 flashcards for ${currentTopic}` 
-        : 'Generate flashcards for the current topic',
-      quiz: currentTopic 
-        ? `Create a 5-question quiz on ${currentTopic}` 
-        : 'Create a quiz for me',
-      plan: 'Create a personalized study plan for my upcoming exam',
-      search: 'Find relevant resources for my current topic',
-      explain: currentTopic 
-        ? `Explain the key concepts of ${currentTopic}` 
-        : 'Explain this concept in simple terms',
-      summarize: 'Summarize the main points of this content'
-    }
-
-    setInputValue(actionPrompts[action] || '')
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -170,30 +129,32 @@ Your question: "${inputValue}"
         <Button
           onClick={() => setIsOpen(true)}
           size="lg"
-          className="h-16 w-16 rounded-full bg-gradient-to-r from-[#213874] to-[#1a6ac3] hover:from-[#1a6ac3] hover:to-[#213874] shadow-lg animate-pulse"
+          className="h-16 w-16 rounded-2xl bg-[#213874] text-white shadow-2xl hover:scale-110 transition-all border-2 border-white/20"
         >
-          <Bot className="h-8 w-8 text-white" />
+          <Bot className="h-8 w-8" />
         </Button>
-        <div className="absolute -top-2 -right-2 h-4 w-4 bg-green-500 rounded-full border-2 border-white animate-pulse" />
+        <div className="absolute -top-1 -right-1 h-5 w-5 bg-[#f3ab1b] rounded-full border-2 border-white animate-bounce flex items-center justify-center">
+           <span className="text-[8px] font-black text-[#213874]">AI</span>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className={`fixed ${isMinimized ? 'bottom-6 right-6' : 'bottom-6 right-6'} z-50 transition-all duration-300`}>
-      <Card className={`${isMinimized ? 'w-80 h-16' : 'w-96 h-[600px]'} shadow-2xl border-2 border-[#213874]/20 transition-all duration-300`}>
+    <div className={`fixed bottom-6 right-6 z-50 transition-all duration-500`}>
+      <Card className={`${isMinimized ? 'w-80 h-16' : 'w-96 h-[600px]'} shadow-2xl border-none bg-[#f4f4f6] rounded-3xl overflow-hidden transition-all duration-500`}>
         {/* Header */}
-        <CardHeader className="p-4 bg-gradient-to-r from-[#213874] to-[#1a6ac3] text-white">
+        <CardHeader className="p-5 bg-[#213874] text-white">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <div className="relative">
                 <Bot className="h-6 w-6" />
-                <div className="absolute -bottom-1 -right-1 h-3 w-3 bg-green-400 rounded-full border-2 border-white" />
+                <div className="absolute -bottom-1 -right-1 h-3 w-3 bg-green-500 rounded-full border-2 border-[#213874]" />
               </div>
               <div>
-                <CardTitle className="text-lg font-bold">SYNAPSEMED</CardTitle>
+                <CardTitle className="text-sm font-bold tracking-tighter">NEURAL AI</CardTitle>
                 {!isMinimized && (
-                  <p className="text-xs text-blue-100">Your AI Study Companion</p>
+                  <p className="text-[10px] font-bold text-blue-200/50 uppercase tracking-widest">Powered by Gemini 1.5</p>
                 )}
               </div>
             </div>
@@ -202,7 +163,7 @@ Your question: "${inputValue}"
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsMinimized(!isMinimized)}
-                className="h-8 w-8 p-0 text-white hover:bg-white/20"
+                className="h-8 w-8 p-0 text-white hover:bg-white/10 rounded-full"
               >
                 {isMinimized ? <Maximize2 className="h-4 w-4" /> : <Minimize2 className="h-4 w-4" />}
               </Button>
@@ -210,7 +171,7 @@ Your question: "${inputValue}"
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsOpen(false)}
-                className="h-8 w-8 p-0 text-white hover:bg-white/20"
+                className="h-8 w-8 p-0 text-white hover:bg-white/10 rounded-full"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -219,30 +180,29 @@ Your question: "${inputValue}"
         </CardHeader>
 
         {!isMinimized && (
-          <CardContent className="p-0 flex flex-col h-[calc(100%-76px)]">
-            {/* Messages */}
-            <ScrollArea className="flex-1 p-4">
-              <div className="space-y-4">
+          <CardContent className="p-0 flex flex-col h-[calc(100%-80px)]">
+            <ScrollArea className="flex-1 p-6">
+              <div className="space-y-6">
                 {messages.map((message) => (
                   <div
                     key={message.id}
                     className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                   >
                     <div
-                      className={`max-w-[80%] rounded-lg p-3 ${
+                      className={`max-w-[85%] rounded-2xl p-4 shadow-sm ${
                         message.role === 'user'
-                          ? 'bg-[#213874] text-white'
-                          : 'bg-gray-100 text-gray-900'
+                          ? 'bg-[#213874] text-white rounded-tr-none'
+                          : 'bg-white text-[#213874] rounded-tl-none border border-gray-100'
                       }`}
                     >
                       {message.role === 'assistant' && (
                         <div className="flex items-center gap-2 mb-2">
-                          <Sparkles className="h-4 w-4 text-[#f3ab1b]" />
-                          <span className="font-semibold text-sm">SYNAPSEMED</span>
+                          <Zap className="h-3 w-3 text-[#f3ab1b]" />
+                          <span className="font-black text-[9px] uppercase tracking-widest">SynapseCore</span>
                         </div>
                       )}
-                      <div className="text-sm whitespace-pre-wrap">{message.content}</div>
-                      <div className={`text-xs mt-1 ${message.role === 'user' ? 'text-blue-200' : 'text-gray-500'}`}>
+                      <div className="text-xs font-medium leading-relaxed whitespace-pre-wrap">{message.content}</div>
+                      <div className={`text-[8px] mt-2 font-bold uppercase tracking-widest ${message.role === 'user' ? 'text-blue-300/50' : 'text-gray-300'}`}>
                         {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
                     </div>
@@ -250,10 +210,10 @@ Your question: "${inputValue}"
                 ))}
                 {isLoading && (
                   <div className="flex justify-start">
-                    <div className="bg-gray-100 rounded-lg p-3">
-                      <div className="flex items-center gap-2">
+                    <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+                      <div className="flex items-center gap-3">
                         <Loader2 className="h-4 w-4 animate-spin text-[#213874]" />
-                        <span className="text-sm text-gray-600">SYNAPSEMED is thinking...</span>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Neural Synthesis...</span>
                       </div>
                     </div>
                   </div>
@@ -262,49 +222,24 @@ Your question: "${inputValue}"
               </div>
             </ScrollArea>
 
-            {/* Quick Actions */}
-            <div className="p-3 border-t bg-gray-50">
-              <div className="grid grid-cols-3 gap-2 mb-3">
-                {quickActions.map((action) => (
-                  <Button
-                    key={action.action}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleQuickAction(action.action)}
-                    className="text-xs h-auto py-2 flex flex-col items-center gap-1"
-                  >
-                    <action.icon className="h-3 w-3" />
-                    <span className="text-[10px]">{action.label}</span>
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            {/* Input */}
-            <div className="p-4 border-t">
+            <div className="p-6 bg-white border-t border-gray-100">
               <div className="flex gap-2">
                 <Input
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   onKeyPress={handleKeyPress}
-                  placeholder="Ask SYNAPSEMED anything..."
-                  className="flex-1"
+                  placeholder="Ask for clinical guidance..."
+                  className="flex-1 bg-gray-50 border-gray-100 rounded-xl h-12 text-xs font-medium focus:ring-[#213874]/20"
                   disabled={isLoading}
                 />
                 <Button
                   onClick={handleSendMessage}
                   disabled={!inputValue.trim() || isLoading}
-                  className="bg-[#213874] hover:bg-[#1a6ac3]"
+                  className="bg-[#213874] hover:bg-[#1a6ac3] text-white rounded-xl h-12 w-12 p-0"
                 >
                   <Send className="h-4 w-4" />
                 </Button>
               </div>
-              {context === 'exam' && (
-                <Badge className="mt-2 bg-orange-100 text-orange-700 text-xs">
-                  <Sparkles className="h-3 w-3 mr-1" />
-                  Exam Mentor Mode Active
-                </Badge>
-              )}
             </div>
           </CardContent>
         )}

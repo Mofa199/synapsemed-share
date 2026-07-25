@@ -15,10 +15,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" })
 
     const prompt = `
-You are SynapseMedAI, an expert medical exam preparation mentor.
+You are SynapseMed Neural AI, an expert medical exam preparation mentor powered by Google Gemini.
 Help students prepare for their medical exams on this topic.
 Topic: ${topic}
 Exam Type: ${examType || 'General medical exam'}

@@ -34,7 +34,10 @@ export async function GET() {
       activeChallenges,
       maxLevelObj,
       publishedSimulations,
-      totalBadges
+      totalBadges,
+      totalMnemonics,
+      totalQuestionOfTheDay,
+      totalExamSimulations
     ] = await Promise.all([
       prisma.user.count(),
       prisma.user.count({ where: { isActive: true } }),
@@ -52,11 +55,15 @@ export async function GET() {
       prisma.challenge.count({ where: { isActive: true } }),
       prisma.user.aggregate({ _max: { level: true } }),
       prisma.simulation.count({ where: { isPublished: true } }),
-      prisma.badge.count()
+      prisma.badge.count(),
+      prisma.mnemonic.count(),
+      prisma.questionOfTheDay.count(),
+      prisma.examSimulation.count()
     ]);
 
     const totalContent = totalBooks + totalArticles + totalTopics + totalVideos + totalSimulations +
-                         totalQuestionBanks + totalFlashcardSets + totalMagazines + totalDrugs;
+                         totalQuestionBanks + totalFlashcardSets + totalMagazines + totalDrugs + 
+                         totalMnemonics + totalQuestionOfTheDay + totalExamSimulations;
 
     const completedProgressRows = progressRows.filter(r => r.completionPercentage === 100);
     const completionRate = progressRows.length > 0 
@@ -89,12 +96,15 @@ export async function GET() {
           questionBanks: totalQuestionBanks,
           flashcardSets: totalFlashcardSets,
           magazines: totalMagazines,
-          drugs: totalDrugs
+          drugs: totalDrugs,
+          questionOfTheDay: totalQuestionOfTheDay,
+          examSimulations: totalExamSimulations
         },
         gamification: {
           badges: totalBadges,
           levels: maxLevelObj._max?.level || 1,
-          challenges: activeChallenges
+          challenges: activeChallenges,
+          mnemonics: totalMnemonics
         },
         simulations: {
           activeCases: publishedSimulations,

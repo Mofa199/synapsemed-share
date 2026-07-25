@@ -7,7 +7,7 @@ import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/components/auth-provider"
-import { Heart, Users, Pill, BookOpen, Clock, Award, Brain, FileText, Target, Plus, Edit, Trash2 } from "lucide-react"
+import { Heart, Users, Pill, BookOpen, Clock, Award, Brain, FileText, Target, Plus, Edit, Trash2, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -122,53 +122,55 @@ export default function CoursesPage() {
     try {
       setLoading(true)
 
-      // Fetch curriculum data
-      const curriculumResponse = await fetch('/api/curricula')
-      const curriculumResult = await curriculumResponse.json()
-
-      // Filter curriculum by user's field if user exists, otherwise show all
-      const userFieldCurricula = user?.field 
-        ? curriculumResult.curricula.filter((c: Curriculum) => c.field === user.field) 
-        : curriculumResult.curricula;
-
-      // Fetch modules for each curriculum
-      const curriculaWithModules = await Promise.all(
-        userFieldCurricula.map(async (curriculum: Curriculum) => {
-          const modulesResponse = await fetch(`/api/modules`)
-          const modulesResult = await modulesResponse.json()
-
-          // Filter modules by curriculum
-          const curriculumModules = modulesResult.modules.filter((m: Module) => m.curriculumId === curriculum.id)
-
-          return {
-            ...curriculum,
-            modules: curriculumModules
+      const fetchJson = async (url: string) => {
+        try {
+          const res = await fetch(url)
+          if (!res.ok) return null
+          const contentType = res.headers.get("content-type")
+          if (contentType && contentType.includes("application/json")) {
+            return await res.json()
           }
-        })
-      )
+          return null
+        } catch (e) {
+          return null
+        }
+      }
+
+      // Fetch curriculum data
+      const curriculumResult = await fetchJson('/api/student/curricula') || await fetchJson('/api/admin/curriculums')
+      
+      const curriculaData = curriculumResult?.data || curriculumResult?.curricula || [];
+      const userFieldCurricula = user?.field 
+        ? curriculaData.filter((c: Curriculum) => c.field === user.field) 
+        : curriculaData;
+
+      // Modules are already included in the student/curricula endpoint.
+      // If we used the admin endpoint, modules might not be included, but we assume they are for now or we just map them over.
+      const curriculaWithModules = userFieldCurricula.map((curriculum: Curriculum) => {
+        return {
+          ...curriculum,
+          modules: curriculum.modules || []
+        }
+      });
 
       setCurricula(curriculaWithModules)
 
-      // Fetch question banks
-      const qbResponse = await fetch('/api/question-banks')
-      const qbResult = await qbResponse.json()
-      setQuestionBanks(qbResult.questionBanks || [])
+      // Fetch question banks (using admin endpoints gracefully)
+      const qbResult = await fetchJson('/api/admin/question-banks')
+      setQuestionBanks(qbResult?.data || qbResult?.questionBanks || [])
 
       // Fetch study guides
-      const sgResponse = await fetch('/api/study-guides')
-      const sgResult = await sgResponse.json()
-      setStudyGuides(sgResult.studyGuides || [])
+      const sgResult = await fetchJson('/api/admin/study-guides')
+      setStudyGuides(sgResult?.data || sgResult?.studyGuides || [])
 
       // Fetch drug classes
-      const dcResponse = await fetch('/api/drug-classes')
-      const dcResult = await dcResponse.json()
-      setDrugClasses(dcResult.drugClasses || [])
+      const dcResult = await fetchJson('/api/admin/drug-classes')
+      setDrugClasses(dcResult?.data || dcResult?.drugClasses || [])
 
       // Only fetch user progress data if logged in
       if (user) {
-        const progressResponse = await fetch('/api/user/profile')
-        const progressResult = await progressResponse.json()
-        if (progressResult.success) {
+        const progressResult = await fetchJson('/api/user/profile')
+        if (progressResult?.success) {
           setUserProgress(progressResult.data.gamification)
         }
       }
@@ -214,9 +216,6 @@ export default function CoursesPage() {
     )
   }
 
-  // Filter curriculum by user's field
-  const userCurriculum = curricula.find(c => c.field === user?.field) || curricula[0]
-
   const getFieldIcon = (field: string) => {
     switch (field) {
       case 'MEDICAL': return Heart
@@ -235,142 +234,63 @@ export default function CoursesPage() {
     }
   }
 
-  const CourseIcon = userCurriculum ? getFieldIcon(userCurriculum.field) : BookOpen
-  const iconColor = userCurriculum ? getFieldColor(userCurriculum.field) : 'text-gray-600'
-
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
 
       <div className="container mx-auto px-4 py-8">
-        {/* Course Header */}
+        {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <div className={`w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center`}>
-                <CourseIcon className={`w-6 h-6 ${iconColor}`} />
-              </div>
-              <div>
-                <h1 className="text-3xl font-bold text-[#213874]">
-                  {userCurriculum?.name || 'No Curriculum Available'}
-                </h1>
-                <p className="text-gray-600">
-                  {userCurriculum?.description || 'Please contact admin to set up curriculum for your field'}
-                </p>
-              </div>
-            </div>
-
-            {isAdmin && (
-              <div className="flex gap-2">
-                <Button asChild variant="outline" size="sm">
-                  <Link href="/admin/curriculum">
-                    <Edit className="w-4 h-4 mr-2" />
-                    Manage Curriculum
-                  </Link>
-                </Button>
-                <Button asChild size="sm">
-                  <Link href="/admin/curriculum/add">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Module
-                  </Link>
-                </Button>
-              </div>
-            )}
-          </div>
-
-          <div className="flex items-center gap-6 text-sm text-gray-600">
-            <div className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4" />
-              <span>{userCurriculum?.modules?.length || 0} Modules</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              <span>Self-paced learning</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Award className="w-4 h-4" />
-              <span>Earn certificates</span>
-            </div>
-          </div>
+          <h1 className="text-3xl font-bold text-[#213874] mb-2">My Courses</h1>
+          <p className="text-gray-600">Select a curriculum to view its modules and start learning.</p>
         </div>
 
-        {/* Modules Grid */}
-        {userCurriculum?.modules?.length > 0 ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-            {userCurriculum.modules.map((module: Module) => (
-              <div key={module.id} className="relative group">
-                <Link href={`/module/${userCurriculum.field.toLowerCase()}/${module.id}`}>
-                  <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1 cursor-pointer h-full">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <CardTitle className="text-lg text-[#213874] group-hover:text-[#1a6ac3] transition-colors">
-                            {module.name}
-                          </CardTitle>
-                          <CardDescription className="mt-2">
-                            {module._count?.topics || 0} topics • {module.description || 'No description'}
-                          </CardDescription>
+        {/* Curriculums Grid */}
+        {curricula.length > 0 ? (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+            {curricula.map((curriculum: any, index: number) => {
+              const CurriculumIcon = getFieldIcon(curriculum.field)
+              const iconColor = getFieldColor(curriculum.field)
+              
+              return (
+                <div key={curriculum.id} className="relative group">
+                  <Link href={`/courses/${curriculum.id}`}>
+                    <Card className="h-full border border-gray-200 shadow-sm hover:shadow-md transition-all rounded-xl overflow-hidden bg-white">
+                      <CardHeader className="pb-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className={`w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center`}>
+                            <CurriculumIcon className={`w-5 h-5 ${iconColor}`} />
+                          </div>
+                          <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
+                            <ChevronRight className="w-4 h-4 text-[#213874]" />
+                          </div>
                         </div>
-                        <Badge
-                          variant={module.isActive ? "default" : "secondary"}
-                          className={module.isActive ? "bg-[#213874]" : ""}
-                        >
-                          {module.isActive ? "Active" : "Inactive"}
-                        </Badge>
-                      </div>
-                    </CardHeader>
-
-                    <CardContent>
-                      <div className="space-y-3">
-                        <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600">
-                            {module._count?.topics || 0} topics available
-                          </span>
-                          {module.isActive && (
-                            <Badge variant="outline" className="text-green-600 border-green-600">
-                              Available
-                            </Badge>
-                          )}
+                        <CardTitle className="text-xl font-bold text-[#213874]">{curriculum.name}</CardTitle>
+                        <CardDescription className="line-clamp-2 text-gray-500 mt-2">{curriculum.description}</CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="flex items-center gap-4 text-sm text-gray-500">
+                          <div className="flex items-center gap-1.5">
+                            <BookOpen className="w-4 h-4 text-[#213874]" />
+                            <span>{curriculum.modules?.length || 0} Modules</span>
+                          </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-
-                {/* Admin Controls */}
-                {isAdmin && (
-                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button size="sm" variant="outline" className="h-8 w-8 p-0" asChild>
-                      <Link href={`/admin/curriculum/${userCurriculum.id}/modules/${module.id}/edit`}>
-                        <Edit className="w-3 h-3" />
-                      </Link>
-                    </Button>
-                    <Button size="sm" variant="outline" className="h-8 w-8 p-0 text-red-600 hover:text-red-700">
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-            ))}
+                      </CardContent>
+                    </Card>
+                  </Link>
+                </div>
+              )
+            })}
           </div>
         ) : (
-          <div className="text-center py-12">
-            <BookOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Modules Available</h3>
-            <p className="text-gray-600 mb-4">
-              {isAdmin
-                ? "Start by adding modules to this curriculum."
-                : "Contact your administrator to add learning modules."
-              }
+          <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-100 shadow-inner mb-16">
+            <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <BookOpen className="w-10 h-10 text-blue-500" />
+            </div>
+            <h3 className="text-2xl font-bold text-gray-900 mb-3">No Curriculums Found</h3>
+            <p className="text-gray-500 mb-8 max-w-sm mx-auto">
+              We couldn't find any curriculums available for your field at the moment.
             </p>
-            {isAdmin && (
-              <Button asChild>
-                <Link href="/admin/curriculum/add">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add First Module
-                </Link>
-              </Button>
-            )}
           </div>
         )}
 

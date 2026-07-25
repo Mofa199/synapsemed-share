@@ -1,8 +1,6 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
 import { useAuth } from "@/components/auth-provider"
 import { Button } from "@/components/ui/button"
@@ -16,320 +14,176 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Search, Menu, X, User, Settings, LogOut, BookOpen, GraduationCap, ChevronDown } from "lucide-react"
+import { Search, Menu, X, User, Settings, LogOut, ChevronDown, Bell, Globe } from "lucide-react"
 import { Logo } from "@/components/logo"
-
-import dynamic from 'next/dynamic'
-
-// Dynamically import heavy components for better performance
-const DynamicSearchComponent = dynamic(() => import('@/components/search-component').then(mod => mod.SearchComponent), {
-  loading: () => <div className="h-10 w-64 bg-gray-200 rounded animate-pulse"></div>,
-  ssr: false
-})
-
 
 export function Navigation() {
   const { user, logout } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
+  const [isScrolled, setIsScrolled] = useState(false)
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (searchQuery.trim()) {
-      // Handle search functionality
-      console.log("Searching for:", searchQuery)
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20)
     }
-  }
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
 
   const getUserInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-  }
-
-  const getUserAvatar = () => {
-    if (user?.avatar) {
-      return user.avatar
-    }
-    return undefined
+    return name?.split(" ").map((n) => n[0]).join("").toUpperCase() || "S"
   }
 
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+    <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled ? "py-4" : "py-6"}`}>
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-20">
+        <div className={`glass rounded-full px-6 py-2 flex items-center justify-between transition-all duration-500 ${isScrolled ? "shadow-lg border-gray-200 bg-white/90" : "bg-white/60"}`}>
           {/* Logo Section */}
-          <div className="flex items-center space-x-4">
-            <Link href="/" className="flex items-center space-x-3">
-              <Logo size="lg" />
-              <div>
-                <span className="text-2xl font-bold text-[#213874]">Synapse Med</span>
-                <div className="text-xs text-gray-500">Medical Education Platform</div>
+          <div className="flex items-center space-x-8">
+            <Link href="/" className="flex items-center space-x-3 group">
+              <div className="p-2 bg-primary/10 rounded-xl group-hover:bg-primary/20 group-hover:scale-110 transition-all duration-500">
+                <Logo size="md" />
+              </div>
+              <div className="hidden sm:block">
+                <span className="text-xl font-bold tracking-tighter text-[#213874] group-hover:text-primary transition-all">SynapseMed</span>
               </div>
             </Link>
+            
+            <div className="hidden lg:flex items-center space-x-1">
+              {[
+                { name: "Courses", href: "/courses" },
+                { name: "Library", href: "/library" },
+                { name: "Pharmacology", href: "/pharmacology" },
+                { name: "About", href: "/about" },
+              ].map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className="px-4 py-2 text-sm font-semibold text-[#213874]/70 hover:text-[#213874] hover:bg-[#213874]/5 rounded-full transition-all"
+                >
+                  {item.name}
+                </Link>
+              ))}
+              {user && ['SUPER_ADMIN', 'LECTURER', 'EDITOR'].includes(user.role) && (
+                <Link
+                  href="/admin/dashboard"
+                  className="px-4 py-2 text-sm font-bold text-[#f3ab1b] hover:bg-[#f3ab1b]/10 rounded-full transition-all"
+                >
+                  Admin
+                </Link>
+              )}
+            </div>
           </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center space-x-1">
-            <Link href="/" className="px-4 py-2 text-gray-700 hover:text-[#213874] hover:bg-gray-50 rounded-lg transition-all duration-200 font-medium">
-              Home
-            </Link>
-            <Link href="/courses" className="px-4 py-2 text-gray-700 hover:text-[#213874] hover:bg-gray-50 rounded-lg transition-all duration-200 font-medium">
-              Courses
-            </Link>
-            <Link href="/library" className="px-4 py-2 text-gray-700 hover:text-[#213874] hover:bg-gray-50 rounded-lg transition-all duration-200 font-medium">
-              Library
-            </Link>
-            <Link href="/pharmacology" className="px-4 py-2 text-gray-700 hover:text-[#213874] hover:bg-gray-50 rounded-lg transition-all duration-200 font-medium">
-              Pharmacology
-            </Link>
-            <Link href="/about" className="px-4 py-2 text-gray-700 hover:text-[#213874] hover:bg-gray-50 rounded-lg transition-all duration-200 font-medium">
-              About
-            </Link>
-            {user && (
-              <Link href="/student/dashboard" className="px-4 py-2 text-gray-700 hover:text-[#213874] hover:bg-gray-50 rounded-lg transition-all duration-200 font-medium">
-                Dashboard
-              </Link>
-            )}
-          </div>
-
-          {/* Search Bar - Desktop */}
-          <div className="hidden md:flex flex-1 max-w-md mx-6">
-            <form onSubmit={handleSearch} className="relative w-full">
+          {/* Search & Actions */}
+          <div className="flex items-center space-x-4">
+            <div className="hidden md:block relative group">
               <Input
                 type="text"
-                placeholder="Search courses, topics, drugs..."
+                placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 pr-4 py-3 rounded-full border-gray-300 focus:border-[#213874] focus:ring-2 focus:ring-[#213874]/20"
+                className="w-48 lg:w-64 bg-gray-100 border-gray-200 rounded-full pl-10 h-10 text-foreground focus:ring-primary/20 transition-all"
               />
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-            </form>
-          </div>
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 group-focus-within:text-primary transition-colors" />
+            </div>
 
-          {/* User Menu and Mobile Button */}
-          <div className="flex items-center space-x-3">
             {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-10 w-10 rounded-full border border-gray-200 hover:bg-gray-50">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={getUserAvatar() || "/placeholder.svg"} alt={user.name} />
-                      <AvatarFallback className="bg-[#213874] text-white text-sm">
-                        {getUserInitials(user.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-64 mt-2" align="end" forceMount>
-                  <DropdownMenuLabel className="font-normal py-3">
-                    <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-semibold leading-none text-gray-900">{user.name}</p>
-                      <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                      <div className="flex items-center mt-1">
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 capitalize">
-                          {user.field}
-                        </span>
-                        <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 capitalize">
-                          {user.role}
-                        </span>
-                      </div>
-                    </div>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile" className="cursor-pointer py-2">
-                      <User className="mr-3 h-4 w-4" />
-                      My Profile
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/student/dashboard" className="cursor-pointer py-2">
-                      <GraduationCap className="mr-3 h-4 w-4" />
-                      Student Dashboard
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/settings" className="cursor-pointer py-2">
-                      <Settings className="mr-3 h-4 w-4" />
-                      Settings
-                    </Link>
-                  </DropdownMenuItem>
-                  {(user.role === "SUPER_ADMIN" || user.role === "LECTURER" || user.role === "EDITOR") && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem asChild>
-                        <Link href="/admin" className="cursor-pointer py-2">
-                          <Settings className="mr-3 h-4 w-4" />
-                          Admin Panel
-                        </Link>
-                      </DropdownMenuItem>
-                    </>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={logout} className="cursor-pointer py-2 text-red-600">
-                    <LogOut className="mr-3 h-4 w-4" />
-                    Sign Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="flex items-center space-x-3">
+                <Link href="/student/dashboard" className="hidden sm:block px-5 py-2 bg-[#213874] text-white text-sm font-bold rounded-full hover:scale-105 hover:bg-[#1a6ac3] transition-all shadow-md shadow-blue-900/10">
+                  Dashboard
+                </Link>
+                <div className="flex items-center gap-2">
+                   <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-gray-500 hover:text-primary hover:bg-gray-100">
+                      <Bell className="h-5 w-5" />
+                   </Button>
+                   <DropdownMenu>
+                     <DropdownMenuTrigger asChild>
+                       <Button variant="ghost" className="h-10 w-10 rounded-full p-0 border border-gray-200 hover:bg-gray-100">
+                         <Avatar className="h-8 w-8">
+                           <AvatarImage src={user.avatar || "/placeholder.svg"} />
+                           <AvatarFallback className="bg-primary text-white">
+                             {getUserInitials(user.name)}
+                           </AvatarFallback>
+                         </Avatar>
+                       </Button>
+                     </DropdownMenuTrigger>
+                     <DropdownMenuContent className="bg-white border-gray-200 text-foreground mt-4 w-56 p-2 rounded-2xl shadow-xl" align="end">
+                       <DropdownMenuLabel className="px-4 py-2">
+                          <p className="text-sm font-bold text-[#213874]">{user.name}</p>
+                          <p className="text-[10px] text-gray-400 uppercase tracking-widest">{user.role}</p>
+                       </DropdownMenuLabel>
+                       <DropdownMenuSeparator className="bg-gray-100 mx-2" />
+                       <DropdownMenuItem className="hover:bg-gray-50 cursor-pointer rounded-xl px-4 py-3">
+                         <User className="mr-3 h-4 w-4 text-primary" /> Profile
+                       </DropdownMenuItem>
+                       <DropdownMenuItem className="hover:bg-gray-50 cursor-pointer rounded-xl px-4 py-3">
+                         <Settings className="mr-3 h-4 w-4 text-primary" /> Settings
+                       </DropdownMenuItem>
+                       <DropdownMenuSeparator className="bg-gray-100 mx-2" />
+                       <DropdownMenuItem onClick={logout} className="text-red-600 hover:bg-red-50 cursor-pointer rounded-xl px-4 py-3">
+                         <LogOut className="mr-3 h-4 w-4" /> Sign Out
+                       </DropdownMenuItem>
+                     </DropdownMenuContent>
+                   </DropdownMenu>
+                </div>
+              </div>
             ) : (
-              <div className="hidden md:flex items-center space-x-3">
-                <Button variant="ghost" asChild className="text-gray-700 hover:text-[#213874]">
+              <div className="flex items-center space-x-2">
+                <Button variant="ghost" asChild className="text-[#213874]/70 hover:text-[#213874] hover:bg-[#213874]/5 rounded-full font-semibold">
                   <Link href="/auth">Sign In</Link>
                 </Button>
-                <Button asChild className="bg-[#213874] hover:bg-[#1a6ac3] px-6">
-                  <Link href="/auth">Get Started</Link>
+                <Button asChild className="bg-[#213874] text-white font-bold rounded-full hover:bg-[#1a6ac3] hover:scale-105 transition-all px-6">
+                  <Link href="/auth">Join Now</Link>
                 </Button>
               </div>
             )}
 
-            {/* Mobile Menu Button */}
             <Button 
               variant="ghost" 
               size="icon" 
-              className="lg:hidden h-10 w-10 rounded-lg border border-gray-200 hover:bg-gray-50"
+              className="lg:hidden text-gray-600 hover:bg-gray-100 rounded-full"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
-              {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
           </div>
         </div>
-
-        {/* Mobile Menu */}
-        {isMenuOpen && (
-          <div className="lg:hidden py-6 border-t border-gray-200 bg-white animate-in slide-in-from-top duration-300">
-            <div className="space-y-6">
-              {/* Mobile Search */}
-              <div className="px-4">
-                <form onSubmit={handleSearch} className="relative">
-                  <Input
-                    type="text"
-                    placeholder="Search..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-12 py-3 rounded-full"
-                  />
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
-                </form>
-              </div>
-
-              {/* Mobile Navigation Links */}
-              <div className="px-4 space-y-2">
-                <Link
-                  href="/"
-                  className="block py-3 px-4 text-gray-700 hover:text-[#213874] hover:bg-gray-50 rounded-lg transition-colors font-medium"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Home
-                </Link>
-                <Link
-                  href="/courses"
-                  className="block py-3 px-4 text-gray-700 hover:text-[#213874] hover:bg-gray-50 rounded-lg transition-colors font-medium"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Courses
-                </Link>
-                <Link
-                  href="/library"
-                  className="block py-3 px-4 text-gray-700 hover:text-[#213874] hover:bg-gray-50 rounded-lg transition-colors font-medium"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Library
-                </Link>
-                <Link
-                  href="/pharmacology"
-                  className="block py-3 px-4 text-gray-700 hover:text-[#213874] hover:bg-gray-50 rounded-lg transition-colors font-medium"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  Pharmacology
-                </Link>
-                <Link
-                  href="/about"
-                  className="block py-3 px-4 text-gray-700 hover:text-[#213874] hover:bg-gray-50 rounded-lg transition-colors font-medium"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  About
-                </Link>
-                
-                {user && (
-                  <Link
-                    href="/student/dashboard"
-                    className="block py-3 px-4 text-gray-700 hover:text-[#213874] hover:bg-gray-50 rounded-lg transition-colors font-medium"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Dashboard
-                  </Link>
-                )}
-                
-                {user && (
-                  <>
-                    <div className="border-t border-gray-200 pt-4 mt-4">
-                      <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">Account</div>
-                      <Link
-                        href="/profile"
-                        className="block py-3 px-4 text-gray-700 hover:text-[#213874] hover:bg-gray-50 rounded-lg transition-colors"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        Profile
-                      </Link>
-                      <Link
-                        href="/settings"
-                        className="block py-3 px-4 text-gray-700 hover:text-[#213874] hover:bg-gray-50 rounded-lg transition-colors"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        Settings
-                      </Link>
-                      {(user.role === "SUPER_ADMIN" || user.role === "LECTURER" || user.role === "EDITOR") && (
-                        <Link
-                          href="/admin"
-                          className="block py-3 px-4 text-gray-700 hover:text-[#213874] hover:bg-gray-50 rounded-lg transition-colors"
-                          onClick={() => setIsMenuOpen(false)}
-                        >
-                          Admin Panel
-                        </Link>
-                      )}
-                      <button
-                        onClick={() => {
-                          logout();
-                          setIsMenuOpen(false);
-                        }}
-                        className="w-full text-left block py-3 px-4 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      >
-                        Sign Out
-                      </button>
-                    </div>
-                  </>
-                )}
-                
-                {!user && (
-                  <div className="border-t border-gray-200 pt-4 mt-4">
-                    <div className="flex flex-col space-y-3">
-                      <Button 
-                        variant="ghost" 
-                        asChild 
-                        className="w-full justify-center text-gray-700 hover:text-[#213874] py-3"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        <Link href="/auth">Sign In</Link>
-                      </Button>
-                      <Button 
-                        asChild 
-                        className="w-full bg-[#213874] hover:bg-[#1a6ac3] py-3"
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        <Link href="/auth">Get Started</Link>
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Mobile Menu Expansion */}
+      {isMenuOpen && (
+        <div className="lg:hidden mt-4 mx-4 bg-white border border-gray-200 rounded-3xl p-6 shadow-2xl animate-in slide-in-from-top-4 duration-300">
+          <div className="space-y-4">
+            {[
+              { name: "Home", href: "/" },
+              { name: "Courses", href: "/courses" },
+              { name: "Library", href: "/library" },
+              { name: "Pharmacology", href: "/pharmacology" },
+              { name: "About", href: "/about" },
+            ].map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className="block text-xl font-bold text-[#213874]/70 hover:text-[#213874] transition-all"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                {item.name}
+              </Link>
+            ))}
+            {user && ['SUPER_ADMIN', 'LECTURER', 'EDITOR'].includes(user.role) && (
+              <Link
+                href="/admin/dashboard"
+                className="block text-xl font-bold text-[#f3ab1b] transition-all"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Admin Panel
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   )
 }

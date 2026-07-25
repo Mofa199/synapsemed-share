@@ -40,7 +40,8 @@ export async function POST(request: NextRequest) {
     const data = await request.json()
     const { 
       title, description, content, difficulty, 
-      category, estimatedTime, tags, isPublished 
+      category, estimatedTime, tags, isPublished,
+      curriculumId, moduleId
     } = data
     
     // Validate required fields
@@ -61,6 +62,8 @@ export async function POST(request: NextRequest) {
         estimatedTime: estimatedTime ? estimatedTime.toString() : null,
         tags: Array.isArray(tags) ? tags.join(', ') : (tags || ""),
         isPublished: !!isPublished,
+        curriculumId: curriculumId || null,
+        moduleId: moduleId || null,
       }
     });
 

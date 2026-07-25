@@ -13,6 +13,7 @@ import { useAuth } from "@/components/auth-provider"
 import { useToast } from "@/hooks/use-toast"
 import { ArrowLeft, Save, Loader2, BookOpen } from "lucide-react"
 import Link from "next/link"
+import { CurriculumModuleSelect } from "@/components/curriculum-module-select"
 
 interface Book {
   id: string
@@ -124,7 +125,9 @@ export default function EditBookPage() {
           ...formData,
           publicationYear: formData.publicationYear ? parseInt(formData.publicationYear) : undefined,
           pages: formData.pages ? parseInt(formData.pages) : undefined,
-          tags: formData.tags.split(',').map(t => t.trim()).filter(Boolean),
+          tags: formData.tags.split(',').map((t: string) => t.trim()).filter(Boolean),
+          curriculumId: formData.curriculumId || undefined,
+          moduleId: formData.moduleId || undefined,
         }),
       })
 
@@ -326,26 +329,12 @@ export default function EditBookPage() {
                 />
               </div>
 
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="curriculumId">Curriculum ID (optional)</Label>
-                  <Input
-                    id="curriculumId"
-                    value={formData.curriculumId}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, curriculumId: e.target.value }))}
-                    placeholder="Enter curriculum ID"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="moduleId">Module ID (optional)</Label>
-                  <Input
-                    id="moduleId"
-                    value={formData.moduleId}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, moduleId: e.target.value }))}
-                    placeholder="Enter module ID"
-                  />
-                </div>
-              </div>
+              <CurriculumModuleSelect
+                curriculumId={formData.curriculumId}
+                moduleId={formData.moduleId}
+                onCurriculumChange={(val) => setFormData(prev => ({ ...prev, curriculumId: val }))}
+                onModuleChange={(val) => setFormData(prev => ({ ...prev, moduleId: val }))}
+              />
 
               <div className="space-y-2">
                 <Label htmlFor="tags">Tags (comma-separated)</Label>

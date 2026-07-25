@@ -15,8 +15,9 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const book = await prisma.book.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         curriculum: { select: { name: true, field: true } },
         module: { select: { name: true } }
@@ -47,6 +48,7 @@ export async function PUT(
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const body = await request.json()
     const { 
       title, author, isbn, publisher, publicationYear, 
@@ -56,7 +58,7 @@ export async function PUT(
     } = body
 
     const book = await prisma.book.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(title && { title }),
         ...(author && { author }),
@@ -96,8 +98,9 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     await prisma.book.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({ success: true, message: 'Book deleted successfully' })

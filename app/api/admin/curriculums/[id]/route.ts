@@ -1,22 +1,53 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { UserRole } from '@prisma/client'
+import { getServerSession } from '@/lib/server-auth'
+import { authOptions } from '@/lib/auth'
 
-// Build-safe implementation that returns mock data during build
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // Return mock data during build time
-  const mockCurriculum = {
-    id: params.id,
-    name: 'Sample Curriculum',
-    description: 'Sample curriculum description',
-    field: 'MEDICAL',
-    isActive: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-  return NextResponse.json({ success: true, data: mockCurriculum });
+    const { id } = await params
+
+    const curriculum = await prisma.curriculum.findUnique({
+      where: { id },
+      include: {
+        modules: {
+          orderBy: {
+            order: 'asc'
+          },
+          include: {
+            _count: {
+              select: {
+                topics: true
+              }
+            }
+          }
+        },
+        _count: {
+          select: {
+            modules: true
+          }
+        }
+      }
+    })
+
+    if (!curriculum) {
+      return NextResponse.json({ success: false, error: 'Curriculum not found' }, { status: 404 })
+    }
+
+    return NextResponse.json({ success: true, data: curriculum })
+  } catch (error) {
+    console.error('Error fetching curriculum:', error)
+    return NextResponse.json({ success: false, error: 'Failed to fetch curriculum' }, { status: 500 })
+  }
 }
 
 export async function PUT(
@@ -24,22 +55,31 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const body = await request.json();
-    
-    // Return mock updated curriculum during build time
-    const updatedCurriculum = {
-      id: params.id,
-      ...body,
-      updatedAt: new Date().toISOString(),
-    };
+    const session = await getServerSession(authOptions)
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-    return NextResponse.json({ success: true, data: updatedCurriculum });
+    const { id } = await params
+    const body = await request.json()
+    
+    const updatedCurriculum = await prisma.curriculum.update({
+      where: { id },
+      data: {
+        name: body.name,
+        description: body.description,
+        field: body.field,
+        isActive: body.isActive,
+      }
+    })
+
+    return NextResponse.json({ success: true, data: updatedCurriculum })
   } catch (error) {
-    console.error('Error updating curriculum:', error);
+    console.error('Error updating curriculum:', error)
     return NextResponse.json(
       { success: false, error: 'Failed to update curriculum' },
       { status: 500 }
-    );
+    )
   }
 }
 
@@ -47,6 +87,24 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  // Return success during build time
-  return NextResponse.json({ success: true, message: 'Curriculum deleted successfully' });
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { id } = await params
+    
+    await prisma.curriculum.delete({
+      where: { id }
+    })
+
+    return NextResponse.json({ success: true, message: 'Curriculum deleted successfully' })
+  } catch (error) {
+    console.error('Error deleting curriculum:', error)
+    return NextResponse.json(
+      { success: false, error: 'Failed to delete curriculum' },
+      { status: 500 }
+    )
+  }
 }

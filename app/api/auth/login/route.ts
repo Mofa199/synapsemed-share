@@ -23,6 +23,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // TEMPORARY: Bypass OTP verification for development
+    // if (user.isVerified === false) {
+    //   return NextResponse.json(
+    //     { error: 'Please verify your account to continue', requireOtp: true, userId: user.id },
+    //     { status: 403 }
+    //   )
+    // }
+
     // Update last login time
     // (Implementation would go here)
 
@@ -61,6 +69,7 @@ export async function POST(request: NextRequest) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: maxAge,
+      path: '/',
     })
 
     // Also set a non-httpOnly cookie for client-side user data
@@ -77,6 +86,7 @@ export async function POST(request: NextRequest) {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: maxAge,
+      path: '/',
     })
 
     return response

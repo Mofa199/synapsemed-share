@@ -715,7 +715,7 @@ export default function AdminDashboard() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-[#213874] mb-2">0</div>
+                    <div className="text-3xl font-bold text-[#213874] mb-2">{dashboardStats.gamification?.badges || 0}</div>
                     <p className="text-sm text-gray-600">Achievement badges</p>
                   </CardContent>
                 </Card>
@@ -731,7 +731,7 @@ export default function AdminDashboard() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-[#213874] mb-2">0</div>
+                    <div className="text-3xl font-bold text-[#213874] mb-2">{dashboardStats.gamification?.mnemonics || 0}</div>
                     <p className="text-sm text-gray-600">Memory aids</p>
                   </CardContent>
                 </Card>
@@ -763,7 +763,7 @@ export default function AdminDashboard() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-[#213874] mb-2">156</div>
+                    <div className="text-3xl font-bold text-[#213874] mb-2">{dashboardStats.contentBreakdown?.questionOfTheDay || 0}</div>
                     <p className="text-sm text-gray-600">Daily questions</p>
                   </CardContent>
                 </Card>
@@ -779,7 +779,7 @@ export default function AdminDashboard() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="text-3xl font-bold text-[#213874] mb-2">15</div>
+                    <div className="text-3xl font-bold text-[#213874] mb-2">{dashboardStats.contentBreakdown?.examSimulations || 0}</div>
                     <p className="text-sm text-gray-600">Practice exams</p>
                   </CardContent>
                 </Card>
@@ -954,9 +954,11 @@ export default function AdminDashboard() {
                   <BarChart3 className="h-4 w-4 mr-2" />
                   View Analytics
                 </Button>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Case
+                <Button asChild>
+                  <Link href="/admin/content/simulations/add">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Case
+                  </Link>
                 </Button>
               </div>
             </div>
@@ -992,16 +994,16 @@ export default function AdminDashboard() {
                   <div className="mt-4 pt-4 border-t">
                     <div className="flex gap-2">
                       <Button className="flex-1" asChild>
-                        <a href="/student/simulations/learner">
+                        <Link href="/student/simulations/learner">
                           <Target className="h-4 w-4 mr-2" />
                           Launch Learner View
-                        </a>
+                        </Link>
                       </Button>
                       <Button variant="outline" className="flex-1" asChild>
-                        <a href="/student/simulations/educator">
+                        <Link href="/student/simulations/educator">
                           <BarChart3 className="h-4 w-4 mr-2" />
                           Educator Dashboard
-                        </a>
+                        </Link>
                       </Button>
                     </div>
                   </div>

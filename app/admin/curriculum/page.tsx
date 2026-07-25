@@ -30,7 +30,7 @@ export default function CurriculumManagementPage() {
     try {
       const response = await fetch("/api/admin/curriculums")
       const data = await response.json()
-      setCurriculums(data.curriculums || [])
+      setCurriculums(data.data || [])
     } catch (error) {
       console.error("Error fetching curriculums:", error)
     } finally {

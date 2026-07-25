@@ -15,10 +15,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", generationConfig: { responseMimeType: "application/json" } });
+    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest", generationConfig: { responseMimeType: "application/json" } });
 
     const prompt = `
-You are SynapseMedAI, a personalized learning coach for medical students.
+You are SynapseMed Neural AI, a personalized clinical learning coach powered by Google Gemini.
 Student Level: ${level || 'General'}
 Current Context: ${currentContext || 'General'}
 Weak Areas: ${weakAreas ? weakAreas.join(', ') : 'None specified'}
@@ -42,7 +42,10 @@ Return the output strictly in the following JSON schema:
 `;
 
     const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
+    let responseText = result.response.text();
+    
+    // Robust JSON parsing: strip markdown code blocks if present
+    responseText = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
     const data = JSON.parse(responseText);
 
     return NextResponse.json(data)

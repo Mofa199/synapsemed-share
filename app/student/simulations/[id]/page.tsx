@@ -137,7 +137,7 @@ export default function SimulationCasePage({ params }: { params: Promise<{ id: s
   };
 
   const handleStartCase = () => {
-    router.push('/student/simulations/triage');
+    router.push(`/student/simulations/triage/${id}`);
   };
 
   return (

@@ -1,48 +1,51 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { GoogleGenerativeAI } from '@google/generative-ai'
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     const { message, context, currentTopic, studentLevel, history } = body
 
-    // TODO: Replace with actual AI backend call
-    // For now, return intelligent mock responses based on context
-    
-    const responses = {
-      exam: `🎓 **Exam Mentor Mode**
-
-I see you're working on a question. Here's my guidance:
-
-**Hint**: Think about the underlying mechanism first. What system is involved?
-
-💡 **Tip**: Don't rush! Take your time to analyze each option carefully.
-
-📚 **Related Concept**: You might want to review the pathophysiology of this condition.
-
-Need more help? Just ask!`,
-      
-      study: `📖 **Study Co-Pilot**
-
-Great question about ${currentTopic || 'this topic'}!
-
-Here's what I can help you with:
-
-✅ **Key Concepts**: I can explain the main points
-✅ **Flashcards**: Generate cards for quick review
-✅ **Practice Questions**: Test your understanding
-✅ **Summary**: Create a concise overview
-
-What would you like me to do first?`,
-      
-      general: `👋 Hi! I'm SYNAPSEMED, your AI study companion.\n\nI noticed you asked: "${message}"\n\n🔮 **Coming Soon**: Once the AI backend is connected, I'll provide:\n\n• Detailed medical explanations\n• Personalized study plans\n• Practice questions and flashcards\n• Resource recommendations\n• Real-time coaching\n\n*AI service is currently being set up. Stay tuned!* 🚀`
+    if (!process.env.GEMINI_API_KEY) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'GEMINI_API_KEY not configured',
+          response: "⚠️ AI service is currently unavailable. Please check configuration."
+        },
+        { status: 500 }
+      )
     }
 
-    // Simulate AI processing delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+
+    const chatHistory = history?.map((msg: any) => ({
+      role: msg.role === 'user' ? 'user' : 'model',
+      parts: [{ text: msg.content }],
+    })) || [];
+
+    const chat = model.startChat({
+      history: chatHistory,
+    });
+
+    const systemPrompt = `
+You are SYNAPSEMED Neural AI, a high-end medical tutor and clinical assistant.
+Context: ${context || 'general'}
+Topic: ${currentTopic || 'medical learning'}
+Student Level: ${studentLevel || 'Medical Student'}
+
+Tone: Professional, expert, encouraging, and clear.
+Objective: Provide accurate, evidence-based medical information and study guidance.
+`;
+
+    const result = await chat.sendMessage(`${systemPrompt}\n\nUser Message: ${message}`);
+    const responseText = result.response.text();
 
     return NextResponse.json({
       success: true,
-      response: responses[context as keyof typeof responses] || responses.general,
+      response: responseText,
       context,
       timestamp: new Date().toISOString()
     })

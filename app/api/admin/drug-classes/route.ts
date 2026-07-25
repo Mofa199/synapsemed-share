@@ -50,7 +50,11 @@ export async function POST(request: NextRequest) {
     const {
       name,
       category,
-      description
+      description,
+      mechanism,
+      therapeuticUses,
+      commonSideEffects,
+      contraindications
     } = body
 
     if (!name || !category) {
@@ -60,11 +64,18 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
+    // Process arrays to strings if needed
+    const processArray = (arr: any) => Array.isArray(arr) ? arr.join('\n') : (arr || null)
+
     const drugClass = await prisma.drugClass.create({
       data: {
         name,
         category,
         description: description || null,
+        mechanism: mechanism || null,
+        therapeuticUses: processArray(therapeuticUses),
+        commonSideEffects: processArray(commonSideEffects),
+        contraindications: processArray(contraindications)
       }
     });
 
@@ -96,6 +107,10 @@ export async function PUT(request: NextRequest) {
       name,
       category,
       description,
+      mechanism,
+      therapeuticUses,
+      commonSideEffects,
+      contraindications
     } = body
 
     if (!id) {
@@ -104,6 +119,9 @@ export async function PUT(request: NextRequest) {
         error: 'Drug class ID is required'
       }, { status: 400 })
     }
+    
+    // Process arrays to strings if needed
+    const processArray = (arr: any) => Array.isArray(arr) ? arr.join('\n') : (arr || null)
 
     const drugClass = await prisma.drugClass.update({
       where: { id },
@@ -111,6 +129,10 @@ export async function PUT(request: NextRequest) {
         name,
         category,
         description,
+        mechanism,
+        therapeuticUses: processArray(therapeuticUses),
+        commonSideEffects: processArray(commonSideEffects),
+        contraindications: processArray(contraindications)
       }
     });
 

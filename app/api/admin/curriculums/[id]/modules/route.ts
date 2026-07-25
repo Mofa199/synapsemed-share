@@ -6,7 +6,8 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const modules = await getModulesByCurriculum(params.id)
+    const { id } = await params
+    const modules = await getModulesByCurriculum(id)
 
     return NextResponse.json({
       success: true,
@@ -27,6 +28,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const data = await request.json()
     
     // Validate required fields
@@ -41,7 +43,7 @@ export async function POST(
     const module = await createModule({
       name: data.name,
       description: data.description,
-      curriculumId: params.id,
+      curriculumId: id,
       duration: data.duration,
       difficulty: data.difficulty,
       isActive: data.isActive || true,

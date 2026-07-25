@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch"
 import { useAuth } from "@/components/auth-provider"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
+import { CurriculumModuleSelect } from "@/components/curriculum-module-select"
 import { 
   FileText, 
   Save, 
@@ -40,7 +41,9 @@ export default function AddArticlePage() {
     publicationDate: "",
     doi: "",
     tags: "",
-    isPublished: false
+    isPublished: false,
+    curriculumId: "",
+    moduleId: ""
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -91,6 +94,8 @@ export default function AddArticlePage() {
         readTime: formData.readTime || undefined,
         difficulty: formData.difficulty.toUpperCase(),
         isPublished: formData.isPublished,
+        curriculumId: formData.curriculumId || undefined,
+        moduleId: formData.moduleId || undefined,
       }
 
       const response = await fetch('/api/admin/articles', {
@@ -199,6 +204,13 @@ export default function AddArticlePage() {
                       />
                     </div>
                   </div>
+
+                  <CurriculumModuleSelect
+                    curriculumId={formData.curriculumId}
+                    moduleId={formData.moduleId}
+                    onCurriculumChange={(val) => handleInputChange('curriculumId', val)}
+                    onModuleChange={(val) => handleInputChange('moduleId', val)}
+                  />
 
                   <div className="space-y-2">
                     <Label htmlFor="description">Description</Label>

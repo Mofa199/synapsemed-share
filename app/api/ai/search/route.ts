@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" })
 
     const prompt = `
 You are SynapseMedAI, an intelligent search assistant for medical education.
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" })
 
     const prompt = `
 You are SynapseMedAI, an intelligent search assistant for medical education.

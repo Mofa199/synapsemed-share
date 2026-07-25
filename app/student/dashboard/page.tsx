@@ -16,42 +16,30 @@ import {
   Bot, 
   BookMarked, 
   User, 
-  CreditCard,
-  Video,
-  Bookmark,
-  RotateCcw,
-  Lightbulb,
-  Calendar,
-  Smartphone,
-  Apple,
-  Chrome,
+  Settings,
+  LogOut,
   Target,
   MessageCircle,
-  LogOut
+  Bookmark,
+  TrendingUp,
+  Clock,
+  Calendar,
+  CheckCircle2,
+  Zap,
+  Bell,
+  Cpu,
+  Activity,
+  Layers,
+  LayoutDashboard
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth-provider";
 import { NotesPanel } from "@/components/student/notes-panel"
-import { Bookmatcher } from "@/components/student/bookmatcher"
 import { SpacedRepetitionPanel } from "@/components/student/spaced-repetition-panel"
 import { QuestionOfTheDayPanel } from "@/components/student/question-of-the-day-panel"
 import { Logo } from "@/components/logo";
-
-// Mock data for the dashboard
-const videoTopics = [
-  { id: 1, title: "Anatomy", description: "Comprehensive anatomy courses" },
-  { id: 2, title: "Anesthesiology", description: "Anesthesia procedures and techniques" },
-  { id: 3, title: "Biochemistry", description: "Molecular biology and metabolism" },
-  { id: 4, title: "Cardiology", description: "Heart diseases and treatments" },
-  { id: 5, title: "Dermatology", description: "Skin conditions and treatments" },
-  { id: 6, title: "Endocrinology", description: "Hormonal disorders and treatments" },
-];
-
-const bookmarks = [
-  { id: 1, title: "Cardiac Anatomy", type: "Video" },
-  { id: 2, title: "Pharmacology Notes", type: "Document" },
-  { id: 3, title: "ECG Interpretation", type: "Concept Page" },
-];
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Progress } from "@/components/ui/progress";
 
 export default function StudentDashboard() {
   const { user, logout } = useAuth();
@@ -66,418 +54,263 @@ export default function StudentDashboard() {
     loading: true
   });
 
+  const [videos, setVideos] = useState<any[]>([]);
+  const [bookmarksList, setBookmarksList] = useState<any[]>([]);
+
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch('/api/user/profile');
-        if (response.ok) {
-          const data = await response.json();
-          if (data.success && data.user.gamification) {
+        const [profileRes, videosRes, bookmarksRes] = await Promise.all([
+          fetch('/api/user/profile'),
+          fetch('/api/videos?limit=4'),
+          fetch('/api/user/bookmarks?limit=5')
+        ]);
+        
+        if (profileRes.ok) {
+          const data = await profileRes.json();
+          if (data.success && data.user?.gamification) {
             setStats({
-              level: data.user.gamification.level || 1,
-              points: data.user.gamification.points || 0,
-              streak: data.user.gamification.streak || 0,
-              completionRate: data.user.gamification.completionRate || 0,
-              completedItems: data.user.gamification.completedItems || 0,
-              totalItems: data.user.gamification.totalItems || 50,
+              ...data.user.gamification,
               loading: false
             });
           }
         }
-      } catch (error) {
-        console.error("Failed to fetch dashboard stats:", error);
+        
+        if (videosRes.ok) {
+          const videosData = await videosRes.json();
+          setVideos(videosData.videos || []);
+        }
+        
+        if (bookmarksRes.ok) {
+          const bookmarksData = await bookmarksRes.json();
+          setBookmarksList(bookmarksData.bookmarks || []);
+        }
+      } catch (e) {
+        console.error("Failed to fetch dashboard data", e);
         setStats(prev => ({ ...prev, loading: false }));
       }
     };
 
-    fetchStats();
+    fetchData();
   }, []);
 
-  // Navigation items for the sidebar
   const navigationItems = [
-    { name: "Home", icon: Home, href: "/student/dashboard" },
-    { name: "Study Planner", icon: BookOpen, href: "/student/planner" },
-    { name: "My Content", icon: FileText, href: "/student/content" },
-    { name: "Magazines", icon: BookMarked, href: "/student/magazines" },
-    { name: "Videos", icon: Play, href: "/student/videos" },
-    { name: "Concept Pages", icon: Lightbulb, href: "/student/concepts" },
-    { name: "Question Bank", icon: HelpCircle, href: "/student/questions" },
-    { name: "Learning Paths", icon: Map, href: "/student/paths" },
-    { name: "Patient Simulations", icon: Users, href: "/student/simulations" },
-    { name: "Exam Simulation", icon: Target, href: "/student/exam-simulation" },
-    { name: "AI Study Tutor", icon: Bot, href: "/student/ai-tutor" },
-    { name: "Medical Chat", icon: MessageCircle, href: "/student/chat" },
+    { name: "Command Center", icon: Home, href: "/student/dashboard" },
+    { name: "Clinical Courses", icon: BookOpen, href: "/courses" },
+    { name: "Intelligence Hub", icon: BookMarked, href: "/library" },
+    { name: "Pharmacology", icon: Layers, href: "/pharmacology" },
+    { name: "Question Bank", icon: Target, href: "/student/questions" },
+    { name: "Simulations", icon: Users, href: "/student/simulations" },
+    { name: "AI Neural Tutor", icon: Bot, href: "/student/ai-tutor" },
   ];
 
+  const isAdmin = user && ['SUPER_ADMIN', 'LECTURER', 'EDITOR'].includes(user.role);
+
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* Left Sidebar - Hidden on mobile, shown on desktop */}
-      <div className="hidden lg:flex w-64 bg-white border-r border-gray-200 flex-col">
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center gap-2">
-            <Logo size="md" />
-            <span className="text-xl font-bold text-[#213874]">SynapseMed</span>
+    <div className="flex min-h-screen bg-mesh text-[#213874] selection:bg-primary/20">
+      {/* Floating Glass Sidebar */}
+      <aside className="hidden lg:flex w-72 bg-white border-r border-gray-100 flex-col sticky top-0 h-screen m-4 rounded-3xl shadow-sm">
+        <div className="p-8 border-b border-gray-100 flex items-center gap-3">
+          <div className="p-2 bg-[#213874]/10 rounded-xl">
+             <Logo size="md" />
           </div>
+          <span className="text-2xl font-bold tracking-tighter text-[#213874]">SynapseMed</span>
         </div>
-        <nav className="flex-1 p-4">
+        
+        <nav className="flex-1 p-6 overflow-y-auto">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-6 px-4">Navigation Matrix</div>
           <ul className="space-y-2">
             {navigationItems.map((item) => (
               <li key={item.name}>
                 <Link 
                   href={item.href}
-                  className="flex items-center p-2 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="flex items-center px-4 py-3 text-sm font-semibold text-gray-500 rounded-2xl hover:bg-gray-50 hover:text-[#213874] transition-all group"
                 >
-                  <item.icon className="h-5 w-5 mr-3" />
+                  <item.icon className="h-5 w-5 mr-3 group-hover:text-[#1a6ac3] transition-colors" />
                   {item.name}
                 </Link>
               </li>
             ))}
+            {isAdmin && (
+              <li className="mt-8 border-t border-gray-100 pt-8">
+                <Link 
+                  href="/admin/dashboard"
+                  className="flex items-center px-4 py-3 text-sm font-bold text-[#f3ab1b] rounded-2xl bg-[#f3ab1b]/5 hover:bg-[#f3ab1b]/10 transition-all group"
+                >
+                  <LayoutDashboard className="h-5 w-5 mr-3" />
+                  Admin Dashboard
+                </Link>
+              </li>
+            )}
           </ul>
         </nav>
-        {/* Go back to home and logout buttons */}
-        <div className="p-4 border-t border-gray-200 space-y-2">
-          <Button variant="outline" className="w-full" asChild>
-            <Link href="/">
-              <Home className="h-4 w-4 mr-2" />
-              Go to Home
-            </Link>
-          </Button>
-          <Button variant="outline" className="w-full" onClick={logout}>
-            <LogOut className="h-4 w-4 mr-2" />
-            Logout
-          </Button>
-        </div>
-      </div>
 
-      {/* Mobile Bottom Navigation */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-40">
-        <div className="flex items-center justify-around px-2 py-2">
-          <Link href="/student/dashboard" className="flex flex-col items-center gap-1 p-2 text-blue-600">
-            <Home className="h-5 w-5" />
-            <span className="text-xs">Home</span>
-          </Link>
-          <Link href="/student/planner" className="flex flex-col items-center gap-1 p-2 text-gray-600">
-            <BookOpen className="h-5 w-5" />
-            <span className="text-xs">Planner</span>
-          </Link>
-          <Link href="/student/videos" className="flex flex-col items-center gap-1 p-2 text-gray-600">
-            <Play className="h-5 w-5" />
-            <span className="text-xs">Videos</span>
-          </Link>
-          <Link href="/student/questions" className="flex flex-col items-center gap-1 p-2 text-gray-600">
-            <HelpCircle className="h-5 w-5" />
-            <span className="text-xs">Questions</span>
-          </Link>
-          <Link href="/student/ai-tutor" className="flex flex-col items-center gap-1 p-2 text-gray-600">
-            <Bot className="h-5 w-5" />
-            <span className="text-xs">AI Tutor</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {/* Top Bar */}
-        <header className="bg-white border-b border-gray-200 p-4">
-          <div className="flex items-center justify-between">
-            {/* Mobile Logo */}
-            <div className="lg:hidden flex items-center gap-2">
-              <Logo size="sm" />
-              <span className="text-lg font-bold text-[#213874]">SynapseMed</span>
-            </div>
-            
-            {/* Desktop Search */}
-            <div className="hidden lg:block relative w-1/3">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <Input
-                type="text"
-                placeholder="Search topics, keywords, questions..."
-                className="pl-10 w-full"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              {/* Desktop Buttons */}
-              <div className="hidden lg:flex items-center space-x-2">
-                <Button variant="outline" size="sm" asChild>
-                  <Link href="/student/ai-tutor">
-                    <Bot className="h-4 w-4 mr-2" />
-                    AI Assistant
-                  </Link>
-                </Button>
-                <Button variant="outline" size="sm" asChild>
-                  <Link href="/student/chat">
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Medical Chat
-                  </Link>
-                </Button>
-                <Bookmatcher />
-              </div>
-              
-              {/* Mobile Icons Only */}
-              <div className="flex lg:hidden items-center space-x-1">
-                <Button variant="ghost" size="icon" asChild>
-                  <Link href="/student/chat">
-                    <MessageCircle className="h-5 w-5" />
-                  </Link>
-                </Button>
-                <Bookmatcher />
-              </div>
-              
-              {/* Common Buttons */}
-              <Button variant="ghost" size="icon">
-                <CreditCard className="h-5 w-5" />
-              </Button>
-              <Button variant="ghost" size="icon" asChild>
-                <Link href="/profile">
-                  <User className="h-5 w-5" />
-                </Link>
-              </Button>
-            </div>
+        <div className="p-6 border-t border-gray-100 space-y-6">
+          <div className="bg-gray-50 border border-gray-100 p-5 rounded-2xl space-y-3">
+             <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-[#213874]">
+                <span>Memory Sync</span>
+                <span>{stats.completionRate}%</span>
+             </div>
+             <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
+                <div className="h-full bg-[#1a6ac3]" style={{ width: `${stats.completionRate}%` }} />
+             </div>
           </div>
-          
-          {/* Mobile Search */}
-          <div className="lg:hidden mt-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Button variant="ghost" className="w-full justify-start text-red-500 hover:bg-red-50 rounded-2xl font-semibold" onClick={logout}>
+            <LogOut className="h-4 w-4 mr-3" /> Terminate Session
+          </Button>
+        </div>
+      </aside>
+
+      {/* Main Workspace */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+        <header className="bg-white m-4 mb-0 rounded-2xl px-8 py-4 border border-gray-100 relative z-20 shadow-sm">
+          <div className="flex items-center justify-between gap-8">
+            <div className="flex-1 max-w-xl relative group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#1a6ac3] transition-colors h-4 w-4" />
               <Input
                 type="text"
-                placeholder="Search..."
-                className="pl-10 w-full"
+                placeholder="Query clinical databases..."
+                className="pl-12 h-12 bg-gray-50 border-gray-200 rounded-2xl text-[#213874] focus:ring-primary/20 transition-all font-medium"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
+            </div>
+
+            <div className="flex items-center gap-6">
+              <div className="hidden xl:flex items-center gap-4 px-4 py-2 bg-green-50 rounded-2xl border border-green-100">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-green-700">Live Node Active</span>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                 <Button variant="ghost" size="icon" className="bg-gray-50 h-11 w-11 rounded-2xl text-gray-400 hover:text-[#213874] border border-gray-100">
+                    <Bell className="h-5 w-5" />
+                 </Button>
+                 <Avatar className="h-11 w-11 rounded-2xl border border-gray-100 p-0.5 bg-white shadow-sm">
+                    <AvatarImage src={user?.avatar || "/placeholder.svg"} className="rounded-xl" />
+                    <AvatarFallback className="bg-[#213874] text-white rounded-xl font-bold">
+                      {user?.name?.[0] || "S"}
+                    </AvatarFallback>
+                 </Avatar>
+              </div>
             </div>
           </div>
         </header>
 
-        {/* Dashboard Content */}
-        <main className="flex-1 p-4 lg:p-6 overflow-y-auto pb-20 lg:pb-6">
-          <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Welcome back, {user?.name || "Student"}!</h1>
-            <p className="text-gray-600">Continue your medical education journey</p>
+        <main className="flex-1 overflow-y-auto p-8 space-y-12 pb-32">
+          {/* Status Header */}
+          <div className="space-y-3 animate-in fade-in slide-in-from-top-4 duration-1000">
+            <div className="flex items-center gap-2 text-[#f3ab1b] font-bold text-xs uppercase tracking-widest">
+               <Activity className="h-4 w-4" /> System Online
+            </div>
+            <h1 className="text-4xl font-bold tracking-tighter text-[#213874]">
+              Welcome to the Command Center, <span className="text-[#1a6ac3]">{user?.name || "Student"}</span>.
+            </h1>
+            <p className="text-gray-500 font-medium max-w-2xl leading-relaxed">Neural pathways synchronized. 12 New mission-critical medical updates available in your library.</p>
           </div>
 
-          {/* Quickstart Section */}
-          <section className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">Quickstart</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Target className="h-5 w-5 mr-2 text-red-500" />
-                    Exam Simulation Mode
-                  </CardTitle>
-                  <CardDescription>Practice under real exam conditions</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700 mb-4">
-                    Experience the actual test environment with timed questions and adaptive difficulty.
-                  </p>
-                  <Button asChild>
-                    <Link href="/student/exam-simulation">
-                      <Target className="h-4 w-4 mr-2" />
-                      Try it out now!
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Bot className="h-5 w-5 mr-2 text-blue-500" />
-                    AI Study Tutor
-                  </CardTitle>
-                  <CardDescription>Your personal medical coach</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700 mb-4">
-                    Get instant answers, personalized recommendations, and adaptive quizzes.
-                  </p>
-                  <Button asChild>
-                    <Link href="/student/ai-tutor">
-                      <Bot className="h-4 w-4 mr-2" />
-                      Try it out now!
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <MessageCircle className="h-5 w-5 mr-2 text-green-500" />
-                    Medical Community Chat
-                  </CardTitle>
-                  <CardDescription>Connect with peers and experts</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700 mb-4">
-                    Join discussions, ask questions, and collaborate with medical students and professionals.
-                  </p>
-                  <Button asChild>
-                    <Link href="/student/chat">
-                      <MessageCircle className="h-4 w-4 mr-2" />
-                      Join Chat
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </section>
+          {/* Core Mission Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+             {[
+               { title: "Exam Simulation", desc: "USMLE-Style active recall session.", icon: Target, color: "text-red-500", bg: "bg-red-50", border: "border-red-100", href: "/student/exam-simulation" },
+               { title: "Neural Tutor", desc: "AI-powered adaptive synthesis.", icon: Bot, color: "text-[#1a6ac3]", bg: "bg-blue-50", border: "border-blue-100", href: "/student/ai-tutor" },
+               { title: "Collaboration Hub", desc: "Peer-to-peer clinical exchange.", icon: Users, color: "text-green-600", bg: "bg-green-50", border: "border-green-100", href: "/student/chat" },
+             ].map((task, i) => (
+               <Link key={i} href={task.href} className="group">
+                 <Card className="glass-card p-10 h-full flex flex-col justify-between group-hover:-translate-y-2 transition-all">
+                    <div className="space-y-6 text-left">
+                       <div className={`w-14 h-14 ${task.bg} rounded-2xl flex items-center justify-center border ${task.border} transition-all`}>
+                          <task.icon className={`w-7 h-7 ${task.color}`} />
+                       </div>
+                       <div className="space-y-2">
+                          <h3 className="text-2xl font-bold text-[#213874]">{task.title}</h3>
+                          <p className="text-sm text-gray-500 font-medium leading-relaxed">{task.desc}</p>
+                       </div>
+                    </div>
+                    <div className="pt-8 flex items-center text-[10px] font-bold uppercase tracking-widest text-[#1a6ac3] opacity-0 group-hover:opacity-100 transition-all">
+                       Initialize Portal &rarr;
+                    </div>
+                 </Card>
+               </Link>
+             ))}
+          </div>
 
-          {/* Overview Section */}
-          <section>
-            <h2 className="text-xl font-semibold mb-4">Overview</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Videos Panel */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Play className="h-5 w-5 mr-2 text-red-500" />
-                    Videos
-                  </CardTitle>
-                  <CardDescription>Explore our medical topic library</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 gap-3">
-                    {videoTopics.slice(0, 4).map((topic) => (
-                      <div key={topic.id} className="p-3 border rounded-lg hover:bg-gray-50 cursor-pointer">
-                        <h3 className="font-medium text-sm">{topic.title}</h3>
-                        <p className="text-xs text-gray-600">{topic.description}</p>
+          {/* Data Workspace */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+             <div className="lg:col-span-8 space-y-12">
+                <Card className="glass-card p-1 overflow-hidden">
+                   <div className="p-8 border-b border-gray-100 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                         <Play className="text-[#1a6ac3] w-6 h-6" />
+                         <h3 className="font-bold text-2xl tracking-tight text-[#213874]">Neural Video Streams</h3>
                       </div>
-                    ))}
-                  </div>
-                  <Button className="w-full mt-3" variant="outline" size="sm" asChild>
-                    <Link href="/student/videos">View All Videos</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* Notes Panel */}
-              <NotesPanel className="lg:col-span-2" />
-            </div>
-            
-            {/* Additional Panels Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 mt-4 lg:mt-6">
-              {/* Bookmarks Panel */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Bookmark className="h-5 w-5 text-yellow-500" />
-                    Bookmarks
-                  </CardTitle>
-                  <CardDescription>Your saved learning content</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {bookmarks.map((bookmark) => (
-                      <div key={bookmark.id} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
-                        <div>
-                          <h3 className="font-medium text-sm">{bookmark.title}</h3>
-                          <p className="text-xs text-gray-600">{bookmark.type}</p>
+                      <Link href="/student/videos" className="text-[10px] font-bold text-gray-400 hover:text-[#1a6ac3] tracking-widest uppercase transition-colors">Explore All</Link>
+                   </div>
+                   <div className="p-8 grid grid-cols-1 sm:grid-cols-2 gap-8 text-left">
+                      {videos.slice(0, 4).map((video: any) => (
+                        <div key={video.id} className="p-5 rounded-2xl bg-gray-50 hover:bg-white hover:shadow-lg transition-all border border-transparent hover:border-gray-100 group cursor-pointer">
+                           <div className="aspect-video bg-gray-200 rounded-xl mb-4 relative overflow-hidden flex items-center justify-center">
+                              <Play className="h-10 w-10 text-white opacity-0 group-hover:opacity-100 transition-all z-10 drop-shadow-lg" />
+                              <div className="absolute inset-0 bg-[#213874]/20 opacity-0 group-hover:opacity-100 transition-all" />
+                           </div>
+                           <h4 className="font-bold text-sm text-[#213874] truncate">{video.title}</h4>
+                           <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-2">Clinical Module {video.moduleId || "01"}</p>
                         </div>
-                        <Button variant="ghost" size="sm">View</Button>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+                      ))}
+                   </div>
+                </Card>
 
-              {/* Spaced Repetition Panel */}
-              <SpacedRepetitionPanel />
+                <NotesPanel className="glass-card p-1" />
+             </div>
 
-              {/* Question Bank Panel */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <HelpCircle className="h-5 w-5 text-blue-500" />
-                    Question Bank
-                  </CardTitle>
-                  <CardDescription>Test your knowledge with practice questions</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="mb-4 text-gray-700 text-sm">
-                    Access thousands of USMLE-style questions with detailed explanations.
-                  </p>
-                  <Button size="sm" asChild>
-                    <Link href="/student/questions">
-                      <HelpCircle className="h-4 w-4 mr-2" />
-                      Practice Questions
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
+             <div className="lg:col-span-4 space-y-12 text-left">
+                <Card className="glass-card p-1">
+                   <div className="p-8 border-b border-gray-100">
+                      <h3 className="font-bold tracking-tight flex items-center gap-4 uppercase text-xs text-[#213874]">
+                         <Bookmark className="text-[#f3ab1b] w-4 h-4" />
+                         Memory Nodes
+                      </h3>
+                   </div>
+                   <div className="p-6 space-y-4">
+                      {bookmarksList.length > 0 ? bookmarksList.map((bookmark) => (
+                        <div key={bookmark.id} className="flex items-center gap-5 p-4 hover:bg-gray-50 rounded-2xl transition-all cursor-pointer group border border-transparent hover:border-gray-100">
+                           <div className="w-12 h-12 bg-white border border-gray-100 rounded-xl flex items-center justify-center text-xs font-bold text-[#f3ab1b] group-hover:bg-[#f3ab1b]/10 transition-all shadow-sm">
+                              {bookmark.resourceType?.[0] || "N"}
+                           </div>
+                           <div className="flex-1 min-w-0">
+                              <h4 className="text-sm font-bold truncate text-[#213874] group-hover:text-[#1a6ac3] transition-colors">{bookmark.title}</h4>
+                              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">{bookmark.resourceType}</p>
+                           </div>
+                        </div>
+                      )) : (
+                        <div className="py-12 text-center text-gray-400 text-[10px] font-bold uppercase tracking-widest">
+                           Archives Empty
+                        </div>
+                      )}
+                   </div>
+                </Card>
 
-            {/* Bottom Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6 mt-4 lg:mt-6">
-              {/* Question of the Day Panel */}
-              <QuestionOfTheDayPanel />
-
-              {/* Study Progress Panel */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Target className="h-5 w-5 mr-2 text-green-500" />
-                    Study Progress
-                  </CardTitle>
-                  <CardDescription>Track your learning journey</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm">Topics Completed</span>
-                      <span className="text-sm font-medium">
-                        {stats.loading ? "..." : `${stats.completedItems}/${stats.totalItems}`}
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-green-500 h-2 rounded-full transition-all duration-500" 
-                        style={{width: `${stats.loading ? 0 : stats.completionRate}%`}}
-                      ></div>
-                    </div>
-                    <div className="flex justify-between text-xs text-gray-600">
-                      <span>Current streak: {stats.loading ? "..." : `${stats.streak} days`}</span>
-                      <span>{stats.loading ? "..." : `${stats.completionRate}% complete`}</span>
-                    </div>
-                  </div>
-                  <Button className="w-full mt-3" variant="outline" size="sm" asChild>
-                    <Link href="/student/paths">View Details</Link>
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* Mobile Apps Panel */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Smartphone className="h-5 w-5 text-green-500" />
-                    Mobile Apps
-                  </CardTitle>
-                  <CardDescription>Learn on the go</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="mb-4 text-gray-700 text-sm">
-                    Download our apps for iOS and Android to study anywhere.
-                  </p>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" size="sm">
-                      <Apple className="h-4 w-4 mr-2" />
-                      iOS
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Chrome className="h-4 w-4 mr-2" />
-                      Android
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </section>
+                <SpacedRepetitionPanel />
+                <QuestionOfTheDayPanel />
+             </div>
+          </div>
         </main>
+      </div>
+
+      {/* Mobile Control Matrix */}
+      <div className="lg:hidden fixed bottom-8 left-8 right-8 bg-white border border-gray-200 rounded-3xl p-6 flex items-center justify-around z-50 shadow-2xl">
+        <Link href="/student/dashboard" className="text-[#213874] hover:scale-125 transition-all">
+          <Home className="h-6 w-6" />
+        </Link>
+        <Link href="/courses" className="text-gray-400">
+          <BookOpen className="h-6 w-6" />
+        </Link>
+        <Link href="/student/questions" className="text-gray-400">
+          <HelpCircle className="h-6 w-6" />
+        </Link>
+        <Link href="/student/ai-tutor" className="text-gray-400">
+          <Bot className="h-6 w-6" />
+        </Link>
       </div>
     </div>
   );

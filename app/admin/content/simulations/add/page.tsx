@@ -21,6 +21,7 @@ import {
   ArrowLeft
 } from "lucide-react"
 import Link from "next/link"
+import { CurriculumModuleSelect } from "@/components/curriculum-module-select"
 
 export default function AddSimulationPage() {
   const { user } = useAuth()
@@ -36,7 +37,9 @@ export default function AddSimulationPage() {
     duration: "",
     category: "",
     tags: "",
-    isPublished: false
+    isPublished: false,
+    curriculumId: "",
+    moduleId: ""
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -84,6 +87,8 @@ export default function AddSimulationPage() {
       form.append('category', formData.category || '')
       form.append('tags', JSON.stringify(formData.tags.split(',').map(tag => tag.trim()).filter(Boolean)))
       form.append('isPublished', formData.isPublished.toString())
+      if (formData.curriculumId) form.append('curriculumId', formData.curriculumId)
+      if (formData.moduleId) form.append('moduleId', formData.moduleId)
 
       const response = await fetch('/api/admin/simulations', {
         method: 'POST',
@@ -199,6 +204,13 @@ export default function AddSimulationPage() {
                       />
                     </div>
                   </div>
+
+                  <CurriculumModuleSelect
+                    curriculumId={formData.curriculumId}
+                    moduleId={formData.moduleId}
+                    onCurriculumChange={(val) => handleInputChange('curriculumId', val)}
+                    onModuleChange={(val) => handleInputChange('moduleId', val)}
+                  />
 
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">

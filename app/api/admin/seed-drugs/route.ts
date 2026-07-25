@@ -1511,14 +1511,41 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const result = await seedDrugsAndClasses()
-    
-    // In a real app, this would actually insert the data into the database
-    // For now, we'll just return the data structure
-    
+    const session = await getServerSession(authOptions)
+    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Insert Drug Classes
+    const processArray = (arr: any) => Array.isArray(arr) ? arr.join('\n') : (arr || null)
+
+    for (const dc of drugClassesData) {
+      await prisma.drugClass.upsert({
+        where: { id: dc.id },
+        update: {
+          name: dc.name,
+          category: dc.category,
+          description: dc.description,
+          mechanism: dc.mechanism,
+          therapeuticUses: processArray(dc.therapeuticUses),
+          commonSideEffects: processArray(dc.commonSideEffects),
+          contraindications: processArray(dc.contraindications)
+        },
+        create: {
+          id: dc.id,
+          name: dc.name,
+          category: dc.category,
+          description: dc.description,
+          mechanism: dc.mechanism,
+          therapeuticUses: processArray(dc.therapeuticUses),
+          commonSideEffects: processArray(dc.commonSideEffects),
+          contraindications: processArray(dc.contraindications)
+        }
+      })
+    }
+
     return NextResponse.json({
       success: true,
-      data: result,
       message: 'Drug database seeded successfully'
     })
   } catch (error) {

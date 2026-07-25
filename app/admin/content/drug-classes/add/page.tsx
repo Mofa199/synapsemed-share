@@ -32,11 +32,6 @@ export default function AddDrugClassPage() {
     name: "",
     category: "",
     description: "",
-    mechanism: "",
-    therapeuticUses: [""],
-    commonSideEffects: [""],
-    contraindications: [""],
-    drugs: [""]
   })
 
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -48,31 +43,7 @@ export default function AddDrugClassPage() {
     }))
   }
 
-  const handleArrayChange = (field: 'therapeuticUses' | 'commonSideEffects' | 'contraindications' | 'drugs', index: number, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: prev[field].map((item: string, i: number) => 
-        i === index ? value : item
-      )
-    }))
-  }
 
-  const addArrayItem = (field: 'therapeuticUses' | 'commonSideEffects' | 'contraindications' | 'drugs') => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: [...prev[field], ""]
-    }))
-  }
-
-  const removeArrayItem = (field: 'therapeuticUses' | 'commonSideEffects' | 'contraindications' | 'drugs', index: number) => {
-    const array = formData[field]
-    if (array.length > 1) {
-      setFormData(prev => ({
-        ...prev,
-        [field]: array.filter((_, i) => i !== index)
-      }))
-    }
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -89,16 +60,9 @@ export default function AddDrugClassPage() {
       if (!formData.description.trim()) {
         throw new Error("Description is required")
       }
-      if (!formData.mechanism.trim()) {
-        throw new Error("Mechanism is required")
-      }
 
       const submitData = {
-        ...formData,
-        therapeuticUses: formData.therapeuticUses.filter(item => item.trim() !== ""),
-        commonSideEffects: formData.commonSideEffects.filter(item => item.trim() !== ""),
-        contraindications: formData.contraindications.filter(item => item.trim() !== ""),
-        drugs: formData.drugs.filter(item => item.trim() !== "")
+        ...formData
       }
 
       const response = await fetch('/api/admin/drug-classes', {
@@ -224,166 +188,6 @@ export default function AddDrugClassPage() {
                       required
                     />
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="mechanism">Mechanism of Action *</Label>
-                    <Textarea
-                      id="mechanism"
-                      placeholder="How these drugs work at the molecular level..."
-                      value={formData.mechanism}
-                      onChange={(e) => handleInputChange('mechanism', e.target.value)}
-                      rows={3}
-                      required
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Therapeutic Uses</CardTitle>
-                  <CardDescription>Medical conditions and indications</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {formData.therapeuticUses.map((use, index) => (
-                    <div key={index} className="flex gap-3">
-                      <Input
-                        placeholder={`Therapeutic use ${index + 1}`}
-                        value={use}
-                        onChange={(e) => handleArrayChange('therapeuticUses', index, e.target.value)}
-                      />
-                      {formData.therapeuticUses.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removeArrayItem('therapeuticUses', index)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => addArrayItem('therapeuticUses')}
-                    className="w-full"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Therapeutic Use
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Common Side Effects</CardTitle>
-                  <CardDescription>Frequently reported adverse effects</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {formData.commonSideEffects.map((effect, index) => (
-                    <div key={index} className="flex gap-3">
-                      <Input
-                        placeholder={`Side effect ${index + 1}`}
-                        value={effect}
-                        onChange={(e) => handleArrayChange('commonSideEffects', index, e.target.value)}
-                      />
-                      {formData.commonSideEffects.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removeArrayItem('commonSideEffects', index)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => addArrayItem('commonSideEffects')}
-                    className="w-full"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Side Effect
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Contraindications</CardTitle>
-                  <CardDescription>Conditions when these drugs should not be used</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {formData.contraindications.map((contraindication, index) => (
-                    <div key={index} className="flex gap-3">
-                      <Input
-                        placeholder={`Contraindication ${index + 1}`}
-                        value={contraindication}
-                        onChange={(e) => handleArrayChange('contraindications', index, e.target.value)}
-                      />
-                      {formData.contraindications.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removeArrayItem('contraindications', index)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => addArrayItem('contraindications')}
-                    className="w-full"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Contraindication
-                  </Button>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader>
-                  <CardTitle>Drugs in Class</CardTitle>
-                  <CardDescription>Individual medications in this drug class</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {formData.drugs.map((drug, index) => (
-                    <div key={index} className="flex gap-3">
-                      <Input
-                        placeholder={`Drug ${index + 1}`}
-                        value={drug}
-                        onChange={(e) => handleArrayChange('drugs', index, e.target.value)}
-                      />
-                      {formData.drugs.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => removeArrayItem('drugs', index)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      )}
-                    </div>
-                  ))}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => addArrayItem('drugs')}
-                    className="w-full"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Drug
-                  </Button>
                 </CardContent>
               </Card>
             </div>
@@ -405,13 +209,6 @@ export default function AddDrugClassPage() {
                       {formData.category && (
                         <Badge variant="outline" className="capitalize">{formData.category}</Badge>
                       )}
-                    </div>
-                    <div className="text-sm space-y-1">
-                      <div>Mechanism: {formData.mechanism ? formData.mechanism.substring(0, 50) + "..." : "Not set"}</div>
-                      <div>Therapeutic Uses: {formData.therapeuticUses.filter(u => u.trim()).length}</div>
-                      <div>Side Effects: {formData.commonSideEffects.filter(s => s.trim()).length}</div>
-                      <div>Contraindications: {formData.contraindications.filter(c => c.trim()).length}</div>
-                      <div>Drugs: {formData.drugs.filter(d => d.trim()).length}</div>
                     </div>
                   </div>
                 </CardContent>

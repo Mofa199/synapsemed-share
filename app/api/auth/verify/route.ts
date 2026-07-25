@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import jwt from 'jsonwebtoken'
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,12 +13,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // In a real implementation, we would:
-    // 1. Check if the verification code matches what was sent to the email
-    // 2. Update the user's status to verified
-    // 3. Activate the account
-    
-    // For now, we'll simulate this process
     const user = await prisma.user.findUnique({
       where: { email }
     })
@@ -29,19 +24,41 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Simulate verification success
-    // In a real app, you would check the verification code here
+    // Verify OTP using otpCode
+    if (user.otpCode !== verificationCode) {
+      return NextResponse.json(
+        { error: 'Invalid verification code' },
+        { status: 400 }
+      )
+    }
+
+    // Verify expiry
+    if (user.otpExpiry && new Date() > user.otpExpiry) {
+      return NextResponse.json(
+        { error: 'Verification code has expired' },
+        { status: 400 }
+      )
+    }
     
-    // Update user to be verified and active
+    // Update user to be active, verified, and clear OTP
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: { 
         isActive: true,
-        // In a real app, you might also store when the email was verified
+        isVerified: true,
+        otpCode: null,
+        otpExpiry: null
       }
     })
 
-    return NextResponse.json({
+    // Generate JWT token
+    const token = jwt.sign(
+      { userId: updatedUser.id, email: updatedUser.email, role: updatedUser.role },
+      process.env.JWT_SECRET!,
+      { expiresIn: '7d' }
+    )
+
+    const response = NextResponse.json({
       success: true,
       message: 'Email verified successfully',
       user: {
@@ -53,8 +70,33 @@ export async function POST(request: NextRequest) {
         level: updatedUser.level,
         points: updatedUser.points,
         streak: updatedUser.streak,
-      }
+      },
+      redirectToProfile: true
     })
+
+    response.cookies.set('auth-token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60, // 7 days
+    })
+
+    response.cookies.set('synapse-user', JSON.stringify({
+      id: updatedUser.id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      field: updatedUser.field,
+      level: updatedUser.level,
+      points: updatedUser.points,
+      streak: updatedUser.streak,
+    }), {
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60, // 7 days
+    })
+
+    return response
   } catch (error) {
     console.error('Verification error:', error)
     return NextResponse.json(

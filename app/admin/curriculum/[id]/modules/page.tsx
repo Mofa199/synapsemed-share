@@ -87,9 +87,12 @@ export default function CurriculumModulesPage({ params }: { params: Promise<{ id
   }
 
   const filteredModules = modules.filter(
-    (module: any) =>
-      module.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      module.description.toLowerCase().includes(searchQuery.toLowerCase()),
+    (module: any) => {
+      const name = module.name || module.title || ""
+      const desc = module.description || ""
+      return name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+             desc.toLowerCase().includes(searchQuery.toLowerCase())
+    }
   )
 
   return (
@@ -147,7 +150,7 @@ export default function CurriculumModulesPage({ params }: { params: Promise<{ id
                         <Badge variant="secondary">Module {index + 1}</Badge>
                         <Badge variant="outline">{module.type || "Lecture"}</Badge>
                       </div>
-                      <CardTitle className="text-lg text-[#213874] mb-2">{module.title}</CardTitle>
+                      <CardTitle className="text-lg text-[#213874] mb-2">{module.name || module.title}</CardTitle>
                       <CardDescription className="text-sm">{module.description}</CardDescription>
                     </div>
                   </div>

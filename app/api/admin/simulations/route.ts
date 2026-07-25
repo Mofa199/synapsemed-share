@@ -36,7 +36,8 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { 
       title, description, content, type, 
-      difficulty, estimatedTime, tags, isPublished 
+      difficulty, estimatedTime, tags, isPublished,
+      curriculumId, moduleId
     } = body
 
     if (!title || !content || !type) {
@@ -53,6 +54,8 @@ export async function POST(request: NextRequest) {
         estimatedTime: estimatedTime ? estimatedTime.toString() : null,
         tags: Array.isArray(tags) ? tags.join(', ') : (tags || ""),
         isPublished: !!isPublished,
+        curriculumId: curriculumId || null,
+        moduleId: moduleId || null,
       }
     })
 

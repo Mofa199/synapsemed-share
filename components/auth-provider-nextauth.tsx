@@ -81,10 +81,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 role: profileData.user.role,
                 field: profileData.user.field,
                 avatar: profileData.user.avatarUrl,
-                level: profileData.gamification.level || 1,
-                points: profileData.gamification.points || 0,
-                streak: profileData.gamification.streak || 0,
-                badges: profileData.badges.map((b: any) => b.id) || [],
+                level: profileData.gamification?.level || 1,
+                points: profileData.gamification?.points || 0,
+                streak: profileData.gamification?.streak || 0,
+                badges: profileData.badges?.map((b: any) => b.id) || [],
               }
 
               console.log('Synced user state with database profile')

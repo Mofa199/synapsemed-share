@@ -15,8 +15,9 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const magazine = await prisma.magazine.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         articles: true
       }
@@ -46,11 +47,12 @@ export async function PUT(
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const body = await request.json()
     const { title, issue, volume, description, coverUrl, category, tags, isPublished } = body
 
     const magazine = await prisma.magazine.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(title && { title }),
         ...(issue !== undefined && { issue }),
@@ -81,8 +83,9 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     await prisma.magazine.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({ success: true, message: 'Magazine deleted successfully' })

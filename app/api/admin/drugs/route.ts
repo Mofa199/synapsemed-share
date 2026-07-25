@@ -82,7 +82,9 @@ export async function POST(request: NextRequest) {
       storage,
       pregnancy,
       administrationRoute,
-      isActive = true
+      isActive = true,
+      curriculumId,
+      moduleId
     } = body
 
     if (!name || !drugClassId) {
@@ -115,6 +117,8 @@ export async function POST(request: NextRequest) {
         pregnancy: pregnancy || null,
         administrationRoute: administrationRoute || null,
         isActive,
+        curriculumId: curriculumId || null,
+        moduleId: moduleId || null,
       },
       include: {
         drugClass: {

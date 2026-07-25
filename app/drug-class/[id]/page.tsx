@@ -29,68 +29,42 @@ import {
 import Link from "next/link"
 import { useParams } from "next/navigation"
 
-// Mock data for drug classes
-const drugClassesData = [
-  {
-    id: "antibiotics",
-    name: "Antibiotics",
-    category: "Anti-infectives",
-    description: "Treat bacterial infections",
-    mechanism: "Inhibit bacterial cell wall synthesis, protein synthesis, or DNA replication",
-    therapeuticUses: ["Bacterial pneumonia", "Urinary tract infections", "Skin infections"],
-    commonSideEffects: ["Gastrointestinal upset", "Allergic reactions", "Antibiotic-associated diarrhea"],
-    contraindications: ["Severe allergic reactions to specific antibiotics"],
-    drugs: [
-      { name: "Amoxicillin", class: "Penicillin", mechanism: "Inhibits bacterial cell wall synthesis", uses: ["Respiratory infections", "Skin infections"], dosage: "500mg every 8 hours" },
-      { name: "Ceftriaxone", class: "Cephalosporin", mechanism: "Inhibits bacterial cell wall synthesis", uses: ["Meningitis", "Gonorrhea"], dosage: "1-2g once daily" },
-      { name: "Azithromycin", class: "Macrolide", mechanism: "Inhibits bacterial protein synthesis", uses: ["Respiratory infections", "STDs"], dosage: "500mg on day 1, then 250mg daily" },
-      { name: "Ciprofloxacin", class: "Fluoroquinolone", mechanism: "Inhibits bacterial DNA gyrase", uses: ["UTI", "Gastroenteritis"], dosage: "500mg every 12 hours" }
-    ]
-  },
-  {
-    id: "analgesics",
-    name: "Analgesics / Painkillers",
-    category: "Central Nervous System",
-    description: "Relieve pain",
-    mechanism: "Act on opioid receptors or inhibit prostaglandin synthesis",
-    therapeuticUses: ["Headache", "Muscle pain", "Post-operative pain"],
-    commonSideEffects: ["Drowsiness", "Nausea", "Constipation", "Addiction (opioids)"],
-    contraindications: ["Severe respiratory depression", "Hypersensitivity"],
-    drugs: [
-      { name: "Ibuprofen", class: "NSAID", mechanism: "Inhibits COX enzymes", uses: ["Pain", "Inflammation", "Fever"], dosage: "200-400mg every 6-8 hours" },
-      { name: "Acetaminophen", class: "Analgesic", mechanism: "Unclear, possibly COX inhibition", uses: ["Pain", "Fever"], dosage: "500-1000mg every 6 hours" },
-      { name: "Morphine", class: "Opioid", mechanism: "Mu-opioid receptor agonist", uses: ["Severe pain", "Palliative care"], dosage: "2-10mg every 4 hours as needed" },
-      { name: "Tramadol", class: "Opioid", mechanism: "Mu-opioid receptor agonist + SNRI", uses: ["Moderate to severe pain"], dosage: "50-100mg every 4-6 hours" }
-    ]
-  },
-  {
-    id: "antihypertensives",
-    name: "Antihypertensives",
-    category: "Cardiovascular",
-    description: "Lower high blood pressure",
-    mechanism: "Various mechanisms including ACE inhibition, beta-blockade, calcium channel blockade",
-    therapeuticUses: ["Hypertension", "Heart failure", "Prevention of cardiovascular events"],
-    commonSideEffects: ["Dizziness", "Fatigue", "Dry cough (ACE inhibitors)"],
-    contraindications: ["Severe hypotension", "Certain heart conditions"],
-    drugs: [
-      { name: "Enalapril", class: "ACE Inhibitor", mechanism: "Inhibits angiotensin-converting enzyme", uses: ["Hypertension", "Heart failure"], dosage: "5-20mg daily" },
-      { name: "Atenolol", class: "Beta-blocker", mechanism: "Beta-1 receptor blockade", uses: ["Hypertension", "Angina"], dosage: "50-100mg daily" },
-      { name: "Amlodipine", class: "Calcium channel blocker", mechanism: "L-type calcium channel blockade", uses: ["Hypertension", "Angina"], dosage: "5-10mg daily" },
-      { name: "Hydrochlorothiazide", class: "Thiazide diuretic", mechanism: "Inhibits sodium reabsorption", uses: ["Hypertension", "Edema"], dosage: "12.5-25mg daily" }
-    ]
-  }
-]
+
 
 export default function DrugClassPage() {
   const params = useParams()
   const [drugClass, setDrugClass] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (params.id) {
-      const foundClass = drugClassesData.find(cls => cls.id === (React.use(params) as any).id)
-      setDrugClass(foundClass)
-    }
-  }, [params.id])
+    const fetchDrugClass = async () => {
+      const resolvedParams = await params;
+      if (resolvedParams.id) {
+        try {
+          const res = await fetch(`/api/drug-classes/${resolvedParams.id}`);
+          if (res.ok) {
+            const data = await res.json();
+            setDrugClass(data.drugClass || data);
+          }
+        } catch (error) {
+          console.error("Failed to fetch drug class:", error);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setLoading(false);
+      }
+    };
+    fetchDrugClass();
+  }, [params])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#213874]"></div>
+      </div>
+    );
+  }
 
   if (!drugClass) {
     return (
@@ -199,42 +173,14 @@ export default function DrugClassPage() {
 
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
-            {/* Overview */}
             <Card>
               <CardHeader>
                 <CardTitle>Class Overview</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <h3 className="font-medium text-gray-900 mb-2">Mechanism of Action</h3>
-                  <p className="text-gray-700">{drugClass.mechanism}</p>
-                </div>
-                
-                <div>
-                  <h3 className="font-medium text-gray-900 mb-2">Therapeutic Uses</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {drugClass.therapeuticUses.map((use: string, index: number) => (
-                      <Badge key={index} variant="secondary">{use}</Badge>
-                    ))}
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="font-medium text-gray-900 mb-2">Common Side Effects</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {drugClass.commonSideEffects.map((effect: string, index: number) => (
-                      <Badge key={index} variant="outline">{effect}</Badge>
-                    ))}
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="font-medium text-gray-900 mb-2">Contraindications</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {drugClass.contraindications.map((contraindication: string, index: number) => (
-                      <Badge key={index} variant="destructive">{contraindication}</Badge>
-                    ))}
-                  </div>
+                  <h3 className="font-medium text-gray-900 mb-2">Description</h3>
+                  <p className="text-gray-700">{drugClass.description || "No description available."}</p>
                 </div>
               </CardContent>
             </Card>
@@ -246,39 +192,39 @@ export default function DrugClassPage() {
                 <CardDescription>Detailed information about individual drugs</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {drugClass.drugs.map((drug: any, index: number) => (
+                {drugClass.drugs?.map((drug: any, index: number) => (
                   <div key={index} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
                     <div className="flex items-start justify-between mb-3">
                       <h3 className="text-xl font-semibold text-[#213874]">{drug.name}</h3>
-                      <Badge>{drug.class}</Badge>
+                      <Badge>{drugClass.name}</Badge>
                     </div>
                     
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
                         <h4 className="font-medium text-gray-900 mb-1">Mechanism of Action</h4>
-                        <p className="text-gray-700 text-sm">{drug.mechanism}</p>
+                        <p className="text-gray-700 text-sm">{drug.mechanism || "Not specified"}</p>
                       </div>
                       
                       <div>
                         <h4 className="font-medium text-gray-900 mb-1">Therapeutic Uses</h4>
                         <div className="flex flex-wrap gap-1">
-                          {drug.uses.map((use: string, useIndex: number) => (
-                            <Badge key={useIndex} variant="secondary" className="text-xs">
-                              {use}
+                          {(typeof drug.indications === 'string' ? drug.indications.split(/[\\n,]+/) : (Array.isArray(drug.indications) ? drug.indications : [])).filter(Boolean).slice(0, 3).map((use: string, index: number) => (
+                            <Badge key={index} variant="secondary" className="text-xs">
+                              {use.trim()}
                             </Badge>
                           ))}
                         </div>
                       </div>
                       
                       <div className="md:col-span-2">
-                        <h4 className="font-medium text-gray-900 mb-1">Typical Dosage</h4>
-                        <p className="text-gray-700 text-sm">{drug.dosage}</p>
+                        <h4 className="font-medium text-gray-900 mb-1">Typical Dosage (Adult)</h4>
+                        <p className="text-gray-700 text-sm">{drug.dosageAdult || "Not specified"}</p>
                       </div>
                     </div>
                     
                     <div className="mt-4 flex gap-2">
                       <Button variant="outline" size="sm" asChild>
-                        <Link href={`/drug/${drug.name.toLowerCase().replace(/\s+/g, '-')}`}>
+                        <Link href={`/drug/${drug.id}`}>
                           <BookOpen className="h-4 w-4 mr-2" />
                           Detailed Info
                         </Link>
@@ -304,15 +250,7 @@ export default function DrugClassPage() {
                 <div className="space-y-4">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Drugs in Class</span>
-                    <span className="font-semibold">{drugClass.drugs.length}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Therapeutic Areas</span>
-                    <span className="font-semibold">{drugClass.therapeuticUses.length}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Side Effects</span>
-                    <span className="font-semibold">{drugClass.commonSideEffects.length}</span>
+                    <span className="font-semibold">{drugClass.drugs?.length || 0}</span>
                   </div>
                 </div>
               </CardContent>

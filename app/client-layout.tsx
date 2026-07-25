@@ -41,7 +41,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   const shouldShowAI = mounted && user && !isAuthPage
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-mesh text-foreground selection:bg-primary/20">
       <main className="flex-1">{children}</main>
       {mounted && !shouldHideFooter && <Footer />}
       {mounted && shouldShowAI && (

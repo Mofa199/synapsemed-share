@@ -53,21 +53,26 @@ export default function AddTopicPage({ params }: { params: Promise<{ id: string,
     setLoading(true)
 
     try {
-      const formDataToSend = new FormData()
-      formDataToSend.append("title", formData.title)
-      formDataToSend.append("description", formData.description)
-      formDataToSend.append("content", formData.content)
-      formDataToSend.append("type", formData.type)
-      formDataToSend.append("difficulty", formData.difficulty)
-      formDataToSend.append("duration", formData.duration)
-      formDataToSend.append("category", formData.category)
-      formDataToSend.append("tags", JSON.stringify(formData.tags.split(",").map(tag => tag.trim()).filter(tag => tag)))
-      formDataToSend.append("isPublished", formData.isPublished.toString())
-      formDataToSend.append("moduleId", moduleId)
-
-      const response = await fetch(`/api/admin/modules/${moduleId}/topics`, {
+      const topicData = {
+        title: formData.title,
+        description: formData.description,
+        content: formData.content,
+        type: formData.type,
+        difficulty: formData.difficulty,
+        duration: formData.duration || undefined,
+        category: formData.category || undefined,
+        tags: formData.tags.split(",").map(tag => tag.trim()).filter(tag => tag).join(","),
+        isPublished: formData.isPublished,
+        moduleId: moduleId,
+        curriculumId: curriculumId
+      }
+ 
+      const response = await fetch(`/api/topics`, {
         method: "POST",
-        body: formDataToSend,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(topicData),
       })
 
       const data = await response.json()
