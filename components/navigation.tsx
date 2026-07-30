@@ -55,6 +55,7 @@ export function Navigation() {
                 { name: "Courses", href: "/courses" },
                 { name: "Library", href: "/library" },
                 { name: "Calculators", href: "/calculators" },
+                { name: "OSCE Academy", href: "/osce-simulator" },
                 { name: "Pharmacology", href: "/pharmacology" },
                 { name: "About", href: "/about" },
               ].map((item) => (
