@@ -11,6 +11,7 @@ import { Clock, Users, Award, Star, Play, Download, Share, Heart, CheckCircle, C
 import { useParams } from "next/navigation"
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { PremiumDiseaseViewer } from "@/components/topic/premium-disease-viewer"
 
 // Define TypeScript interfaces
 interface Topic {
@@ -288,209 +289,33 @@ export default function TopicPage({ params }: { params: Promise<{ id: string }> 
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation />
-
-      <div className="container mx-auto px-4 py-8">
-        {/* Breadcrumb Navigation */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 text-sm text-gray-600 mb-4">
-            <Link href="/courses" className="hover:text-[#213874] transition-colors">
-              Courses
-            </Link>
-            <ChevronRight className="w-4 h-4" />
-            {topic.module && (
-              <>
-                <Link href={`/module/${topic.curriculum?.name.toLowerCase() || 'medical'}/${topic.moduleId}`} className="hover:text-[#213874] transition-colors">
-                  {topic.module.name}
-                </Link>
-                <ChevronRight className="w-4 h-4" />
-              </>
-            )}
-            <span className="text-[#213874] font-medium">{topic.title}</span>
-          </div>
-          
+      
+      {/* Breadcrumb Navigation - Kept outside the viewer for app consistency */}
+      <div className="container mx-auto px-4 py-4 border-b border-gray-100 bg-white">
+        <div className="flex items-center gap-2 text-sm text-gray-600">
+          <Link href="/library" className="hover:text-[#213874] transition-colors">
+            Library
+          </Link>
+          <ChevronRight className="w-4 h-4" />
           {topic.module && (
-            <Link href={`/module/${topic.curriculum?.name.toLowerCase() || 'medical'}/${topic.moduleId}`} className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-[#213874] transition-colors">
-              <ArrowLeft className="w-4 h-4" />
-              Back to Module
-            </Link>
+            <>
+              <Link href={`/module/${topic.curriculum?.name.toLowerCase() || 'medical'}/${topic.moduleId}`} className="hover:text-[#213874] transition-colors">
+                {topic.module.name}
+              </Link>
+              <ChevronRight className="w-4 h-4" />
+            </>
           )}
-        </div>
-
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Topic Header */}
-            <Card>
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Badge variant="outline">{topic.type || 'ARTICLE'}</Badge>
-                      <Badge variant="outline">{topic.difficulty || 'BEGINNER'}</Badge>
-                      {isCompleted && <Badge className="bg-green-100 text-green-700">Completed</Badge>}
-                    </div>
-                    <CardTitle className="text-2xl text-[#213874] mb-2">{topic.title}</CardTitle>
-                    <CardDescription className="text-base">{topic.description}</CardDescription>
-                  </div>
-                  <Button variant="outline" size="sm" onClick={handleBookmark}>
-                    <Heart className={`w-4 h-4 ${isBookmarked ? "fill-red-500 text-red-500" : ""}`} />
-                  </Button>
-                </div>
-
-                <div className="flex items-center gap-6 text-sm text-gray-600 mt-4">
-                  <div className="flex items-center gap-1">
-                    <Clock className="w-4 h-4" />
-                    <span>{topic.duration || 'N/A'}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span>
-                      {topic._count?.ratings ? (topic._count.ratings / 5).toFixed(1) : '0.0'} ({topic._count?.ratings || 0} reviews)
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Users className="w-4 h-4" />
-                    <span>0 completed</span> {/* In a real app, this would show actual completions */}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Award className="w-4 h-4" />
-                    <span>{topic.difficulty === 'BEGINNER' ? 20 : topic.difficulty === 'INTERMEDIATE' ? 30 : 40} points</span>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
-
-            {/* Video/Content Player */}
-            <Card>
-              <CardContent className="p-0">
-                <div className="aspect-video bg-gradient-to-br from-[#213874] to-[#1a6ac3] rounded-t-lg flex items-center justify-center">
-                  <Button size="lg" className="bg-white/20 hover:bg-white/30 text-white border-white/30">
-                    <Play className="w-8 h-8 mr-2" />
-                    Play Video
-                  </Button>
-                </div>
-                <div className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-[#213874]">Topic Content</h3>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDownload('#', `${topic.title}.pdf`)}
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Download
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={handleShare}>
-                        <Share className="w-4 h-4 mr-2" />
-                        Share
-                      </Button>
-                    </div>
-                  </div>
-
-                  <div 
-                    className="prose prose-sm max-w-none" 
-                    dangerouslySetInnerHTML={{ __html: topic.content }} 
-                  />
-
-                  {!isCompleted && (
-                    <Button className="w-full mt-6 bg-[#213874] hover:bg-[#1a6ac3]" onClick={handleComplete}>
-                      <CheckCircle className="w-4 h-4 mr-2" />
-                      Mark as Complete (+{topic.difficulty === 'BEGINNER' ? 20 : topic.difficulty === 'INTERMEDIATE' ? 30 : 40} points)
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Rating Section */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Rate this Topic</CardTitle>
-                <CardDescription>Help other students by rating this content</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-2 mb-4">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button key={star} onClick={() => handleRating(star)} className="transition-colors">
-                      <Star
-                        className={`w-6 h-6 ${
-                          star <= userRating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"
-                        }`}
-                      />
-                    </button>
-                  ))}
-                  {userRating > 0 && (
-                    <span className="text-sm text-gray-600 ml-2">
-                      You rated this {userRating} star{userRating !== 1 ? "s" : ""}
-                    </span>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Progress */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Your Progress</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between text-sm mb-2">
-                      <span>Topic Progress</span>
-                      <span>{completionPercentage}%</span>
-                    </div>
-                    <Progress value={completionPercentage} className="h-2" />
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    {isCompleted ? "Completed! Great job!" : "Start watching to track progress"}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Prerequisites */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Prerequisites</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-sm text-gray-600">
-                  No prerequisites for this topic
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Resources */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Additional Resources</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-sm text-gray-600">
-                  No additional resources available
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Next Topics */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Up Next</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-sm text-gray-600">
-                  No recommended next topics
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <span className="text-[#213874] font-medium">{topic.title}</span>
         </div>
       </div>
+
+      <PremiumDiseaseViewer 
+        topic={topic}
+        userProgress={userProgress}
+        isBookmarked={isBookmarked}
+        onBookmark={handleBookmark}
+        onComplete={handleComplete}
+      />
 
       <AIHelper />
     </div>

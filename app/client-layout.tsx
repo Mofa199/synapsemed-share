@@ -31,7 +31,10 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
     if (pathname.includes('/student/exam') || pathname.includes('/student/questions') || pathname.includes('/question-bank')) {
       return 'exam'
     }
-    if (pathname.includes('/topic') || pathname.includes('/module') || pathname.includes('/article') || pathname.includes('/book')) {
+    if (pathname.includes('/topic')) {
+      return 'topic'
+    }
+    if (pathname.includes('/module') || pathname.includes('/article') || pathname.includes('/book')) {
       return 'study'
     }
     return 'general'

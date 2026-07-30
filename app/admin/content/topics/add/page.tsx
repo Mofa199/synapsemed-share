@@ -63,6 +63,46 @@ export default function AddTopicPage() {
     }))
   }
 
+  const loadDiseaseTemplate = () => {
+    const template = `
+      <h3>Definition</h3><p></p>
+      <h3>Epidemiology</h3><p></p>
+      <h3>Anatomy & Physiology</h3><p></p>
+      <h3>Pathophysiology</h3><p></p>
+      <h3>Risk Factors</h3><p></p>
+      <h3>Etiology</h3><p></p>
+      <h3>Classification</h3><p></p>
+      <h3>Clinical Features</h3><p></p>
+      <h3>Red Flags</h3><p></p>
+      <h3>Differential Diagnosis</h3><p></p>
+      <h3>Investigations</h3><p></p>
+      <h3>Diagnostic Criteria</h3><p></p>
+      <h3>Severity Scoring Systems</h3><p></p>
+      <h3>Imaging Findings</h3><p></p>
+      <h3>Laboratory Findings</h3><p></p>
+      <h3>Management (Emergency, Medical, Surgical)</h3><p></p>
+      <h3>Procedures</h3><p></p>
+      <h3>Drug Therapy</h3><p></p>
+      <h3>Complications</h3><p></p>
+      <h3>Prognosis</h3><p></p>
+      <h3>Prevention</h3><p></p>
+      <h3>Patient Education</h3><p></p>
+      <h3>Clinical Pearls</h3><p></p>
+      <h3>OSCE Checklist</h3><p></p>
+      <h3>Viva Questions</h3><p></p>
+      <h3>SBA/MCQs</h3><p></p>
+      <h3>Flashcards</h3><p></p>
+      <h3>Guideline Summary</h3><p></p>
+      <h3>References</h3><p></p>
+      <h3>Related Cases</h3><p></p>
+    `
+    handleInputChange('content', template)
+    toast({
+      title: "Template Loaded",
+      description: "Disease structure template has been loaded into the editor.",
+    })
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
@@ -236,7 +276,12 @@ export default function AddTopicPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="content">Content</Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="content">Content</Label>
+                      <Button type="button" variant="outline" size="sm" onClick={loadDiseaseTemplate} className="h-8 text-xs">
+                        Load Disease Template
+                      </Button>
+                    </div>
                     <RichTextEditor
                       value={formData.content}
                       onChange={(value) => handleInputChange('content', value)}
