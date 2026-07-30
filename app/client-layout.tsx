@@ -10,6 +10,8 @@ import { usePathname } from "next/navigation"
 import { SessionProvider } from "next-auth/react"
 import { useEffect, useState } from "react"
 
+import { MobileBottomNav } from "@/components/mobile-bottom-nav"
+
 function LayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { user } = useAuth()
@@ -44,9 +46,10 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   const shouldShowAI = mounted && user && !isAuthPage
 
   return (
-    <div className="min-h-screen flex flex-col bg-mesh text-foreground selection:bg-primary/20">
+    <div className="min-h-screen flex flex-col bg-mesh text-foreground selection:bg-primary/20 pb-16 md:pb-0">
       <main className="flex-1">{children}</main>
       {mounted && !shouldHideFooter && <Footer />}
+      {mounted && <MobileBottomNav />}
       {mounted && shouldShowAI && (
         <FloatingAIAssistant
           context={getAIContext()}

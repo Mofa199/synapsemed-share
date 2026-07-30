@@ -30,7 +30,13 @@ import {
   Cpu,
   Activity,
   Layers,
-  LayoutDashboard
+  LayoutDashboard,
+  Calculator,
+  Brain,
+  Microscope,
+  Stethoscope,
+  ArrowRight,
+  Flame
 } from "lucide-react";
 import Link from "next/link";
 import { useAuth } from "@/components/auth-provider";
@@ -40,16 +46,17 @@ import { QuestionOfTheDayPanel } from "@/components/student/question-of-the-day-
 import { Logo } from "@/components/logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 
 export default function StudentDashboard() {
   const { user, logout } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [stats, setStats] = useState({
     level: 1,
-    points: 0,
-    streak: 0,
-    completionRate: 0,
-    completedItems: 0,
+    points: 120,
+    streak: 5,
+    completionRate: 45,
+    completedItems: 18,
     totalItems: 50,
     loading: true
   });
@@ -97,10 +104,10 @@ export default function StudentDashboard() {
   const navigationItems = [
     { name: "Command Center", icon: Home, href: "/student/dashboard" },
     { name: "Clinical Courses", icon: BookOpen, href: "/courses" },
-    { name: "Intelligence Hub", icon: BookMarked, href: "/library" },
+    { name: "Master Library", icon: BookMarked, href: "/library" },
+    { name: "Medical Calculators", icon: Calculator, href: "/calculators" },
     { name: "Pharmacology", icon: Layers, href: "/pharmacology" },
     { name: "Question Bank", icon: Target, href: "/student/questions" },
-    { name: "Simulations", icon: Users, href: "/student/simulations" },
     { name: "AI Neural Tutor", icon: Bot, href: "/student/ai-tutor" },
   ];
 
@@ -108,7 +115,7 @@ export default function StudentDashboard() {
 
   return (
     <div className="flex min-h-screen bg-mesh text-[#213874] selection:bg-primary/20">
-      {/* Floating Glass Sidebar */}
+      {/* Floating Glass Sidebar (Desktop) */}
       <aside className="hidden lg:flex w-72 bg-white border-r border-gray-100 flex-col sticky top-0 h-screen m-4 rounded-3xl shadow-sm">
         <div className="p-8 border-b border-gray-100 flex items-center gap-3">
           <div className="p-2 bg-[#213874]/10 rounded-xl">
@@ -169,7 +176,7 @@ export default function StudentDashboard() {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#1a6ac3] transition-colors h-4 w-4" />
               <Input
                 type="text"
-                placeholder="Query clinical databases..."
+                placeholder="Query clinical databases, calculators, or topics..."
                 className="pl-12 h-12 bg-gray-50 border-gray-200 rounded-2xl text-[#213874] focus:ring-primary/20 transition-all font-medium"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -177,9 +184,10 @@ export default function StudentDashboard() {
             </div>
 
             <div className="flex items-center gap-6">
-              <div className="hidden xl:flex items-center gap-4 px-4 py-2 bg-green-50 rounded-2xl border border-green-100">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-green-700">Live Node Active</span>
+              {/* Daily Streak Indicator */}
+              <div className="flex items-center gap-2 px-4 py-2 bg-orange-50 rounded-2xl border border-orange-100">
+                <Flame className="w-4 h-4 text-orange-500 fill-orange-500 animate-bounce" />
+                <span className="text-xs font-bold text-orange-700">{stats.streak} Day Streak</span>
               </div>
               
               <div className="flex items-center gap-3">
@@ -197,120 +205,92 @@ export default function StudentDashboard() {
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto p-8 space-y-12 pb-32">
+        <main className="flex-1 overflow-y-auto p-8 space-y-10 pb-32">
           {/* Status Header */}
           <div className="space-y-3 animate-in fade-in slide-in-from-top-4 duration-1000">
             <div className="flex items-center gap-2 text-[#f3ab1b] font-bold text-xs uppercase tracking-widest">
-               <Activity className="h-4 w-4" /> System Online
+               <Activity className="h-4 w-4" /> Clinical Command Center Active
             </div>
             <h1 className="text-4xl font-bold tracking-tighter text-[#213874]">
-              Welcome to the Command Center, <span className="text-[#1a6ac3]">{user?.name || "Student"}</span>.
+              Welcome back, <span className="text-[#1a6ac3]">{user?.name || "Doctor"}</span>.
             </h1>
-            <p className="text-gray-500 font-medium max-w-2xl leading-relaxed">Neural pathways synchronized. 12 New mission-critical medical updates available in your library.</p>
+            <p className="text-gray-500 font-medium max-w-2xl leading-relaxed">
+              Master Curriculum Level {stats.level} • {stats.points} Clinical XP earned. You're on track for your rotation goals.
+            </p>
           </div>
 
-          {/* Core Mission Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-             {[
-               { title: "Exam Simulation", desc: "USMLE-Style active recall session.", icon: Target, color: "text-red-500", bg: "bg-red-50", border: "border-red-100", href: "/student/exam-simulation" },
-               { title: "Neural Tutor", desc: "AI-powered adaptive synthesis.", icon: Bot, color: "text-[#1a6ac3]", bg: "bg-blue-50", border: "border-blue-100", href: "/student/ai-tutor" },
-               { title: "Collaboration Hub", desc: "Peer-to-peer clinical exchange.", icon: Users, color: "text-green-600", bg: "bg-green-50", border: "border-green-100", href: "/student/chat" },
-             ].map((task, i) => (
-               <Link key={i} href={task.href} className="group">
-                 <Card className="glass-card p-10 h-full flex flex-col justify-between group-hover:-translate-y-2 transition-all">
-                    <div className="space-y-6 text-left">
-                       <div className={`w-14 h-14 ${task.bg} rounded-2xl flex items-center justify-center border ${task.border} transition-all`}>
-                          <task.icon className={`w-7 h-7 ${task.color}`} />
-                       </div>
-                       <div className="space-y-2">
-                          <h3 className="text-2xl font-bold text-[#213874]">{task.title}</h3>
-                          <p className="text-sm text-gray-500 font-medium leading-relaxed">{task.desc}</p>
-                       </div>
+          {/* Quick Action Clinical Launchpad */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+             <Link href="/calculators" className="group">
+               <Card className="glass-card p-6 h-full flex flex-col justify-between group-hover:-translate-y-1 transition-all border-blue-100">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 rounded-2xl bg-blue-50 flex items-center justify-center">
+                      <Calculator className="w-6 h-6 text-[#1a6ac3]" />
                     </div>
-                    <div className="pt-8 flex items-center text-[10px] font-bold uppercase tracking-widest text-[#1a6ac3] opacity-0 group-hover:opacity-100 transition-all">
-                       Initialize Portal &rarr;
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Point of Care</Badge>
+                  </div>
+                  <div>
+                     <h3 className="text-lg font-bold text-[#213874] mb-1">Medical Calculators</h3>
+                     <p className="text-xs text-gray-500 leading-relaxed">CURB-65, CHA₂DS₂-VASc, Wells PE, GCS, MELD, SOFA.</p>
+                  </div>
+               </Card>
+             </Link>
+
+             <Link href="/student/exam-simulation" className="group">
+               <Card className="glass-card p-6 h-full flex flex-col justify-between group-hover:-translate-y-1 transition-all border-red-100">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center">
+                      <Target className="w-6 h-6 text-red-500" />
                     </div>
-                 </Card>
-               </Link>
-             ))}
+                    <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">USMLE / Board</Badge>
+                  </div>
+                  <div>
+                     <h3 className="text-lg font-bold text-[#213874] mb-1">Exam Simulations</h3>
+                     <p className="text-xs text-gray-500 leading-relaxed">Timed active recall & board-style question sessions.</p>
+                  </div>
+               </Card>
+             </Link>
+
+             <Link href="/library" className="group">
+               <Card className="glass-card p-6 h-full flex flex-col justify-between group-hover:-translate-y-1 transition-all border-purple-100">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center">
+                      <Brain className="w-6 h-6 text-purple-600" />
+                    </div>
+                    <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">32 Subjects</Badge>
+                  </div>
+                  <div>
+                     <h3 className="text-lg font-bold text-[#213874] mb-1">Master Curriculum</h3>
+                     <p className="text-xs text-gray-500 leading-relaxed">Browse disease pages with interactive clinical templates.</p>
+                  </div>
+               </Card>
+             </Link>
+
+             <Link href="/student/ai-tutor" className="group">
+               <Card className="glass-card p-6 h-full flex flex-col justify-between group-hover:-translate-y-1 transition-all border-amber-100">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center">
+                      <Bot className="w-6 h-6 text-amber-600" />
+                    </div>
+                    <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">NVIDIA AI</Badge>
+                  </div>
+                  <div>
+                     <h3 className="text-lg font-bold text-[#213874] mb-1">AI Clinical Tutor</h3>
+                     <p className="text-xs text-gray-500 leading-relaxed">Ask differential diagnosis & reasoning questions.</p>
+                  </div>
+               </Card>
+             </Link>
           </div>
 
-          {/* Data Workspace */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-             <div className="lg:col-span-8 space-y-12">
-                <Card className="glass-card p-1 overflow-hidden">
-                   <div className="p-8 border-b border-gray-100 flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                         <Play className="text-[#1a6ac3] w-6 h-6" />
-                         <h3 className="font-bold text-2xl tracking-tight text-[#213874]">Neural Video Streams</h3>
-                      </div>
-                      <Link href="/student/videos" className="text-[10px] font-bold text-gray-400 hover:text-[#1a6ac3] tracking-widest uppercase transition-colors">Explore All</Link>
-                   </div>
-                   <div className="p-8 grid grid-cols-1 sm:grid-cols-2 gap-8 text-left">
-                      {videos.slice(0, 4).map((video: any) => (
-                        <div key={video.id} className="p-5 rounded-2xl bg-gray-50 hover:bg-white hover:shadow-lg transition-all border border-transparent hover:border-gray-100 group cursor-pointer">
-                           <div className="aspect-video bg-gray-200 rounded-xl mb-4 relative overflow-hidden flex items-center justify-center">
-                              <Play className="h-10 w-10 text-white opacity-0 group-hover:opacity-100 transition-all z-10 drop-shadow-lg" />
-                              <div className="absolute inset-0 bg-[#213874]/20 opacity-0 group-hover:opacity-100 transition-all" />
-                           </div>
-                           <h4 className="font-bold text-sm text-[#213874] truncate">{video.title}</h4>
-                           <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-2">Clinical Module {video.moduleId || "01"}</p>
-                        </div>
-                      ))}
-                   </div>
-                </Card>
-
-                <NotesPanel className="glass-card p-1" />
-             </div>
-
-             <div className="lg:col-span-4 space-y-12 text-left">
-                <Card className="glass-card p-1">
-                   <div className="p-8 border-b border-gray-100">
-                      <h3 className="font-bold tracking-tight flex items-center gap-4 uppercase text-xs text-[#213874]">
-                         <Bookmark className="text-[#f3ab1b] w-4 h-4" />
-                         Memory Nodes
-                      </h3>
-                   </div>
-                   <div className="p-6 space-y-4">
-                      {bookmarksList.length > 0 ? bookmarksList.map((bookmark) => (
-                        <div key={bookmark.id} className="flex items-center gap-5 p-4 hover:bg-gray-50 rounded-2xl transition-all cursor-pointer group border border-transparent hover:border-gray-100">
-                           <div className="w-12 h-12 bg-white border border-gray-100 rounded-xl flex items-center justify-center text-xs font-bold text-[#f3ab1b] group-hover:bg-[#f3ab1b]/10 transition-all shadow-sm">
-                              {bookmark.resourceType?.[0] || "N"}
-                           </div>
-                           <div className="flex-1 min-w-0">
-                              <h4 className="text-sm font-bold truncate text-[#213874] group-hover:text-[#1a6ac3] transition-colors">{bookmark.title}</h4>
-                              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">{bookmark.resourceType}</p>
-                           </div>
-                        </div>
-                      )) : (
-                        <div className="py-12 text-center text-gray-400 text-[10px] font-bold uppercase tracking-widest">
-                           Archives Empty
-                        </div>
-                      )}
-                   </div>
-                </Card>
-
-                <SpacedRepetitionPanel />
-                <QuestionOfTheDayPanel />
-             </div>
+          {/* Question of the Day & Spaced Repetition Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+             <QuestionOfTheDayPanel />
+             <SpacedRepetitionPanel />
           </div>
+
+          {/* Notes Panel */}
+          <NotesPanel />
         </main>
-      </div>
-
-      {/* Mobile Control Matrix */}
-      <div className="lg:hidden fixed bottom-8 left-8 right-8 bg-white border border-gray-200 rounded-3xl p-6 flex items-center justify-around z-50 shadow-2xl">
-        <Link href="/student/dashboard" className="text-[#213874] hover:scale-125 transition-all">
-          <Home className="h-6 w-6" />
-        </Link>
-        <Link href="/courses" className="text-gray-400">
-          <BookOpen className="h-6 w-6" />
-        </Link>
-        <Link href="/student/questions" className="text-gray-400">
-          <HelpCircle className="h-6 w-6" />
-        </Link>
-        <Link href="/student/ai-tutor" className="text-gray-400">
-          <Bot className="h-6 w-6" />
-        </Link>
       </div>
     </div>
   );

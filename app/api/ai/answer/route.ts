@@ -1,45 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { GoogleGenerativeAI } from '@google/generative-ai'
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
+import { callNVIDIAAI } from '@/lib/nvidia-ai'
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { question, context, studentLevel, pageContent } = body;
+    const { question, context, studentLevel, pageContent } = body
 
-    if (!process.env.GEMINI_API_KEY) {
-      return NextResponse.json(
-        { error: 'GEMINI_API_KEY is not set in environment variables.' },
-        { status: 500 }
-      );
-    }
-
-    const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
-
-    const prompt = `
-You are SynapseMed Neural AI, an expert medical tutor powered by Google Gemini.
+    const systemPrompt = `You are SynapseMed Neural AI, an expert medical professor and clinical decision support tutor.
 Student Level: ${studentLevel || 'General'}
 User Context: ${context || 'General'}
 
-Website Context (Current Page Data):
-${pageContent || 'No page data provided.'}
+Page Context:
+${pageContent ? pageContent.substring(0, 3000) : 'No page data provided.'}
+`
 
-User Question: ${question}
-
-Instructions:
-1. Provide a detailed, accurate, and educational answer.
-2. If the "Website Context" contains relevant information, use it to accurately answer the question and reference it.
-3. Keep the response professional but easy to read.
-`;
-
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
+    const responseText = await callNVIDIAAI({
+      prompt: question,
+      systemPrompt,
+      temperature: 0.2,
+      maxTokens: 1500,
+    })
 
     return NextResponse.json({
       question: question,
       answer: responseText,
-      sources: ["Neural Synthesis (Gemini 1.5 Pro)"]
+      sources: ["SynapseMed Neural AI Engine (NVIDIA NIM / Gemini)"]
     })
   } catch (error) {
     console.error('AI Answer service error:', error)
