@@ -107,10 +107,10 @@ export function HomePage() {
             </div>
 
             <div className="flex flex-wrap items-center justify-center gap-6 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
-              <Button size="xl" asChild className="bg-[#213874] text-white font-bold rounded-2xl px-10 hover:scale-105 hover:bg-[#1a6ac3] transition-all shadow-xl shadow-blue-900/10">
+              <Button size="lg" asChild className="bg-[#213874] text-white font-bold rounded-2xl px-10 hover:scale-105 hover:bg-[#1a6ac3] transition-all shadow-xl shadow-blue-900/10">
                 <Link href="/library">Explore Curriculum</Link>
               </Button>
-              <Button size="xl" variant="outline" asChild className="border-gray-200 text-gray-600 font-bold rounded-2xl px-10 glass hover:bg-white hover:border-[#1a6ac3]/20 shadow-sm">
+              <Button size="lg" variant="outline" asChild className="border-gray-200 text-gray-600 font-bold rounded-2xl px-10 glass hover:bg-white hover:border-[#1a6ac3]/20 shadow-sm">
                 <Link href="/student/dashboard">Student Dashboard</Link>
               </Button>
             </div>
