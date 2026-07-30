@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { ClinicalSnapshot } from "./clinical-snapshot"
+import { AudioRounds } from "@/components/audio/audio-rounds"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -173,6 +174,10 @@ export function PremiumDiseaseViewer({
             difficulty={topic.difficulty}
             topicType={topic.type}
           />
+
+          <div className="mb-8">
+            <AudioRounds topicTitle={topic.title} />
+          </div>
 
           <div className="space-y-10">
             {sections.map((section) => {

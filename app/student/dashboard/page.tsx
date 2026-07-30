@@ -43,6 +43,7 @@ import { useAuth } from "@/components/auth-provider";
 import { NotesPanel } from "@/components/student/notes-panel"
 import { SpacedRepetitionPanel } from "@/components/student/spaced-repetition-panel"
 import { QuestionOfTheDayPanel } from "@/components/student/question-of-the-day-panel"
+import { ClinicalLeaderboard } from "@/components/student/clinical-leaderboard"
 import { Logo } from "@/components/logo";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
@@ -287,6 +288,9 @@ export default function StudentDashboard() {
              <QuestionOfTheDayPanel />
              <SpacedRepetitionPanel />
           </div>
+
+          {/* Gamified Clinical Leaderboard */}
+          <ClinicalLeaderboard />
 
           {/* Notes Panel */}
           <NotesPanel />
