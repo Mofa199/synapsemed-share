@@ -1,20 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { UserRole, Difficulty } from '@prisma/client'
+import { UserRole, Difficulty, ContentType } from '@prisma/client'
 import { getServerSession } from '@/lib/server-auth'
 import { authOptions } from '@/lib/auth'
+
+const ALLOWED_ROLES = [UserRole.SUPER_ADMIN, UserRole.LECTURER, UserRole.EDITOR]
 
 // GET /api/admin/topics - Get all topics
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+    if (!session || !ALLOWED_ROLES.includes(session.user.role as any)) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
     const topics = await prisma.topic.findMany({
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
+      include: {
+        curriculum: { select: { id: true, name: true } },
+        module: { select: { id: true, name: true } }
+      }
     })
 
     return NextResponse.json({ success: true, data: topics })
@@ -29,14 +35,14 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+    if (!session || !ALLOWED_ROLES.includes(session.user.role as any)) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
     const { 
-      title, description, content, category, 
-      difficulty, tags, isPublished 
+      title, description, content, category, type,
+      difficulty, duration, curriculumId, moduleId, tags, isPublished 
     } = body
 
     if (!title || !description || !content || !difficulty) {
@@ -51,8 +57,12 @@ export async function POST(request: NextRequest) {
         title,
         description: description || null,
         content,
+        type: type ? (type as ContentType) : ContentType.ARTICLE,
         category: category || "",
         difficulty: (difficulty as Difficulty) || Difficulty.BEGINNER,
+        duration: duration || null,
+        curriculumId: curriculumId || null,
+        moduleId: moduleId || null,
         tags: Array.isArray(tags) ? tags.join(', ') : (tags || ""),
         isPublished: !!isPublished,
       }
@@ -61,7 +71,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, data: topic })
   } catch (error) {
     console.error('Error creating topic:', error)
-    return NextResponse.json({ success: false, error: 'Failed to create topic' }, { status: 500 })
+    return NextResponse.json({ success: false, error: error instanceof Error ? error.message : 'Failed to create topic' }, { status: 500 })
   }
 }
 
@@ -70,7 +80,7 @@ export async function PUT(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+    if (!session || !ALLOWED_ROLES.includes(session.user.role as any)) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 
@@ -101,7 +111,7 @@ export async function DELETE(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     
-    if (!session || session.user.role !== UserRole.SUPER_ADMIN) {
+    if (!session || !ALLOWED_ROLES.includes(session.user.role as any)) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 })
     }
 

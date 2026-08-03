@@ -1,4 +1,12 @@
-import { CapacitorConfig } from '@capacitor/cli';
+export interface CapacitorConfig {
+  appId: string
+  appName: string
+  webDir: string
+  server?: {
+    androidScheme?: string
+  }
+  plugins?: Record<string, any>
+}
 
 const config: CapacitorConfig = {
   appId: 'com.synapsemed.app',

@@ -121,22 +121,24 @@ export default function AddTopicPage() {
         throw new Error("Difficulty level is required")
       }
 
-      const form = new FormData()
-      form.append('title', formData.title)
-      form.append('description', formData.description)
-      form.append('content', formData.content)
-      form.append('type', formData.type.toUpperCase())
-      form.append('difficulty', formData.difficulty.toUpperCase())
-      form.append('duration', formData.duration || '')
-      form.append('category', formData.category || '')
-      form.append('moduleId', formData.moduleId || '')
-      form.append('curriculumId', formData.curriculumId || '')
-      form.append('tags', JSON.stringify(formData.tags.split(',').map(tag => tag.trim()).filter(Boolean)))
-      form.append('isPublished', formData.isPublished.toString())
+      const payload = {
+        title: formData.title,
+        description: formData.description,
+        content: formData.content,
+        type: formData.type.toUpperCase(),
+        difficulty: formData.difficulty.toUpperCase(),
+        duration: formData.duration || '',
+        category: formData.category || '',
+        moduleId: formData.moduleId || null,
+        curriculumId: formData.curriculumId || null,
+        tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
+        isPublished: formData.isPublished
+      }
 
       const response = await fetch('/api/admin/topics', {
         method: 'POST',
-        body: form,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       })
 
       const data = await response.json()
