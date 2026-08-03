@@ -91,6 +91,9 @@ export default function TopicPage({ params }: { params: Promise<{ id: string }> 
       
       // Fetch topic data from API
       const topicResponse = await fetch(`/api/topics/${topicId}`)
+      if (!topicResponse.ok) {
+        throw new Error(`Failed to load topic (HTTP ${topicResponse.status})`)
+      }
       const topicResult = await topicResponse.json()
       
       if (topicResult.topic) {
@@ -102,31 +105,49 @@ export default function TopicPage({ params }: { params: Promise<{ id: string }> 
       
       // Fetch user progress for this topic
       if (user) {
-        const progressResponse = await fetch(`/api/progress?userId=${user.id}`)
-        const progressResult = await progressResponse.json()
-        if (progressResult.success) {
-          const topicProgress = progressResult.data.find((p: UserProgress) => 
-            p.resourceType === 'TOPIC' && p.resourceId === topicId
-          )
-          setUserProgress(topicProgress || null)
+        try {
+          const progressResponse = await fetch(`/api/progress?userId=${user.id}`)
+          if (progressResponse.ok) {
+            const progressResult = await progressResponse.json()
+            if (progressResult.success && Array.isArray(progressResult.data)) {
+              const topicProgress = progressResult.data.find((p: UserProgress) => 
+                p.resourceType === 'TOPIC' && p.resourceId === topicId
+              )
+              setUserProgress(topicProgress || null)
+            }
+          }
+        } catch (e) {
+          console.warn('Could not fetch user progress:', e)
         }
       }
       
       // Fetch user rating for this topic
       if (user) {
-        const ratingResponse = await fetch(`/api/ratings?userId=${user.id}&resourceId=${topicId}`)
-        const ratingResult = await ratingResponse.json()
-        if (ratingResult.success && ratingResult.data.length > 0) {
-          setUserRating(ratingResult.data[0].rating)
+        try {
+          const ratingResponse = await fetch(`/api/ratings?userId=${user.id}&resourceId=${topicId}`)
+          if (ratingResponse.ok) {
+            const ratingResult = await ratingResponse.json()
+            if (ratingResult.success && Array.isArray(ratingResult.data) && ratingResult.data.length > 0) {
+              setUserRating(ratingResult.data[0].rating)
+            }
+          }
+        } catch (e) {
+          console.warn('Could not fetch user rating:', e)
         }
       }
       
       // Check if topic is bookmarked
       if (user) {
-        const bookmarkResponse = await fetch(`/api/bookmarks?userId=${user.id}&resourceId=${topicId}`)
-        const bookmarkResult = await bookmarkResponse.json()
-        if (bookmarkResult.success && bookmarkResult.data.length > 0) {
-          setIsBookmarked(true)
+        try {
+          const bookmarkResponse = await fetch(`/api/bookmarks?userId=${user.id}&resourceId=${topicId}`)
+          if (bookmarkResponse.ok) {
+            const bookmarkResult = await bookmarkResponse.json()
+            if (bookmarkResult.success && Array.isArray(bookmarkResult.data) && bookmarkResult.data.length > 0) {
+              setIsBookmarked(true)
+            }
+          }
+        } catch (e) {
+          console.warn('Could not fetch bookmarks:', e)
         }
       }
     } catch (err) {
