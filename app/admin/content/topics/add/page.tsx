@@ -14,14 +14,10 @@ import { RichTextEditor } from "@/components/rich-text-editor"
 import { useAuth } from "@/components/auth-provider"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
-import { 
-  BookOpen, 
-  Save, 
-  X,
-  ChevronRight,
-  ArrowLeft
-} from "lucide-react"
+import { BookOpen, Save, ArrowLeft, Eye, Edit3 } from "lucide-react"
 import Link from "next/link"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { PremiumDiseaseViewer } from "@/components/topic/premium-disease-viewer"
 import { CurriculumModuleSelect } from "@/components/curriculum-module-select"
 
 export default function AddTopicPage() {
@@ -277,20 +273,53 @@ export default function AddTopicPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="content">Content</Label>
-                      <Button type="button" variant="outline" size="sm" onClick={loadDiseaseTemplate} className="h-8 text-xs">
+                  <Tabs defaultValue="editor" className="w-full">
+                    <div className="flex items-center justify-between mb-3">
+                      <TabsList className="bg-gray-100 p-1 rounded-xl">
+                        <TabsTrigger value="editor" className="rounded-lg gap-2 text-xs font-bold">
+                          <Edit3 className="w-3.5 h-3.5" /> Content Editor
+                        </TabsTrigger>
+                        <TabsTrigger value="preview" className="rounded-lg gap-2 text-xs font-bold text-primary">
+                          <Eye className="w-3.5 h-3.5" /> Live Premium Disease Viewer Preview
+                        </TabsTrigger>
+                      </TabsList>
+
+                      <Button type="button" variant="outline" size="sm" onClick={loadDiseaseTemplate} className="h-8 text-xs font-semibold">
                         Load Disease Template
                       </Button>
                     </div>
-                    <RichTextEditor
-                      value={formData.content}
-                      onChange={(value) => handleInputChange('content', value)}
-                      placeholder="Main content of the topic..."
-                      className="min-h-[300px]"
-                    />
-                  </div>
+
+                    <TabsContent value="editor" className="mt-0">
+                      <RichTextEditor
+                        value={formData.content}
+                        onChange={(value) => handleInputChange('content', value)}
+                        placeholder="Main content of the topic..."
+                        className="min-h-[350px]"
+                      />
+                    </TabsContent>
+
+                    <TabsContent value="preview" className="mt-0 border rounded-2xl p-4 bg-gray-50/50">
+                      <div className="mb-3 text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        Live Interactive Student View Preview
+                      </div>
+                      <PremiumDiseaseViewer
+                        topic={{
+                          id: "preview-id",
+                          title: formData.title || "Untitled Medical Topic",
+                          description: formData.description || "Topic description preview...",
+                          content: formData.content || "<h3>Definition</h3><p>Enter topic content to preview here...</p>",
+                          type: formData.type.toUpperCase(),
+                          difficulty: formData.difficulty.toUpperCase() as any,
+                          duration: formData.duration || "30 min",
+                          isPublished: formData.isPublished,
+                          createdAt: new Date().toISOString(),
+                          updatedAt: new Date().toISOString(),
+                          category: formData.category || "General Medicine"
+                        }}
+                      />
+                    </TabsContent>
+                  </Tabs>
 
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-2">
