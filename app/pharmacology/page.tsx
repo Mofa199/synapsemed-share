@@ -217,7 +217,7 @@ export default function PharmacologyPage() {
                      <h2 className="text-4xl font-bold tracking-tighter text-[#213874]">Complete Drug Database Grid</h2>
                      <p className="text-gray-500 max-w-xl text-lg font-medium">Browse our comprehensive clinical collection of dosage protocols, mechanism synthesis, and interaction matrices.</p>
                   </div>
-                  <Button size="xl" className="bg-primary text-white font-bold rounded-2xl px-12 hover:scale-105 transition-all shadow-2xl shadow-primary/20" asChild>
+                  <Button size="lg" className="bg-primary text-white font-bold rounded-2xl px-12 hover:scale-105 transition-all shadow-2xl shadow-primary/20" asChild>
                      <Link href="/drugs">Access Database <ArrowRight className="ml-2 h-5 w-5" /></Link>
                   </Button>
                </div>
