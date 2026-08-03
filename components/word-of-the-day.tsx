@@ -34,6 +34,15 @@ export function WordOfTheDay() {
   const fetchTodaysWord = async () => {
     try {
       const response = await fetch('/api/admin/word-of-the-day')
+      if (!response.ok) {
+        setError('Failed to load word of the day')
+        return
+      }
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        setError('Failed to load word of the day')
+        return
+      }
       const result = await response.json()
       
       if (result.success) {

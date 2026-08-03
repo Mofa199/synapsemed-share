@@ -26,6 +26,15 @@ export function Footer() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, source: 'footer' }),
       })
+      if (!response.ok) {
+        toast({ title: "Subscription Error", description: "Failed to subscribe at this time.", variant: "destructive" })
+        return
+      }
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        toast({ title: "Subscription Error", description: "Failed to subscribe at this time.", variant: "destructive" })
+        return
+      }
       const result = await response.json()
       if (result.success) {
         toast({ title: "Success", description: result.message })
