@@ -32,7 +32,11 @@ export interface CalculatorConfig {
   id: string
   name: string
   subtitle: string
-  category: "Cardiology" | "Pulmonology" | "Neurology" | "Critical Care" | "Hepatology"
+  category: string
+  formula?: string
+  hints?: string[]
+  riskTable?: { score: string; risk: string; action: string }[]
+  referenceLabValues?: { parameter: string; conventional: string; si: string }[]
   criteria?: CalculatorCriterion[]
   groupSelects?: CalculatorGroupSelect[]
   calculateRisk: (score: number, inputs?: Record<string, any>) => {
@@ -182,6 +186,85 @@ export function CalculatorCard({ config }: { config: CalculatorConfig }) {
             <p className="font-semibold text-gray-900">{riskInfo.interpretation}</p>
             <p className="text-gray-700 leading-relaxed font-medium">{riskInfo.recommendation}</p>
           </div>
+        </div>
+
+        {/* Clinical Explanations, Formula & Hints Section */}
+        <div className="border-t border-gray-100 pt-4 space-y-4">
+          {/* Formula */}
+          {config.formula && (
+            <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs">
+              <span className="font-bold text-slate-700 uppercase tracking-wider block mb-1">🧮 Clinical Formula / Equation:</span>
+              <code className="text-blue-900 font-mono font-semibold">{config.formula}</code>
+            </div>
+          )}
+
+          {/* Clinical Risk Stratification Table */}
+          {config.riskTable && config.riskTable.length > 0 && (
+            <div className="space-y-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-gray-400">📊 Risk Stratification & Clinical Guidance</span>
+              <div className="overflow-x-auto rounded-xl border border-gray-200">
+                <table className="w-full text-xs text-left text-gray-600">
+                  <thead className="bg-gray-100 text-gray-700 font-bold uppercase text-[10px]">
+                    <tr>
+                      <th className="px-3 py-2">Score</th>
+                      <th className="px-3 py-2">Risk Category</th>
+                      <th className="px-3 py-2">Clinical Action / Mortality</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {config.riskTable.map((row, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50/80">
+                        <td className="px-3 py-2 font-bold text-[#213874]">{row.score}</td>
+                        <td className="px-3 py-2 font-semibold">{row.risk}</td>
+                        <td className="px-3 py-2">{row.action}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Hints & Clinical Pearls */}
+          {config.hints && config.hints.length > 0 && (
+            <div className="bg-amber-50/70 p-3.5 rounded-xl border border-amber-200 text-xs space-y-1.5">
+              <span className="font-bold text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+                <Info className="w-3.5 h-3.5 text-amber-600" /> Clinical Hints & High-Yield Exam Notes:
+              </span>
+              <ul className="list-disc pl-4 space-y-1 text-amber-900 font-medium">
+                {config.hints.map((hint, idx) => (
+                  <li key={idx}>{hint}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {/* Reference Lab Values (Conventional vs SI) */}
+          {config.referenceLabValues && config.referenceLabValues.length > 0 && (
+            <div className="space-y-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-gray-400">🧪 Reference Lab Values & Unit Conversions</span>
+              <div className="overflow-x-auto rounded-xl border border-gray-200">
+                <table className="w-full text-xs text-left">
+                  <thead className="bg-gray-100 text-gray-700 font-bold uppercase text-[10px]">
+                    <tr>
+                      <th className="px-3 py-2">Test / Parameter</th>
+                      <th className="px-3 py-2">Conventional Unit (US)</th>
+                      <th className="px-3 py-2">SI Unit (International)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 text-gray-600">
+                    {config.referenceLabValues.map((lab, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50">
+                        <td className="px-3 py-2 font-bold text-gray-800">{lab.parameter}</td>
+                        <td className="px-3 py-2 font-mono text-blue-700">{lab.conventional}</td>
+                        <td className="px-3 py-2 font-mono text-emerald-700">{lab.si}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
