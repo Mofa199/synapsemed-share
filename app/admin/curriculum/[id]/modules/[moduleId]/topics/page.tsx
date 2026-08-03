@@ -189,9 +189,17 @@ export default function ModuleTopicsPage() {
                     </div>
 
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="flex-1 bg-transparent">
-                        <Edit className="h-3 w-3 mr-1" />
-                        Edit
+                      <Button variant="outline" size="sm" className="flex-1 bg-transparent text-[#213874] border-blue-200" asChild>
+                        <Link href={`/topic/${topic.id}`}>
+                          <BookOpen className="h-3 w-3 mr-1" />
+                          View
+                        </Link>
+                      </Button>
+                      <Button variant="outline" size="sm" className="bg-transparent text-gray-600 border-gray-200" asChild>
+                        <Link href={`/admin/content/topics/add`}>
+                          <Edit className="h-3 w-3 mr-1" />
+                          Edit
+                        </Link>
                       </Button>
                       <Button variant="destructive" size="sm">
                         <Trash2 className="h-3 w-3" />
