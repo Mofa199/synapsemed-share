@@ -170,7 +170,11 @@ export default function ModuleTopicsPage() {
                           {topic.difficulty}
                         </Badge>
                       </div>
-                      <CardTitle className="text-lg text-[#213874] mb-2">{topic.title}</CardTitle>
+                      <CardTitle className="text-lg text-[#213874] mb-2 hover:underline cursor-pointer">
+                        <Link href={`/topic/${topic.id}`}>
+                          {topic.title}
+                        </Link>
+                      </CardTitle>
                       <CardDescription className="text-sm">{topic.description}</CardDescription>
                     </div>
                   </div>
@@ -189,10 +193,10 @@ export default function ModuleTopicsPage() {
                     </div>
 
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm" className="flex-1 bg-transparent text-[#213874] border-blue-200" asChild>
+                      <Button className="flex-1 bg-[#213874] text-white hover:bg-[#1a6ac3]" size="sm" asChild>
                         <Link href={`/topic/${topic.id}`}>
                           <BookOpen className="h-3 w-3 mr-1" />
-                          View
+                          View Topic
                         </Link>
                       </Button>
                       <Button variant="outline" size="sm" className="bg-transparent text-gray-600 border-gray-200" asChild>

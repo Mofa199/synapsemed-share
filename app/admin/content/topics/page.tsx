@@ -19,7 +19,8 @@ import {
   ChevronRight,
   Clock,
   Loader2,
-  BookOpen
+  BookOpen,
+  Eye
 } from "lucide-react"
 import Link from "next/link"
 
@@ -329,6 +330,12 @@ export default function AdminTopicsPage() {
                       )}
                     </div>
                     <div className="flex gap-2 ml-4">
+                      <Button className="bg-[#213874] text-white hover:bg-[#1a6ac3]" size="sm" asChild>
+                        <Link href={`/topic/${topic.id}`}>
+                          <Eye className="w-4 h-4 mr-2" />
+                          View
+                        </Link>
+                      </Button>
                       <Button variant="outline" size="sm" asChild>
                         <Link href={`/admin/content/topics/edit/${topic.id}`}>
                           <Edit className="w-4 h-4 mr-2" />
