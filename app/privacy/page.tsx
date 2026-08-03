@@ -1,48 +1,76 @@
+"use client"
+
+import React from "react"
 import { Navigation } from "@/components/navigation"
+import { Footer } from "@/components/footer"
+import { Card, CardContent } from "@/components/ui/card"
+import { ShieldCheck, Lock, Eye, Database, FileText, CheckCircle } from "lucide-react"
 
 export default function PrivacyPolicyPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50/50 flex flex-col">
       <Navigation />
-      <div className="container mx-auto px-4 py-12 max-w-4xl">
-        <div className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-          <h1 className="text-4xl font-bold text-[#213874] mb-6">Privacy Policy</h1>
-          <p className="text-gray-600 mb-8">Last updated: July 2026</p>
 
-          <div className="space-y-6 text-gray-700">
-            <section>
-              <h2 className="text-2xl font-semibold text-[#213874] mb-4">1. Information We Collect</h2>
-              <p>We collect information you provide directly to us when you register for an account, subscribe to our WhatsApp notifications, or communicate with us. This includes your name, email address, phone number, and educational background.</p>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-semibold text-[#213874] mb-4">2. How We Use Your Information</h2>
-              <p>We use the information we collect to:</p>
-              <ul className="list-disc pl-6 mt-2 space-y-2">
-                <li>Provide, maintain, and improve our educational services</li>
-                <li>Send you technical notices and OTP verifications</li>
-                <li>Communicate with you via WhatsApp for daily quizzes (if opted-in)</li>
-                <li>Monitor and analyze trends, usage, and activities in connection with our Services</li>
-              </ul>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-semibold text-[#213874] mb-4">3. Data Security & Storage</h2>
-              <p>We implement appropriate technical and organizational security measures (including rate limiting and data sanitization) to protect your personal information against accidental or unlawful destruction, loss, alteration, or unauthorized disclosure. Your data is stored securely on our dedicated servers.</p>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-semibold text-[#213874] mb-4">4. WhatsApp Communications</h2>
-              <p>By opting into our WhatsApp services, you agree to receive automated messages containing study materials and quizzes. You can opt-out at any time by replying "STOP" to our WhatsApp number.</p>
-            </section>
-
-            <section>
-              <h2 className="text-2xl font-semibold text-[#213874] mb-4">5. Contact Us</h2>
-              <p>If you have any questions about this Privacy Policy, please contact us at privacy@synapsemed.co.tz.</p>
-            </section>
+      {/* Header */}
+      <section className="bg-gradient-to-br from-[#213874] via-[#1a4a90] to-[#1a6ac3] text-white pt-28 pb-16 relative overflow-hidden">
+        <div className="container mx-auto px-4 text-center max-w-4xl space-y-4">
+          <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 backdrop-blur-md">
+            <ShieldCheck className="w-4 h-4 text-emerald-300" />
+            <span className="text-xs font-bold uppercase tracking-widest text-blue-100">Data Protection & Compliance</span>
           </div>
+          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight">Privacy Policy</h1>
+          <p className="text-blue-100 text-base md:text-lg font-medium leading-relaxed max-w-2xl mx-auto">
+            SynapseMed is committed to protecting the privacy, security, and confidentiality of our medical students, educators, and clinicians.
+          </p>
         </div>
-      </div>
+      </section>
+
+      {/* Main Legal Content */}
+      <main className="container mx-auto px-4 py-12 max-w-4xl flex-1">
+        <Card className="border-gray-200 shadow-md bg-white p-8 space-y-8">
+          <div>
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">Effective Date: August 2026</span>
+            <h2 className="text-2xl font-bold text-[#213874] mb-3">1. Information We Collect</h2>
+            <p className="text-gray-600 text-sm leading-relaxed mb-4">
+              SynapseMed collects essential data necessary to deliver an interactive clinical learning experience:
+            </p>
+            <ul className="space-y-2 text-sm text-gray-600 list-disc pl-5">
+              <li><strong>Account Credentials:</strong> Name, email address, medical school / institution, role, and level of study.</li>
+              <li><strong>Learning Analytics:</strong> Flashcard ease factors, quiz accuracy rates, OSCE station performance, and topic completions.</li>
+              <li><strong>Technical Identifiers:</strong> IP addresses, browser types, and device telemetry for security & rate limiting.</li>
+            </ul>
+          </div>
+
+          <div className="border-t border-gray-100 pt-6">
+            <h2 className="text-2xl font-bold text-[#213874] mb-3">2. How We Use Your Data</h2>
+            <p className="text-gray-600 text-sm leading-relaxed mb-4">
+              Your data is exclusively utilized to personalize active recall algorithms and maintain platform integrity:
+            </p>
+            <ul className="space-y-2 text-sm text-gray-600 list-disc pl-5">
+              <li>Powering the SuperMemo-2 (SM-2) spaced repetition engine for flashcards.</li>
+              <li>Generating personalized AI clinical recommendations via NVIDIA NIM API.</li>
+              <li>Maintaining leaderboard rankings and gamification progress.</li>
+              <li>Protecting the platform against rate abuse and unauthorized access.</li>
+            </ul>
+          </div>
+
+          <div className="border-t border-gray-100 pt-6">
+            <h2 className="text-2xl font-bold text-[#213874] mb-3">3. Data Security & Encryption</h2>
+            <p className="text-gray-600 text-sm leading-relaxed">
+              We employ AES-256 encryption at rest and TLS 1.3 transport security. All session tokens are stored in HTTP-Only, Secure cookies to prevent cross-site scripting (XSS) attacks. We do not sell or monetize personal user data to third parties.
+            </p>
+          </div>
+
+          <div className="border-t border-gray-100 pt-6">
+            <h2 className="text-2xl font-bold text-[#213874] mb-3">4. Contact & Data Subject Rights</h2>
+            <p className="text-gray-600 text-sm leading-relaxed">
+              You have the right to request a copy of your stored clinical learning profile or request permanent account erasure. Contact our Data Protection Officer at <a href="mailto:privacy@synapsemed.com" className="text-blue-600 font-bold hover:underline">privacy@synapsemed.com</a>.
+            </p>
+          </div>
+        </Card>
+      </main>
+
+      <Footer />
     </div>
   )
 }

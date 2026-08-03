@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// Simple in-memory rate limiter for custom server deployments
+// In-memory rate limiter
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 
 function checkRateLimit(ip: string): boolean {
   const now = Date.now();
-  const limit = 100; // 100 requests per minute
+  const limit = 120; // 120 requests per minute
   const windowMs = 60 * 1000;
 
   const record = rateLimitMap.get(ip);
@@ -28,9 +28,9 @@ export function middleware(request: NextRequest) {
   
   // Rate Limit API routes
   if (pathname.startsWith('/api/')) {
-    const ip = request.ip ?? request.headers.get('x-forwarded-for') ?? 'unknown';
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] ?? 'unknown';
     if (ip !== 'unknown' && !checkRateLimit(ip)) {
-      return new NextResponse(JSON.stringify({ error: "Too Many Requests" }), {
+      return new NextResponse(JSON.stringify({ error: "Too Many Requests. Rate limit exceeded." }), {
         status: 429,
         headers: { 'Content-Type': 'application/json' }
       });
@@ -42,8 +42,11 @@ export function middleware(request: NextRequest) {
     '/',
     '/about',
     '/privacy',
+    '/terms',
     '/courses',
     '/library',
+    '/calculators',
+    '/osce-simulator',
     '/pharmacology',
     '/auth',
     '/login',
@@ -85,126 +88,64 @@ export function middleware(request: NextRequest) {
     '/student/videos'
   ]
 
+  // Response object construction
+  let response = NextResponse.next()
+
   // Check if the route is public
   const isPublicRoute = publicRoutes.some(route => pathname === route || pathname.startsWith(route))
-
-  // If it's a public route, allow access
-  if (isPublicRoute && !protectedRoutes.includes(pathname)) {
-    return NextResponse.next()
-  }
 
   // Get user info from cookies
   const nextAuthToken = request.cookies.get('next-auth.session-token') || request.cookies.get('__Secure-next-auth.session-token')
   const token = request.cookies.get('auth-token') || nextAuthToken
   const user = request.cookies.get('synapse-user')
 
-  // Debug logging for admin routes
-  if (pathname.startsWith('/admin') || pathname.startsWith('/api/admin')) {
-    console.log('=== MIDDLEWARE AUTH DEBUG ===')
-    console.log('Path:', pathname)
-    
-    const secureNextAuth = request.cookies.get('__Secure-next-auth.session-token')
-    const normalNextAuth = request.cookies.get('next-auth.session-token')
-    const authToken = request.cookies.get('auth-token')
-    const userCookie = request.cookies.get('synapse-user')
-
-    console.log('Cookies detected:')
-    console.log('- __Secure-next-auth.session-token:', !!secureNextAuth)
-    console.log('- next-auth.session-token:', !!normalNextAuth)
-    console.log('- auth-token:', !!authToken)
-    console.log('- synapse-user:', !!userCookie)
-
-    if (userCookie) {
-      try {
-        const userData = JSON.parse(decodeURIComponent(userCookie.value))
-        console.log('User Role:', userData.role)
-      } catch (e) {
-        console.log('Failed to parse user cookie')
-      }
-    }
-    console.log('===============================')
-  }
-
-  // Admin routes that require admin privileges (Super Admin, Lecturer, Editor)
-  const adminRoutes = ['/admin']
-
-  // Super Admin only routes
-  const superAdminRoutes = ['/admin/users', '/admin/analytics', '/admin/team']
-
-  // Student routes
-  const studentRoutes = ['/student']
-
-  // Check if trying to access protected routes
+  // Check route restrictions
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
-
-  const isAdminRoute = adminRoutes.some(route => pathname.startsWith(route))
-
-  const isSuperAdminRoute = superAdminRoutes.some(route => pathname.startsWith(route))
-
-  const isStudentRoute = studentRoutes.some(route => pathname.startsWith(route))
+  const isAdminRoute = pathname.startsWith('/admin')
+  const isSuperAdminRoute = ['/admin/users', '/admin/analytics', '/admin/team'].some(route => pathname.startsWith(route))
+  const isStudentRoute = pathname.startsWith('/student')
 
   // If accessing protected routes without authentication, redirect to login
-  if (isProtectedRoute || isAdminRoute || isStudentRoute) {
-
+  if (!isPublicRoute && (isProtectedRoute || isAdminRoute || isStudentRoute)) {
     if (!user || !token) {
-      console.log('Redirecting to login - no auth')
       return NextResponse.redirect(new URL('/auth', request.url))
     }
 
-    // Parse user data if available
     let userData: any = null
     if (user) {
       try {
         userData = JSON.parse(decodeURIComponent(user.value))
-        console.log('Parsed user data:', userData)
       } catch (e) {
-        console.log('Failed to parse user cookie, redirecting to login')
         return NextResponse.redirect(new URL('/auth', request.url))
       }
     }
 
-    // Check role-based access for admin routes
     if (isAdminRoute && userData) {
-      console.log('Checking admin access for user:', userData.role)
       const adminRoles = ['SUPER_ADMIN', 'LECTURER', 'EDITOR']
       if (!adminRoles.includes(userData.role)) {
-        console.log('Redirecting to home - insufficient admin privileges')
         return NextResponse.redirect(new URL('/', request.url))
       }
     }
 
-    // Check super admin access
     if (isSuperAdminRoute && userData) {
       if (userData.role !== 'SUPER_ADMIN') {
-        console.log('Redirecting to home - insufficient super admin privileges')
-        return NextResponse.redirect(new URL('/', request.url))
-      }
-    }
-
-    // Check student access
-    if (isStudentRoute && userData) {
-      const studentRoles = ['STUDENT', 'MEDICAL', 'NURSING', 'PHARMACY', 'SUPER_ADMIN', 'LECTURER', 'EDITOR']
-      if (!studentRoles.includes(userData.role)) {
-        console.log('Redirecting to home - insufficient student privileges')
         return NextResponse.redirect(new URL('/', request.url))
       }
     }
   }
 
-  return NextResponse.next()
+  // Inject Security & Performance Headers
+  response.headers.set('X-Frame-Options', 'SAMEORIGIN')
+  response.headers.set('X-Content-Type-Options', 'nosniff')
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  response.headers.set('X-DNS-Prefetch-Control', 'on')
+  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
+
+  return response
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api/auth (auth API routes)
-     * - api/debug-auth (public debug route)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
     '/((?!api/auth|api/debug-auth|_next/static|_next/image|favicon.ico|public).*)',
   ],
 }
