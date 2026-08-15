@@ -67,36 +67,71 @@ export default function AddTopicPage() {
       <h3>Pathophysiology</h3><p></p>
       <h3>Risk Factors</h3><p></p>
       <h3>Etiology</h3><p></p>
-      <h3>Classification</h3><p></p>
       <h3>Clinical Features</h3><p></p>
       <h3>Red Flags</h3><p></p>
       <h3>Differential Diagnosis</h3><p></p>
       <h3>Investigations</h3><p></p>
       <h3>Diagnostic Criteria</h3><p></p>
-      <h3>Severity Scoring Systems</h3><p></p>
-      <h3>Imaging Findings</h3><p></p>
-      <h3>Laboratory Findings</h3><p></p>
       <h3>Management (Emergency, Medical, Surgical)</h3><p></p>
-      <h3>Procedures</h3><p></p>
       <h3>Drug Therapy</h3><p></p>
       <h3>Complications</h3><p></p>
       <h3>Prognosis</h3><p></p>
-      <h3>Prevention</h3><p></p>
-      <h3>Patient Education</h3><p></p>
       <h3>Clinical Pearls</h3><p></p>
       <h3>OSCE Checklist</h3><p></p>
       <h3>Viva Questions</h3><p></p>
       <h3>SBA/MCQs</h3><p></p>
-      <h3>Flashcards</h3><p></p>
-      <h3>Guideline Summary</h3><p></p>
-      <h3>References</h3><p></p>
-      <h3>Related Cases</h3><p></p>
     `
     handleInputChange('content', template)
-    toast({
-      title: "Template Loaded",
-      description: "Disease structure template has been loaded into the editor.",
-    })
+    toast({ title: "Clinical Template Loaded", description: "Standard disease structure template loaded." })
+  }
+
+  const loadAnatomyTemplate = () => {
+    const template = `
+      <h3>Gross Anatomy & Location</h3><p>Anatomical boundaries, orientation, and spatial relations.</p>
+      <h3>Relations & Boundaries</h3><p>Anterior, posterior, superior, inferior, medial, and lateral relations.</p>
+      <h3>Neurovascular Supply</h3><p>Arterial supply, venous drainage, lymphatic drainage, and somatic/autonomic innervation.</p>
+      <h3>Histology & Microscopic Structure</h3><p>Epithelium, cellular layers, staining characteristics, and microscopic functional units.</p>
+      <h3>Embryological Origin & Development</h3><p>Germ layer derivative, key developmental milestones, and congenital anomalies.</p>
+      <h3>Clinical & Surgical Anatomy</h3><p>Surgical landmarks, planes of dissection, vulnerability during operations, and fascial compartments.</p>
+      <h3>OSCE Spotters & Prosection Landmarks</h3><p>High-yield pin targets, anatomical variations, and cadaveric identifiers.</p>
+      <h3>High-Yield Clinical Pearls</h3><p>Key board exam mnemonics and clinical correlations (e.g. nerve injury signs).</p>
+      <h3>Viva Questions & Flashcards</h3><p></p>
+    `
+    handleInputChange('content', template)
+    handleInputChange('category', 'Anatomy')
+    toast({ title: "Anatomy Template Loaded", description: "High-yield anatomy & histology structure loaded." })
+  }
+
+  const loadPhysiologyTemplate = () => {
+    const template = `
+      <h3>Physiological Principle & Function</h3><p>Core physiological role in maintaining systemic homeostasis.</p>
+      <h3>Cellular Mechanism & Transport</h3><p>Receptors, secondary messengers, ion channels, and transmembrane potential.</p>
+      <h3>Regulation & Feedback Loops</h3><p>Negative/positive feedback pathways, hormonal axes, and autonomic reflexes.</p>
+      <h3>Organ-System Integration</h3><p>Cardiorespiratory, renal, neuroendocrine, and metabolic interactions.</p>
+      <h3>Pathophysiological Derangements</h3><p>What happens when regulatory mechanisms fail (disease states).</p>
+      <h3>High-Yield Graphs, Equations & Lab Values</h3><p>Standard curves (e.g. dissociation curves, PV loops), normal reference ranges, and key formulas.</p>
+      <h3>Pharmacology & Clinical Links</h3><p>Receptor agonists/antagonists, drug targets, and diagnostic functional tests.</p>
+      <h3>Viva Questions & Flashcards</h3><p></p>
+    `
+    handleInputChange('content', template)
+    handleInputChange('category', 'Physiology')
+    toast({ title: "Physiology Template Loaded", description: "Comprehensive physiology & mechanisms structure loaded." })
+  }
+
+  const loadPharmacologyTemplate = () => {
+    const template = `
+      <h3>Drug Classification & Chemical Class</h3><p></p>
+      <h3>Mechanism of Action (MOA)</h3><p>Specific molecular target, enzyme/receptor binding, downstream cellular cascades.</p>
+      <h3>Pharmacokinetics (ADME)</h3><p>Absorption/bioavailability, Distribution/protein binding, Metabolism (CYP450), Excretion (Renal/Hepatic).</p>
+      <h3>Clinical Indications & Guidelines</h3><p>First-line vs second-line therapies, labeled uses, and off-label evidence.</p>
+      <h3>Dosage & Administration</h3><p>Standard adult, pediatric, elderly, and renal/hepatic dose adjustments.</p>
+      <h3>Adverse Drug Reactions & Black Box Warnings</h3><p>Common side effects, dose-limiting toxicities, and warning signs.</p>
+      <h3>Contraindications & Drug Interactions</h3><p>Absolute/relative contraindications, CYP interactions, and additive toxicity risks.</p>
+      <h3>High-Yield Prescribing Pearls</h3><p>Monitoring parameters, reversal agents/antidotes, and board exam associations.</p>
+    `
+    handleInputChange('content', template)
+    handleInputChange('category', 'Pharmacology')
+    toast({ title: "Pharmacology Template Loaded", description: "Complete drug monograph template loaded." })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -274,19 +309,31 @@ export default function AddTopicPage() {
                   </div>
 
                   <Tabs defaultValue="editor" className="w-full">
-                    <div className="flex items-center justify-between mb-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                       <TabsList className="bg-gray-100 p-1 rounded-xl">
                         <TabsTrigger value="editor" className="rounded-lg gap-2 text-xs font-bold">
                           <Edit3 className="w-3.5 h-3.5" /> Content Editor
                         </TabsTrigger>
                         <TabsTrigger value="preview" className="rounded-lg gap-2 text-xs font-bold text-primary">
-                          <Eye className="w-3.5 h-3.5" /> Live Premium Disease Viewer Preview
+                          <Eye className="w-3.5 h-3.5" /> Live Premium Student Preview
                         </TabsTrigger>
                       </TabsList>
 
-                      <Button type="button" variant="outline" size="sm" onClick={loadDiseaseTemplate} className="h-8 text-xs font-semibold">
-                        Load Disease Template
-                      </Button>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider mr-1">Load Template:</span>
+                        <Button type="button" variant="outline" size="sm" onClick={loadDiseaseTemplate} className="h-7 text-xs font-semibold px-2.5">
+                          🩺 Clinical
+                        </Button>
+                        <Button type="button" variant="outline" size="sm" onClick={loadAnatomyTemplate} className="h-7 text-xs font-semibold px-2.5 bg-blue-50/50 text-blue-700 border-blue-200">
+                          🦴 Anatomy
+                        </Button>
+                        <Button type="button" variant="outline" size="sm" onClick={loadPhysiologyTemplate} className="h-7 text-xs font-semibold px-2.5 bg-emerald-50/50 text-emerald-700 border-emerald-200">
+                          ⚡ Physiology
+                        </Button>
+                        <Button type="button" variant="outline" size="sm" onClick={loadPharmacologyTemplate} className="h-7 text-xs font-semibold px-2.5 bg-purple-50/50 text-purple-700 border-purple-200">
+                          💊 Pharmacology
+                        </Button>
+                      </div>
                     </div>
 
                     <TabsContent value="editor" className="mt-0">
