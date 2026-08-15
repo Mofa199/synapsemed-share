@@ -19,6 +19,11 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setMounted(true)
+    if (typeof window !== 'undefined' && 'serviceWorker' in navigator && process.env.NODE_ENV === 'production') {
+      navigator.serviceWorker.register('/sw.js').catch((err) => {
+        console.warn('Service Worker registration failed:', err)
+      })
+    }
   }, [])
 
   // Hide footer on auth pages or when user is not logged in on main page

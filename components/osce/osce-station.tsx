@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Progress } from "@/components/ui/progress"
-import { Award, Bot, Clock, MessageSquare, Send, CheckCircle2, AlertCircle, Sparkles, User, RotateCcw } from "lucide-react"
+import { Award, Bot, Clock, MessageSquare, Send, CheckCircle2, AlertCircle, Sparkles, User, RotateCcw, Mic, MicOff, Volume2 } from "lucide-react"
 
 export interface OSCEStationConfig {
   id: string
@@ -28,16 +28,46 @@ const defaultStation: OSCEStationConfig = {
 
 export function OSCEStation() {
   const [userInput, setUserInput] = useState("")
+  const [isRecording, setIsRecording] = useState(false)
   const [messages, setMessages] = useState<{ sender: "user" | "patient" | "examiner"; text: string }[]>([
     {
       sender: "examiner",
-      text: "Welcome to Station 1. You have 8 minutes to take a targeted history from Mr. Mwale and outline your diagnostic plan to the examiner. You may begin now."
+      text: "Welcome to Station 1. You have 8 minutes to take a targeted history from Mr. Mwale and outline your diagnostic plan to the examiner. You may type or use the microphone to speak."
     },
     {
       sender: "patient",
       text: "Doctor, I have this crushing pain in the middle of my chest. It started about 2 hours ago while I was walking upstairs."
     }
   ])
+
+  const toggleSpeechRecognition = () => {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      alert("Voice recognition is not supported on this browser. Please use Chrome, Edge, or Safari.")
+      return
+    }
+
+    if (isRecording) {
+      setIsRecording(false)
+      return
+    }
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    const recognition = new SpeechRecognition()
+    recognition.continuous = false
+    recognition.interimResults = false
+    recognition.lang = 'en-US'
+
+    recognition.onstart = () => setIsRecording(true)
+    recognition.onend = () => setIsRecording(false)
+    recognition.onerror = () => setIsRecording(false)
+
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript
+      setUserInput((prev) => (prev ? `${prev} ${transcript}` : transcript))
+    }
+
+    recognition.start()
+  }
 
   const [scores, setScores] = useState({
     history: 20,
@@ -139,15 +169,29 @@ export function OSCEStation() {
 
             {/* Input Bar */}
             <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={toggleSpeechRecognition}
+                className={`rounded-xl shrink-0 h-11 w-11 transition-all ${
+                  isRecording 
+                    ? "bg-red-500 text-white border-red-600 animate-pulse hover:bg-red-600" 
+                    : "bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100"
+                }`}
+                title={isRecording ? "Listening... Click to stop" : "Click to speak with microphone"}
+              >
+                {isRecording ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5 text-blue-600" />}
+              </Button>
               <Input
                 type="text"
-                placeholder="Ask the patient or state your clinical plan to the examiner..."
+                placeholder={isRecording ? "Listening to your voice..." : "Ask the patient or state your clinical plan to the examiner..."}
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-                className="bg-gray-50 border-gray-200 text-xs py-5 rounded-xl"
+                className="bg-gray-50 border-gray-200 text-xs py-5 rounded-xl flex-1"
               />
-              <Button onClick={handleSendMessage} className="bg-[#213874] hover:bg-[#1a6ac3]">
+              <Button onClick={handleSendMessage} className="bg-[#213874] hover:bg-[#1a6ac3] h-11 px-4 rounded-xl">
                 <Send className="w-4 h-4" />
               </Button>
             </div>
